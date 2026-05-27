@@ -38,7 +38,6 @@
     "db:down": "turbo -F @vault/db db:down"
   },
   "dependencies": {
-    "@vault/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },

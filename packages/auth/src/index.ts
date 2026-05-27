@@ -1,6 +1,6 @@
 import { createDb } from "@vault/db";
 import * as schema from "@vault/db/schema/auth";
-import { env } from "@vault/env/server";
+import { env } from "@vault/db/env";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 

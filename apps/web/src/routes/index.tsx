@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
+import JsonRenderDemo from "@/components/json-render-demo";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/")({
@@ -44,6 +45,9 @@ function HomeComponent() {
                   : "Disconnected"}
             </span>
           </div>
+        </section>
+        <section className="rounded-lg border p-4">
+          <JsonRenderDemo />
         </section>
       </div>
     </div>

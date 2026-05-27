@@ -1,3 +1,0 @@
-{
-  "extends": "@vault/config/tsconfig.base.json"
-}

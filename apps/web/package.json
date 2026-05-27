@@ -12,6 +12,10 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@json-render/core": "^0.19.0",
+    "@json-render/react": "^0.19.0",
+    "@json-render/shadcn": "^0.19.0",
+    "@t3-oss/env-core": "^0.13.1",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-form": "^1.28.0",
     "@tanstack/react-query": "^5.90.12",
@@ -20,7 +24,6 @@
     "@trpc/server": "catalog:",
     "@trpc/tanstack-react-query": "^11.16.0",
     "@vault/api": "workspace:*",
-    "@vault/env": "workspace:*",
     "@vault/ui": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",

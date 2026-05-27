@@ -15,7 +15,6 @@
     "@trpc/server": "catalog:",
     "@vault/auth": "workspace:*",
     "@vault/db": "workspace:*",
-    "@vault/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "zod": "catalog:"

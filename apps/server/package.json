@@ -16,7 +16,6 @@
     "@vault/api": "workspace:*",
     "@vault/auth": "workspace:*",
     "@vault/db": "workspace:*",
-    "@vault/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "fastify": "^5.3.3",

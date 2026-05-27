@@ -20,7 +20,7 @@
     "db:down": "docker compose down"
   },
   "dependencies": {
-    "@vault/env": "workspace:*",
+    "@t3-oss/env-core": "^0.13.1",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
     "pg": "^8.17.1",
