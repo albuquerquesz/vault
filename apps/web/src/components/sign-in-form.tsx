@@ -36,7 +36,7 @@ export default function SignInForm({
 						navigate({
 							to: "/dashboard",
 						});
-						toast.success("Sign in successful");
+						toast.success("Login realizado com sucesso");
 					},
 					onError: (error) => {
 						toast.error(error.error.message || error.error.statusText);
@@ -46,8 +46,8 @@ export default function SignInForm({
 		},
 		validators: {
 			onSubmit: z.object({
-				email: z.email("Invalid email address"),
-				password: z.string().min(8, "Password must be at least 8 characters"),
+				email: z.email("Endereço de e-mail inválido"),
+				password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
 			}),
 		},
 	});
@@ -58,7 +58,7 @@ export default function SignInForm({
 
 	return (
 		<div className="mx-auto w-full mt-10 max-w-md p-6">
-			<h1 className="mb-6 text-center text-3xl font-bold">Welcome Back</h1>
+			<h1 className="mb-6 text-center text-3xl font-bold">Bem-vindo de volta</h1>
 
 			<form
 				onSubmit={(e) => {
@@ -95,7 +95,7 @@ export default function SignInForm({
 					<form.Field name="password">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor={field.name}>Password</Label>
+								<Label htmlFor={field.name}>Senha</Label>
 								<Input
 									id={field.name}
 									name={field.name}
@@ -126,7 +126,7 @@ export default function SignInForm({
 							className="w-full"
 							disabled={!canSubmit || isSubmitting}
 						>
-							{isSubmitting ? "Submitting..." : "Sign In"}
+							{isSubmitting ? "Enviando..." : "Entrar"}
 						</Button>
 					)}
 				</form.Subscribe>
@@ -138,7 +138,7 @@ export default function SignInForm({
 					onClick={onSwitchToSignUp}
 					className="text-indigo-600 hover:text-indigo-800"
 				>
-					Need an account? Sign Up
+					Precisa de uma conta? Cadastre-se
 				</Button>
 			</div>
 		</div>

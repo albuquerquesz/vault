@@ -13,7 +13,7 @@ export function MobileNav() {
 			<Button
 				aria-controls="mobile-menu"
 				aria-expanded={open}
-				aria-label="Toggle menu"
+				aria-label="Alternar menu"
 				className="md:hidden"
 				onClick={() => setOpen(!open)}
 				size="icon"
@@ -50,9 +50,9 @@ export function MobileNav() {
 						</div>
 						<div className="mt-12 flex flex-col gap-2">
 							<Button className="w-full" variant="outline">
-								Sign In
+								Entrar
 							</Button>
-							<Button className="w-full">Get Started</Button>
+							<Button className="w-full">Começar</Button>
 						</div>
 					</div>
 				</Portal>

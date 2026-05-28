@@ -51,7 +51,7 @@ export function NavUser() {
 								{user.email}
 							</div>
 							<div className="mt-0.5 text-[10px] text-muted-foreground">
-								Store owner
+								Dono da loja
 							</div>
 						</div>
 					</DropdownMenuLabel>
@@ -60,36 +60,36 @@ export function NavUser() {
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
 						<UserIcon />
-						Profile
+						Perfil
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
 						<BellIcon />
-						Notifications
+						Notificações
 					</DropdownMenuItem>
 					<DropdownMenuItem>
 						<CommandIcon />
-						Keyboard shortcuts
+						Atalhos de teclado
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
 						<LifeBuoyIcon />
-						Seller help
+						Ajuda do vendedor
 					</DropdownMenuItem>
 					<DropdownMenuItem>
 						<BookOpenIcon />
-						Seller guides
+						Guias do vendedor
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
 						<CreditCardIcon />
-						Plan & billing
+						Plano e cobrança
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
@@ -99,7 +99,7 @@ export function NavUser() {
 						variant="destructive"
 					>
 						<LogOutIcon />
-						Log out
+						Sair
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>

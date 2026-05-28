@@ -8,15 +8,15 @@ import { useScroll } from "@/hooks/use-scroll";
 
 export const navLinks = [
 	{
-		label: "Features",
+		label: "Recursos",
 		href: "#",
 	},
 	{
-		label: "Pricing",
+		label: "Preços",
 		href: "#",
 	},
 	{
-		label: "About",
+		label: "Sobre",
 		href: "#",
 	},
 ];
@@ -52,9 +52,9 @@ export function Header() {
 						</Button>
 					))}
 					<Button size="sm" variant="outline">
-						Sign In
+						Entrar
 					</Button>
-					<Button size="sm">Get Started</Button>
+					<Button size="sm">Começar</Button>
 				</div>
 				<MobileNav />
 			</nav>

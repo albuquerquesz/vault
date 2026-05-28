@@ -16,28 +16,28 @@ type Stat = {
 
 const stats: readonly Stat[] = [
 	{
-		label: "Total revenue",
+		label: "Receita total",
 		value: "$284,920",
 		delta: 8.2,
-		hint: "vs prior 30 days",
+		hint: "vs 30 dias anteriores",
 	},
 	{
-		label: "Orders",
+		label: "Pedidos",
 		value: "1,842",
 		delta: 4.1,
-		hint: "vs prior 30 days",
+		hint: "vs 30 dias anteriores",
 	},
 	{
-		label: "Average order value",
+		label: "Ticket médio",
 		value: "$154.60",
 		delta: -1.3,
-		hint: "vs prior 30 days",
+		hint: "vs 30 dias anteriores",
 	},
 	{
-		label: "Store conversion",
+		label: "Conversão da loja",
 		value: "3.06%",
 		delta: 0.6,
-		hint: "vs prior 30 days",
+		hint: "vs 30 dias anteriores",
 	},
 ] as const;
 
