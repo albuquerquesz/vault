@@ -1,6 +1,6 @@
-import { cn } from "@vault/ui/lib/utils";
 import { Button } from "@vault/ui/components/button";
-import { RocketIcon, ArrowRightIcon, PhoneCallIcon } from "lucide-react";
+import { cn } from "@vault/ui/lib/utils";
+import { ArrowRightIcon, PhoneCallIcon, RocketIcon } from "lucide-react";
 
 export function HeroSection() {
 	return (
@@ -39,7 +39,7 @@ export function HeroSection() {
 				<a
 					className={cn(
 						"group mx-auto flex w-fit items-center gap-3 rounded-full border bg-card px-3 py-1 shadow",
-						"fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards transition-all delay-500 duration-500 ease-out"
+						"fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards transition-all delay-500 duration-500 ease-out",
 					)}
 					href="#link"
 				>
@@ -53,7 +53,7 @@ export function HeroSection() {
 				<h1
 					className={cn(
 						"fade-in slide-in-from-bottom-10 animate-in text-balance fill-mode-backwards text-center text-4xl tracking-tight delay-100 duration-500 ease-out md:text-5xl lg:text-6xl",
-						"text-shadow-[0_0px_50px_theme(--color-foreground/.2)]"
+						"text-shadow-[0_0px_50px_theme(--color-foreground/.2)]",
 					)}
 				>
 					Building Teams Help <br /> You Scale and Lead
@@ -66,12 +66,10 @@ export function HeroSection() {
 
 				<div className="fade-in slide-in-from-bottom-10 flex animate-in flex-row flex-wrap items-center justify-center gap-3 fill-mode-backwards pt-2 delay-300 duration-500 ease-out">
 					<Button className="rounded-full" size="lg" variant="secondary">
-						<PhoneCallIcon data-icon="inline-start" />{" "}
-						Book a Call
+						<PhoneCallIcon data-icon="inline-start" /> Book a Call
 					</Button>
 					<Button className="rounded-full" size="lg">
-						Get started{" "}
-						<ArrowRightIcon data-icon="inline-end" />
+						Get started <ArrowRightIcon data-icon="inline-end" />
 					</Button>
 				</div>
 			</div>

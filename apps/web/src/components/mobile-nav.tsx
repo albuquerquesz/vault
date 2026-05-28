@@ -1,9 +1,9 @@
-import { cn } from "@vault/ui/lib/utils";
-import React from "react";
 import { Button } from "@vault/ui/components/button";
-import { Portal, PortalBackdrop } from "@/components/portal";
+import { cn } from "@vault/ui/lib/utils";
+import { MenuIcon, XIcon } from "lucide-react";
+import React from "react";
 import { navLinks } from "@/components/header";
-import { XIcon, MenuIcon } from "lucide-react";
+import { Portal, PortalBackdrop } from "@/components/portal";
 
 export function MobileNav() {
 	const [open, setOpen] = React.useState(false);
@@ -31,13 +31,21 @@ export function MobileNav() {
 					<div
 						className={cn(
 							"data-[slot=open]:zoom-in-97 ease-out data-[slot=open]:animate-in",
-							"size-full p-4"
+							"size-full p-4",
 						)}
 						data-slot={open ? "open" : "closed"}
 					>
 						<div className="grid gap-y-2">
 							{navLinks.map((link) => (
-								<Button className="justify-start" key={link.label} variant="ghost" render={<a href={link.href} />} nativeButton={false}>{link.label}</Button>
+								<Button
+									className="justify-start"
+									key={link.label}
+									variant="ghost"
+									render={<a href={link.href} />}
+									nativeButton={false}
+								>
+									{link.label}
+								</Button>
 							))}
 						</div>
 						<div className="mt-12 flex flex-col gap-2">

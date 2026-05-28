@@ -1,26 +1,26 @@
 {
-  "name": "@vault/api",
-  "type": "module",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
-    }
-  },
-  "scripts": {},
-  "dependencies": {
-    "@trpc/client": "catalog:",
-    "@trpc/server": "catalog:",
-    "@vault/auth": "workspace:*",
-    "@vault/db": "workspace:*",
-    "better-auth": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@vault/config": "workspace:*",
-    "typescript": "catalog:"
-  }
+	"name": "@vault/api",
+	"type": "module",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"scripts": {},
+	"dependencies": {
+		"@trpc/client": "catalog:",
+		"@trpc/server": "catalog:",
+		"@vault/auth": "workspace:*",
+		"@vault/db": "workspace:*",
+		"better-auth": "catalog:",
+		"dotenv": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@vault/config": "workspace:*",
+		"typescript": "catalog:"
+	}
 }

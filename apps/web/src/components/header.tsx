@@ -1,9 +1,9 @@
 "use client";
+import { Button } from "@vault/ui/components/button";
 import { cn } from "@vault/ui/lib/utils";
 import { Logo } from "@/components/logo";
-import { useScroll } from "@/hooks/use-scroll";
-import { Button } from "@vault/ui/components/button";
 import { MobileNav } from "@/components/mobile-nav";
+import { useScroll } from "@/hooks/use-scroll";
 
 export const navLinks = [
 	{
@@ -39,7 +39,15 @@ export function Header() {
 				</a>
 				<div className="hidden items-center gap-2 md:flex">
 					{navLinks.map((link) => (
-						<Button key={link.label} size="sm" variant="ghost" render={<a href={link.href} />} nativeButton={false}>{link.label}</Button>
+						<Button
+							key={link.label}
+							size="sm"
+							variant="ghost"
+							render={<a href={link.href} />}
+							nativeButton={false}
+						>
+							{link.label}
+						</Button>
 					))}
 					<Button size="sm" variant="outline">
 						Sign In
