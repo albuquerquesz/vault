@@ -15,7 +15,6 @@ import {
 import {
 	ChevronDownIcon,
 	ChevronUpIcon,
-	CogIcon,
 	CreditCardIcon,
 	LogOutIcon,
 	MessageCircleIcon,
@@ -45,10 +44,6 @@ export function SidebarUserMenu() {
 				</div>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-68 bg-card p-2">
-				<DropdownMenuItem>
-					<CogIcon />
-					Configurações
-				</DropdownMenuItem>
 				<DropdownMenuItem>
 					<CreditCardIcon />
 					Plano

@@ -33,12 +33,12 @@ export function AppSidebar() {
           <SidebarMenu className="mt-2">
             <SidebarMenuItem>
               <SidebarMenuButton
-                className="text-muted-foreground"
-                size="sm"
+                className="text-muted-foreground text-sm"
+                size="default"
                 tooltip="Growth"
                 render={<a href="/dashboard" />}
               >
-                <AArrowUpIcon size={16} />
+                <AArrowUpIcon size={18} />
                 <span>Growth</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
