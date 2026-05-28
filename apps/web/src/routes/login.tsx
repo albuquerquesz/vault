@@ -18,7 +18,7 @@ function RouteComponent() {
 
         <div className="relative z-10 grid min-h-screen grid-cols-1 lg:grid-cols-3">
           <section className="hidden flex-col border-b border-border/60 px-8 py-8 lg:col-span-1 lg:flex lg:border-r lg:border-b-0 lg:px-10 lg:py-10">
-						<div className="mt-20 max-w-md space-y-6 text-left lg:mt-0 lg:flex lg:flex-1 lg:flex-col lg:justify-center">
+            <div className="mt-20 max-w-md space-y-6 text-left lg:mt-0 lg:flex lg:flex-1 lg:flex-col lg:justify-center">
               <h1
                 className="text-4xl leading-tight font-medium tracking-tight lg:text-5xl"
                 style={{ fontFamily: '"Space Grotesk", sans-serif' }}
@@ -32,8 +32,8 @@ function RouteComponent() {
               </p>
             </div>
 
-						<figure className="mt-20 max-w-md space-y-4 lg:mt-auto">
-							<blockquote className="text-xl leading-snug text-foreground">
+            <figure className="mt-20 max-w-md space-y-4 lg:mt-auto">
+              <blockquote className="text-xl leading-snug text-foreground">
                 &quot;Before this, I had no clear limit and always guessed my
                 spending. Now I know exactly how much I can spend each day
                 without getting in trouble at the end of the month.&quot;
@@ -66,7 +66,7 @@ function RouteComponent() {
                   Sign In or Join Now!
                 </h2>
                 <p className="text-xs font-normal text-muted-foreground">
-                  Sign in or create your Efferd account to get started.
+                  Sign in or create your Vault account to get started.
                 </p>
               </div>
 
@@ -74,7 +74,7 @@ function RouteComponent() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-12 w-full justify-center gap-3 text-base"
+                  className="h-12 w-full justify-center gap-3 !rounded-lg text-base"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -111,7 +111,7 @@ function RouteComponent() {
                       type="email"
                       autoComplete="email"
                       placeholder="Enter your email address"
-                      className="h-11 pl-9"
+                      className="h-11 !rounded-lg pl-9"
                     />
                   </div>
                   <p
@@ -120,7 +120,7 @@ function RouteComponent() {
                   />
                 </div>
 
-                <Button type="submit" className="h-11 w-full">
+                <Button type="submit" className="h-11 w-full !rounded-lg">
                   Continue With Email
                 </Button>
               </form>
