@@ -45,7 +45,7 @@ function RootComponent() {
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
-	const showHeader = pathname !== "/";
+	const showHeader = pathname !== "/" && pathname !== "/login";
 
 	return (
 		<>
