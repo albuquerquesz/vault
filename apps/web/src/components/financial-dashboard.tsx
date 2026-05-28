@@ -2,9 +2,12 @@ import { AppShell } from "@/components/app-shell";
 import { Dashboard } from "@/components/dashboard";
 
 export function FinancialDashboard() {
-	return (
-		<main className="financial-dashboard h-full w-full text-foreground" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-			<style>{`
+  return (
+    <main
+      className="financial-dashboard h-full w-full text-foreground"
+      style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+    >
+      <style>{`
         .financial-dashboard, .financial-dashboard * { background-color: #0000 !important; }
         .financial-dashboard { --panel-border: #d4d4d8; }
         .dark .financial-dashboard { --panel-border: #2a2a2a; }
@@ -59,11 +62,11 @@ export function FinancialDashboard() {
           padding-right: 1rem !important;
         }
       `}</style>
-			<AppShell>
-				<Dashboard />
-			</AppShell>
-		</main>
-	);
+      <AppShell>
+        <Dashboard />
+      </AppShell>
+    </main>
+  );
 }
 
 export default FinancialDashboard;

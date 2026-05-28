@@ -52,7 +52,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 									}
 								>
 									{item.icon}
-									<span className="text-base">{item.title}</span>
+									<span className="text-lg">{item.title}</span>
 									<ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 								</CollapsibleTrigger>
 								<CollapsibleContent>
@@ -64,7 +64,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 													render={<a href={subItem.path} />}
 												>
 													{subItem.icon}
-													<span className="text-base">{subItem.title}</span>
+													<span className="text-lg">{subItem.title}</span>
 												</SidebarMenuSubButton>
 											</SidebarMenuSubItem>
 										))}
@@ -80,7 +80,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 								render={<a href={item.path} />}
 							>
 								{item.icon}
-								<span className="text-base">{item.title}</span>
+								<span className="text-lg">{item.title}</span>
 							</SidebarMenuButton>
 						)}
 					</Collapsible>
