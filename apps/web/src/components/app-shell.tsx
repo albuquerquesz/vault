@@ -4,7 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
 	return (
-		<SidebarProvider defaultOpen={false}>
+		<SidebarProvider defaultOpen>
 			<AppSidebar />
 			<SidebarInset>
 				<AppHeader />

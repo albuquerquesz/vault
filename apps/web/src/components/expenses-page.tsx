@@ -8,8 +8,14 @@ import {
 } from "@vault/ui/components/card";
 import { Input } from "@vault/ui/components/input";
 import { Label } from "@vault/ui/components/label";
-import { useMemo, useState } from "react";
-import { formatFullCurrency, formatPercent } from "@/components/formater";
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+} from "@vault/ui/components/sheet";
+import { useState } from "react";
+import { formatFullCurrency } from "@/components/formater";
 
 const categories = [
 	"Housing",
@@ -60,21 +66,14 @@ const initialExpenses: Expense[] = [
 ];
 
 export function ExpensesPage() {
-	const [salary, setSalary] = useState(5000);
 	const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+	const [isOpen, setIsOpen] = useState(false);
 	const [form, setForm] = useState({
 		date: new Date().toISOString().slice(0, 10),
 		amount: "",
 		category: categories[0],
 		note: "",
 	});
-
-	const totalSpent = useMemo(
-		() => expenses.reduce((acc, expense) => acc + expense.amount, 0),
-		[expenses],
-	);
-
-	const spentPercentage = salary > 0 ? (totalSpent / salary) * 100 : 0;
 
 	function onAddExpense(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -93,48 +92,47 @@ export function ExpensesPage() {
 		]);
 
 		setForm((prev) => ({ ...prev, amount: "", note: "" }));
+		setIsOpen(false);
 	}
 
 	return (
 		<div className="grid gap-4">
 			<Card className="financial-panel-border">
-				<CardHeader>
-					<CardTitle>Monthly expenses</CardTitle>
+				<CardHeader className="flex flex-row items-center justify-between gap-2">
+					<CardTitle className="text-2xl" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+						Expense list
+					</CardTitle>
+					<Button onClick={() => setIsOpen(true)} size="sm">
+						Add expense
+					</Button>
 				</CardHeader>
-				<CardContent className="grid gap-4 md:grid-cols-3">
-					<div>
-						<p className="text-sm text-muted-foreground">Monthly salary</p>
-						<Input
-							className="mt-2"
-							type="number"
-							min={1}
-							value={salary}
-							onChange={(e) =>
-								setSalary(Math.max(0, Number(e.target.value || 0)))
-							}
-						/>
-					</div>
-					<div>
-						<p className="text-sm text-muted-foreground">Total spent</p>
-						<p className="mt-2 text-2xl font-semibold">
-							{formatFullCurrency(totalSpent)}
-						</p>
-					</div>
-					<div>
-						<p className="text-sm text-muted-foreground">Spent vs salary</p>
-						<p className="mt-2 text-2xl font-semibold">
-							{formatPercent(spentPercentage, 1)}
-						</p>
-					</div>
+				<CardContent className="grid gap-2">
+					{expenses.map((expense) => (
+						<div
+							key={expense.id}
+							className="flex flex-wrap items-center justify-between gap-2 border border-border p-3"
+						>
+							<div>
+								<p className="font-medium">{expense.note ?? "Expense"}</p>
+								<p className="text-sm text-muted-foreground">{expense.date}</p>
+							</div>
+							<div className="flex items-center gap-3">
+								<Badge variant="outline">{expense.category}</Badge>
+								<p className="font-semibold">
+									{formatFullCurrency(expense.amount)}
+								</p>
+							</div>
+						</div>
+					))}
 				</CardContent>
 			</Card>
 
-			<Card className="financial-panel-border">
-				<CardHeader>
-					<CardTitle>Add expense</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<form className="grid gap-3 md:grid-cols-2" onSubmit={onAddExpense}>
+			<Sheet open={isOpen} onOpenChange={setIsOpen}>
+				<SheetContent side="right">
+					<SheetHeader>
+						<SheetTitle>Add expense</SheetTitle>
+					</SheetHeader>
+					<form className="mt-4 grid gap-3" onSubmit={onAddExpense}>
 						<div className="grid gap-1.5">
 							<Label htmlFor="expense-date">Date</Label>
 							<Input
@@ -188,37 +186,10 @@ export function ExpensesPage() {
 								}
 							/>
 						</div>
-						<div className="md:col-span-2">
-							<Button type="submit">Save expense</Button>
-						</div>
+						<Button type="submit">Save expense</Button>
 					</form>
-				</CardContent>
-			</Card>
-
-			<Card className="financial-panel-border">
-				<CardHeader>
-					<CardTitle>Expense list</CardTitle>
-				</CardHeader>
-				<CardContent className="grid gap-2">
-					{expenses.map((expense) => (
-						<div
-							key={expense.id}
-							className="flex flex-wrap items-center justify-between gap-2 border border-border p-3"
-						>
-							<div>
-								<p className="font-medium">{expense.note ?? "Expense"}</p>
-								<p className="text-sm text-muted-foreground">{expense.date}</p>
-							</div>
-							<div className="flex items-center gap-3">
-								<Badge variant="outline">{expense.category}</Badge>
-								<p className="font-semibold">
-									{formatFullCurrency(expense.amount)}
-								</p>
-							</div>
-						</div>
-					))}
-				</CardContent>
-			</Card>
+				</SheetContent>
+			</Sheet>
 		</div>
 	);
 }

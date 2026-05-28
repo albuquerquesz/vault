@@ -41,41 +41,6 @@ export const navGroups: SidebarNavGroup[] = [
 		],
 	},
 	{
-		label: "Store",
-		items: [
-			{
-				title: "Orders",
-				path: "#/orders",
-				icon: <WalletIcon size={16} />,
-				subItems: [
-					{ title: "All orders", path: "#/orders/all" },
-					{ title: "Unfulfilled", path: "#/orders/unfulfilled" },
-					{ title: "Returns", path: "#/orders/returns" },
-				],
-			},
-			{
-				title: "Products",
-				path: "#/products",
-				icon: <LayoutGridIcon size={16} />,
-				subItems: [
-					{ title: "Catalog", path: "#/products/catalog" },
-					{ title: "Inventory", path: "#/products/inventory" },
-					{ title: "Collections", path: "#/products/collections" },
-				],
-			},
-			{
-				title: "Customers",
-				path: "#/customers",
-				icon: <CircleHelpIcon size={16} />,
-			},
-			{
-				title: "Marketing",
-				path: "#/marketing",
-				icon: <ActivityIcon size={16} />,
-			},
-		],
-	},
-	{
 		label: "Settings",
 		items: [
 			{
