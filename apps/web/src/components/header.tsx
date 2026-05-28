@@ -2,6 +2,7 @@
 import { Button } from "@vault/ui/components/button";
 import { cn } from "@vault/ui/lib/utils";
 import { Logo } from "@/components/logo";
+import { ModeToggle } from "@/components/mode-toggle";
 import { MobileNav } from "@/components/mobile-nav";
 import { useScroll } from "@/hooks/use-scroll";
 
@@ -38,6 +39,7 @@ export function Header() {
 					<Logo className="h-4" />
 				</a>
 				<div className="hidden items-center gap-2 md:flex">
+					<ModeToggle />
 					{navLinks.map((link) => (
 						<Button
 							key={link.label}

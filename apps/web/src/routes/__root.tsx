@@ -46,14 +46,16 @@ function RootComponent() {
 		select: (state) => state.location.pathname,
 	});
 	const showHeader = pathname !== "/" && pathname !== "/login";
+	const forcedTheme = pathname === "/login" ? "dark" : undefined;
 
 	return (
 		<>
 			<HeadContent />
 			<ThemeProvider
 				attribute="class"
-				defaultTheme="dark"
+				defaultTheme="light"
 				disableTransitionOnChange
+				forcedTheme={forcedTheme}
 				storageKey="vite-ui-theme"
 			>
 				<div className="grid h-svh grid-rows-[auto_1fr]">

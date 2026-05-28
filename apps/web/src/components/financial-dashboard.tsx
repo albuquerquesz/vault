@@ -4,24 +4,24 @@ import { Dashboard } from "@/components/dashboard";
 export function FinancialDashboard() {
 	return (
 		<main
-			className="financial-dashboard h-full w-full bg-[#0000] text-zinc-100"
+			className="financial-dashboard h-full w-full bg-transparent text-foreground"
 			style={{ fontFamily: '"Space Grotesk", sans-serif' }}
 		>
 			<style>{`
         .financial-dashboard, .financial-dashboard * { background-color: #0000 !important; }
         .financial-panel-border {
           position: relative !important;
-          border: 1px solid #0a0a0a !important;
-          outline: 1px solid #0a0a0a !important;
+          border: 1px solid var(--border) !important;
+          outline: 1px solid var(--border) !important;
           outline-offset: -1px !important;
           box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.09),
-            inset 1px 0 0 rgba(255, 255, 255, 0.09),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-            inset -1px 0 0 rgba(255, 255, 255, 0.03) !important;
+            inset 0 1px 0 color-mix(in oklab, var(--foreground) 6%, transparent),
+            inset 1px 0 0 color-mix(in oklab, var(--foreground) 6%, transparent),
+            inset 0 -1px 0 color-mix(in oklab, var(--foreground) 2%, transparent),
+            inset -1px 0 0 color-mix(in oklab, var(--foreground) 2%, transparent) !important;
           border-radius: 0 !important;
-          --panel-separator: #0a0a0a;
-          --panel-corner: #a1a1a1;
+          --panel-separator: var(--border);
+          --panel-corner: color-mix(in oklab, var(--foreground) 55%, transparent);
         }
         .financial-panel-border[data-slot="card"] {
           --tw-ring-shadow: 0 0 #0000 !important;
