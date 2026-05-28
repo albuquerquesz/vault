@@ -97,7 +97,7 @@ export function ExpensesPage() {
 
 	return (
 		<div className="grid gap-4">
-			<Card className="financial-panel-border">
+			<Card className="border-0">
 				<CardHeader className="flex flex-row items-center justify-between gap-2">
 					<CardTitle className="text-2xl" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
 						Expense list
