@@ -35,7 +35,7 @@ const REFUNDED_SHARE_OF_ORDERS_PCT = 2.6;
 
 const chartConfig = {
 	returnRate: {
-		label: "Return %",
+		label: "Devolução %",
 		color: "var(--chart-1)",
 	},
 } satisfies ChartConfig;
@@ -52,14 +52,14 @@ export function RefundReturnRateChart() {
 		<Card className="financial-panel-border ring-0 md:col-span-2">
 			<CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
 				<div className="space-y-1">
-					<CardTitle>Return rate</CardTitle>
-					<CardDescription>Last 7 days</CardDescription>
+					<CardTitle>Taxa de devolução</CardTitle>
+					<CardDescription>Últimos 7 dias</CardDescription>
 				</div>
 				<div className="space-y-1 sm:text-right">
 					<CardTitle className="text-right">
 						{REFUNDED_SHARE_OF_ORDERS_PCT}%
 					</CardTitle>
-					<CardDescription>of orders refunded</CardDescription>
+					<CardDescription>dos pedidos reembolsados</CardDescription>
 				</div>
 			</CardHeader>
 			<CardContent className="mt-auto">
@@ -99,7 +99,7 @@ export function RefundReturnRateChart() {
 						<DeltaValue />
 					</Delta>
 					<span className="inline-flex min-w-0 text-pretty">
-						vs first day (last 7 days)
+						vs primeiro dia (últimos 7 dias)
 					</span>
 				</div>
 				<Button
@@ -109,7 +109,7 @@ export function RefundReturnRateChart() {
 					render={<a href="#/orders/returns" />}
 					nativeButton={false}
 				>
-					Returns desk
+					Central de devoluções
 					<ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
 				</Button>
 			</CardFooter>

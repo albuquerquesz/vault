@@ -1,7 +1,6 @@
 "use client";
 
 import { AArrowUpIcon } from "@vault/ui/components/a-arrow-up";
-import { MessageSquareIcon } from "lucide-react";
 import {
 	Sidebar,
 	SidebarContent,
@@ -12,8 +11,9 @@ import {
 } from "@vault/ui/components/sidebar";
 import { TooltipProvider } from "@vault/ui/components/tooltip";
 import { navGroups } from "@/components/app-shared";
-import { ModeToggle } from "@/components/mode-toggle";
 import { NavGroup } from "@/components/nav-group";
+import { SidebarThemeSwitcher } from "@/components/sidebar-theme-switcher";
+import { SidebarUserMenuSection } from "@/components/sidebar-user-menu";
 
 export function AppSidebar() {
   return (
@@ -29,22 +29,8 @@ export function AppSidebar() {
           ))}
         </SidebarContent>
         <SidebarFooter>
-          <div className="flex items-center justify-between px-2 py-1">
-            <span className="text-muted-foreground text-xs">Theme</span>
-            <ModeToggle />
-          </div>
+          <SidebarThemeSwitcher />
           <SidebarMenu className="mt-2">
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                className="text-muted-foreground"
-                size="sm"
-                tooltip="Send feedback"
-                render={<a href="mailto:contact@albuquerquesz.com.br" />}
-              >
-                <MessageSquareIcon size={16} />
-                <span>Feedback</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 className="text-muted-foreground"
@@ -57,6 +43,7 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
+          <SidebarUserMenuSection />
         </SidebarFooter>
       </Sidebar>
     </TooltipProvider>

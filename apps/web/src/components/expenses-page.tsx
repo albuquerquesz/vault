@@ -18,12 +18,12 @@ import { useState } from "react";
 import { formatFullCurrency } from "@/components/formater";
 
 const categories = [
-	"Housing",
-	"Food",
-	"Transport",
-	"Health",
-	"Leisure",
-	"Other",
+	"Moradia",
+	"Alimentação",
+	"Transporte",
+	"Saúde",
+	"Lazer",
+	"Outros",
 ];
 
 type Expense = {
@@ -39,29 +39,29 @@ const initialExpenses: Expense[] = [
 		id: "1",
 		date: "2026-05-02",
 		amount: 1200,
-		category: "Housing",
-		note: "Rent",
+		category: "Moradia",
+		note: "Aluguel",
 	},
 	{
 		id: "2",
 		date: "2026-05-06",
 		amount: 220,
-		category: "Food",
-		note: "Groceries",
+		category: "Alimentação",
+		note: "Mercado",
 	},
 	{
 		id: "3",
 		date: "2026-05-12",
 		amount: 90,
-		category: "Transport",
-		note: "Fuel",
+		category: "Transporte",
+		note: "Combustível",
 	},
 	{
 		id: "4",
 		date: "2026-05-18",
 		amount: 180,
-		category: "Leisure",
-		note: "Weekend",
+		category: "Lazer",
+		note: "Fim de semana",
 	},
 ];
 
@@ -100,10 +100,10 @@ export function ExpensesPage() {
 			<Card className="border-0">
 				<CardHeader className="flex flex-row items-center justify-between gap-2">
 					<CardTitle className="text-2xl" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-						Expense list
+						Lista de despesas
 					</CardTitle>
 					<Button onClick={() => setIsOpen(true)} size="sm">
-						Add expense
+						Adicionar despesa
 					</Button>
 				</CardHeader>
 				<CardContent className="grid gap-2">
@@ -113,7 +113,7 @@ export function ExpensesPage() {
 							className="flex flex-wrap items-center justify-between gap-2 border border-border p-3"
 						>
 							<div>
-								<p className="font-medium">{expense.note ?? "Expense"}</p>
+								<p className="font-medium">{expense.note ?? "Despesa"}</p>
 								<p className="text-sm text-muted-foreground">{expense.date}</p>
 							</div>
 							<div className="flex items-center gap-3">
@@ -130,11 +130,11 @@ export function ExpensesPage() {
 			<Sheet open={isOpen} onOpenChange={setIsOpen}>
 				<SheetContent side="right">
 					<SheetHeader>
-						<SheetTitle>Add expense</SheetTitle>
+						<SheetTitle>Adicionar despesa</SheetTitle>
 					</SheetHeader>
 					<form className="mt-4 grid gap-3" onSubmit={onAddExpense}>
 						<div className="grid gap-1.5">
-							<Label htmlFor="expense-date">Date</Label>
+							<Label htmlFor="expense-date">Data</Label>
 							<Input
 								id="expense-date"
 								type="date"
@@ -145,7 +145,7 @@ export function ExpensesPage() {
 							/>
 						</div>
 						<div className="grid gap-1.5">
-							<Label htmlFor="expense-amount">Amount</Label>
+							<Label htmlFor="expense-amount">Valor</Label>
 							<Input
 								id="expense-amount"
 								type="number"
@@ -159,7 +159,7 @@ export function ExpensesPage() {
 							/>
 						</div>
 						<div className="grid gap-1.5">
-							<Label htmlFor="expense-category">Category</Label>
+							<Label htmlFor="expense-category">Categoria</Label>
 							<select
 								id="expense-category"
 								className="h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -176,17 +176,17 @@ export function ExpensesPage() {
 							</select>
 						</div>
 						<div className="grid gap-1.5">
-							<Label htmlFor="expense-note">Note (optional)</Label>
+							<Label htmlFor="expense-note">Observação (opcional)</Label>
 							<Input
 								id="expense-note"
-								placeholder="What was this expense for?"
+								placeholder="Para que foi esta despesa?"
 								value={form.note}
 								onChange={(e) =>
 									setForm((prev) => ({ ...prev, note: e.target.value }))
 								}
 							/>
 						</div>
-						<Button type="submit">Save expense</Button>
+						<Button type="submit">Salvar despesa</Button>
 					</form>
 				</SheetContent>
 			</Sheet>

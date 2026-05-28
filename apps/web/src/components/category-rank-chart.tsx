@@ -38,13 +38,13 @@ const periodDays = 7;
 
 /** Demo mix (sums to 100). Replace or pass `data` on the component. */
 const data = [
-	{ category: "Apparel", share: 22 },
-	{ category: "Accessories", share: 22 },
-	{ category: "Footwear", share: 18 },
-	{ category: "Home & living", share: 14 },
-	{ category: "Beauty", share: 11 },
+	{ category: "Vestuário", share: 22 },
+	{ category: "Acessórios", share: 22 },
+	{ category: "Calçados", share: 18 },
+	{ category: "Casa e decoração", share: 14 },
+	{ category: "Beleza", share: 11 },
 	{ category: "Outlet", share: 8 },
-	{ category: "Sports", share: 5 },
+	{ category: "Esportes", share: 5 },
 ] as const satisfies readonly CategoryMixDatum[];
 
 /** Sort by share descending, keep top four, merge the rest into “Others” (max five slices). */
@@ -60,7 +60,7 @@ function consolidateTopFourAndOthers(
 	const tail = sorted.slice(MAX_NAMED_SLICES);
 	const othersShare = tail.reduce((sum, row) => sum + row.share, 0);
 
-	return [...head, { category: "Others", share: othersShare }];
+	return [...head, { category: "Outros", share: othersShare }];
 }
 
 type SliceRow = {
@@ -76,7 +76,7 @@ function buildSlices(data: readonly CategoryMixDatum[]): {
 } {
 	const chartConfig: ChartConfig = {
 		share: {
-			label: "Share",
+			label: "Participação",
 		},
 	};
 
@@ -107,8 +107,8 @@ export function CategoryRankChart() {
 	return (
 		<Card className="financial-panel-border ring-0 md:col-span-2">
 			<CardHeader>
-				<CardTitle>Revenue Share by Category</CardTitle>
-				<CardDescription>Last {periodDays} days.</CardDescription>
+				<CardTitle>Participação da receita por categoria</CardTitle>
+				<CardDescription>Últimos {periodDays} dias.</CardDescription>
 			</CardHeader>
 			<CardContent className="my-auto p-0">
 				<ChartContainer

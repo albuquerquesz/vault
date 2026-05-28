@@ -20,39 +20,39 @@ export type SidebarNavGroup = {
 
 export const navGroups: SidebarNavGroup[] = [
 	{
-		label: "Finance",
+		label: "Finanças",
 		items: [
 			{
-				title: "Dashboard",
+				title: "Painel",
 				path: "/dashboard",
 				icon: <LayoutGridIcon size={16} />,
 				isActive: true,
 			},
 			{
-				title: "Expenses",
+				title: "Despesas",
 				path: "/finance/expenses",
 				icon: <WalletIcon size={16} />,
 			},
 			{
-				title: "Stability",
+				title: "Estabilidade",
 				path: "/finance/stability",
 				icon: <ActivityIcon size={16} />,
 			},
 		],
 	},
 	{
-		label: "Settings",
+		label: "Configurações",
 		items: [
 			{
-				title: "Store settings",
+				title: "Configurações da loja",
 				path: "#/store-settings",
 				icon: <SettingsIcon size={16} />,
 				subItems: [
-					{ title: "Store profile", path: "#/store-settings/profile" },
-					{ title: "Shipping & delivery", path: "#/store-settings/shipping" },
-					{ title: "Payments", path: "#/store-settings/payments" },
-					{ title: "Staff", path: "#/store-settings/staff" },
-					{ title: "Apps", path: "#/store-settings/apps" },
+					{ title: "Perfil da loja", path: "#/store-settings/profile" },
+					{ title: "Envio e entrega", path: "#/store-settings/shipping" },
+					{ title: "Pagamentos", path: "#/store-settings/payments" },
+					{ title: "Equipe", path: "#/store-settings/staff" },
+					{ title: "Aplicativos", path: "#/store-settings/apps" },
 				],
 			},
 		],
@@ -61,12 +61,12 @@ export const navGroups: SidebarNavGroup[] = [
 
 export const footerNavLinks: SidebarNavItem[] = [
 	{
-		title: "Seller help",
+		title: "Ajuda do vendedor",
 		path: "#/seller-help",
 		icon: <CircleHelpIcon size={16} />,
 	},
 	{
-		title: "Platform status",
+		title: "Status da plataforma",
 		path: "#/status",
 		icon: <ActivityIcon size={16} />,
 	},

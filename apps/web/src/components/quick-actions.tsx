@@ -24,26 +24,26 @@ import {
 
 const actions = [
 	{
-		title: "Add product",
-		description: "Create a new SKU.",
+		title: "Adicionar produto",
+		description: "Crie um novo SKU.",
 		href: "#",
 		icon: <PackagePlusIcon aria-hidden="true" />,
 	},
 	{
-		title: "Review unfulfilled",
-		description: "Orders waiting to ship.",
+		title: "Revisar pendentes",
+		description: "Pedidos aguardando envio.",
 		href: "#",
 		icon: <TruckIcon aria-hidden="true" />,
 	},
 	{
-		title: "Store settings",
-		description: "Payments, checkouts etc.",
+		title: "Configurações da loja",
+		description: "Pagamentos, checkout etc.",
 		href: "#",
 		icon: <SettingsIcon aria-hidden="true" />,
 	},
 	{
-		title: "Export sales",
-		description: "CSV for accountings.",
+		title: "Exportar vendas",
+		description: "CSV para contabilidade.",
 		href: "#",
 		icon: <DownloadIcon aria-hidden="true" />,
 	},
@@ -53,8 +53,8 @@ export function QuickActions() {
 	return (
 		<Card className="financial-panel-border">
 			<CardHeader>
-				<CardTitle>Quick actions</CardTitle>
-				<CardDescription>Shortcuts to same destinations.</CardDescription>
+				<CardTitle>Ações rápidas</CardTitle>
+				<CardDescription>Atalhos para os principais destinos.</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<ItemGroup className="gap-0">

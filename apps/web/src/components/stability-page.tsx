@@ -31,11 +31,11 @@ export function StabilityPage() {
 		<div className="grid gap-4 md:grid-cols-2">
 			<Card className="financial-panel-border md:col-span-2">
 				<CardHeader>
-					<CardTitle>Stability planner</CardTitle>
+					<CardTitle>Planejador de estabilidade</CardTitle>
 				</CardHeader>
 				<CardContent className="grid gap-4 md:grid-cols-2">
 					<div>
-						<p className="text-sm text-muted-foreground">Monthly salary</p>
+						<p className="text-sm text-muted-foreground">Salário mensal</p>
 						<Input
 							className="mt-2"
 							type="number"
@@ -48,7 +48,7 @@ export function StabilityPage() {
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">
-							Total spent this month
+							Total gasto neste mês
 						</p>
 						<Input
 							className="mt-2"
@@ -65,7 +65,7 @@ export function StabilityPage() {
 
 			<Card className="financial-panel-border">
 				<CardHeader>
-					<CardTitle>Spent percentage</CardTitle>
+					<CardTitle>Percentual gasto</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<p className="text-3xl font-semibold">
@@ -76,7 +76,7 @@ export function StabilityPage() {
 
 			<Card className="financial-panel-border">
 				<CardHeader>
-					<CardTitle>Remaining budget</CardTitle>
+					<CardTitle>Orçamento restante</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<p className="text-3xl font-semibold">
@@ -87,7 +87,7 @@ export function StabilityPage() {
 
 			<Card className="financial-panel-border">
 				<CardHeader>
-					<CardTitle>Remaining days</CardTitle>
+					<CardTitle>Dias restantes</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<p className="text-3xl font-semibold">{metrics.remainingDays}</p>
@@ -96,14 +96,14 @@ export function StabilityPage() {
 
 			<Card className="financial-panel-border">
 				<CardHeader>
-					<CardTitle>Recommended daily max spend</CardTitle>
+					<CardTitle>Gasto diário máximo recomendado</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<p className="text-3xl font-semibold">
 						{formatFullCurrency(metrics.dailyCap)}
 					</p>
 					<p className="mt-2 text-sm text-muted-foreground">
-						Formula: (salary - spent) / remaining days.
+						Fórmula: (salário - gasto) / dias restantes.
 					</p>
 				</CardContent>
 			</Card>

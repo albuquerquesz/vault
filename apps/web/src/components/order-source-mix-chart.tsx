@@ -28,11 +28,11 @@ type OrderSourceMixChartProps = {
 };
 
 const defaultData: OrderSourceDatum[] = [
-	{ source: "Organic search", percent: 37.9, orders: 698 },
-	{ source: "Direct", percent: 28.0, orders: 516 },
-	{ source: "Referral", percent: 15.0, orders: 276 },
-	{ source: "Paid social", percent: 12.0, orders: 221 },
-	{ source: "Others", percent: 7.1, orders: 131 },
+	{ source: "Busca orgânica", percent: 37.9, orders: 698 },
+	{ source: "Direto", percent: 28.0, orders: 516 },
+	{ source: "Referência", percent: 15.0, orders: 276 },
+	{ source: "Social pago", percent: 12.0, orders: 221 },
+	{ source: "Outros", percent: 7.1, orders: 131 },
 ];
 
 const slicePalette = [
@@ -45,7 +45,7 @@ const slicePalette = [
 
 const chartConfig = {
 	orders: {
-		label: "Orders",
+		label: "Pedidos",
 		color: "var(--chart-1)",
 	},
 } satisfies ChartConfig;
@@ -58,7 +58,7 @@ function formatSignedPercent(value: number): string {
 export function OrderSourceMixChart({
 	data = defaultData,
 	totalOrders,
-	periodLabel = "last 30 days",
+	periodLabel = "últimos 30 dias",
 	deltaPct = 0.5,
 }: OrderSourceMixChartProps) {
 	const safeData = data.length > 0 ? data : defaultData;
@@ -72,11 +72,11 @@ export function OrderSourceMixChart({
 			<CardHeader className="flex flex-row items-start justify-between gap-4">
 				<div className="space-y-1">
 					<CardTitle>{resolvedTotalOrders.toLocaleString()}</CardTitle>
-					<CardDescription>Total orders in {periodLabel}</CardDescription>
+					<CardDescription>Total de pedidos em {periodLabel}</CardDescription>
 				</div>
 				<div className="space-y-1 text-right">
 					<CardTitle className="text-sm">{formatSignedPercent(deltaPct)}</CardTitle>
-					<CardDescription>vs prev 30 days</CardDescription>
+					<CardDescription>vs 30 dias anteriores</CardDescription>
 				</div>
 			</CardHeader>
 			<CardContent>
@@ -105,7 +105,7 @@ export function OrderSourceMixChart({
 						</PieChart>
 					</ChartContainer>
 
-					<ul className="space-y-3" aria-label="Order sources breakdown">
+					<ul className="space-y-3" aria-label="Detalhamento das origens de pedidos">
 						{safeData.map((row, index) => (
 							<li
 								key={row.source}

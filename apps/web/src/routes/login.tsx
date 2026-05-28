@@ -23,25 +23,25 @@ function RouteComponent() {
                 className="text-4xl leading-tight font-medium tracking-tight lg:text-5xl"
                 style={{ fontFamily: '"Space Grotesk", sans-serif' }}
               >
-                Take control of your money, one day at a time.
+                Assuma o controle do seu dinheiro, um dia de cada vez.
               </h1>
               <p className="text-xl text-muted-foreground">
-                Track every expense, see how much of your monthly income is
-                already committed, and follow a smart daily spending target to
-                stay financially stable.
+                Acompanhe cada despesa, veja quanto da sua renda mensal já está
+                comprometida e siga uma meta inteligente de gasto diário para
+                manter sua estabilidade financeira.
               </p>
             </div>
 
             <figure className="mt-20 max-w-md space-y-4 lg:mt-auto">
               <blockquote className="text-xl leading-snug text-foreground">
-                &quot;Before this, I had no clear limit and always guessed my
-                spending. Now I know exactly how much I can spend each day
-                without getting in trouble at the end of the month.&quot;
+                &quot;Antes, eu não tinha um limite claro e sempre chutava meus
+                gastos. Agora eu sei exatamente quanto posso gastar por dia sem
+                passar aperto no fim do mês.&quot;
               </blockquote>
               <figcaption className="flex items-center gap-3">
                 <img
                   src="/images/testimonial-user.jpeg"
-                  alt="User testimonial"
+                  alt="Depoimento de usuário"
                   className="size-10 rounded-full object-cover"
                 />
                 <div>
@@ -49,7 +49,7 @@ function RouteComponent() {
                     Victor Albuquerque
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    - Software Engineer
+                    - Engenheiro de Software
                   </p>
                 </div>
               </figcaption>
@@ -63,14 +63,14 @@ function RouteComponent() {
                   className="text-4xl font-medium tracking-tight"
                   style={{ fontFamily: '"Space Grotesk", sans-serif' }}
                 >
-                  Sign In or Join Now!
+                  Entrar ou Criar Conta
                 </h2>
                 <p className="text-xs font-normal text-muted-foreground">
-                  Sign in or create your Vault account to get started.
+                  Entre ou crie sua conta Vault para começar.
                 </p>
               </div>
 
-              <form className="space-y-3" aria-label="Login form">
+              <form className="space-y-3" aria-label="Formulário de login">
                 <Button
                   type="button"
                   variant="outline"
@@ -87,19 +87,19 @@ function RouteComponent() {
                       d="M21.35 11.1h-9.18v2.98h5.27c-.23 1.52-1.83 4.47-5.27 4.47-3.17 0-5.76-2.62-5.76-5.85s2.58-5.85 5.76-5.85c1.8 0 3 .77 3.69 1.44l2.52-2.45C16.77 4.34 14.67 3.5 12.17 3.5c-5.09 0-9.22 4.18-9.22 9.35s4.13 9.35 9.22 9.35c5.32 0 8.84-3.78 8.84-9.1 0-.61-.06-1.08-.16-1.5Z"
                     />
                   </svg>
-                  Continue with Google
+                  Continuar com Google
                 </Button>
 
                 <div className="relative py-2">
                   <Separator />
                   <span className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
-                    <span className="px-3">OR</span>
+                    <span className="px-3">OU</span>
                   </span>
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="email" className="sr-only">
-                    Email address
+                    Endereço de e-mail
                   </label>
                   <div className="relative">
                     <AtSign
@@ -110,7 +110,7 @@ function RouteComponent() {
                       id="email"
                       type="email"
                       autoComplete="email"
-                      placeholder="Enter your email address"
+                      placeholder="Digite seu endereço de e-mail"
                       className="h-11 !rounded-lg pl-9"
                     />
                   </div>
@@ -121,7 +121,7 @@ function RouteComponent() {
                 </div>
 
                 <Button type="submit" className="h-11 w-full !rounded-lg">
-                  Continue With Email
+                  Continuar com e-mail
                 </Button>
               </form>
             </div>

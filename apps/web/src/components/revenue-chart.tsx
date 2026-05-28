@@ -50,7 +50,7 @@ type RevenueRow = {
 
 const chartConfig = {
 	revenue: {
-		label: "Revenue",
+		label: "Receita",
 		color: "var(--chart-1)",
 	},
 } satisfies ChartConfig;
@@ -86,7 +86,7 @@ export function RevenueChart() {
 	return (
 		<Card className="financial-panel-border ring-0 md:col-span-2 lg:col-span-4">
 			<CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<CardTitle className="text-balance">Revenue</CardTitle>
+				<CardTitle className="text-balance">Receita</CardTitle>
 				<Select
 					onValueChange={(v) => {
 						setPeriodDays(Number(v) as PeriodDays);
@@ -94,18 +94,18 @@ export function RevenueChart() {
 					value={String(periodDays)}
 				>
 					<SelectTrigger
-						aria-label="Revenue time range"
+						aria-label="Intervalo de tempo da receita"
 						className="w-full min-w-36 sm:w-fit"
 						size="sm"
 					>
-						<SelectValue placeholder="Range" />
+						<SelectValue placeholder="Período" />
 					</SelectTrigger>
 					<SelectContent align="end">
-						<SelectItem value="7">Last 7 days</SelectItem>
-						<SelectItem value="14">Last 14 days</SelectItem>
-						<SelectItem value="30">Last 30 days</SelectItem>
-						<SelectItem value="60">Last 60 days</SelectItem>
-						<SelectItem value="90">Last 90 days</SelectItem>
+						<SelectItem value="7">Últimos 7 dias</SelectItem>
+						<SelectItem value="14">Últimos 14 dias</SelectItem>
+						<SelectItem value="30">Últimos 30 dias</SelectItem>
+						<SelectItem value="60">Últimos 60 dias</SelectItem>
+						<SelectItem value="90">Últimos 90 dias</SelectItem>
 					</SelectContent>
 				</Select>
 			</CardHeader>
@@ -179,7 +179,7 @@ export function RevenueChart() {
 						<DeltaValue />
 					</Delta>
 					<p className="inline-flex text-pretty">
-						vs first day in last {periodDays} days.
+						vs primeiro dia nos últimos {periodDays} dias.
 					</p>
 				</div>
 				<Button
@@ -189,7 +189,7 @@ export function RevenueChart() {
 					render={<a href="#/reports" />}
 					nativeButton={false}
 				>
-					View report
+					Ver relatório
 					<ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
 				</Button>
 			</CardFooter>
