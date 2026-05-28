@@ -1,32 +1,53 @@
-import { Link } from "@tanstack/react-router";
+"use client";
+import { cn } from "@vault/ui/lib/utils";
+import { Logo } from "@/components/logo";
+import { useScroll } from "@/hooks/use-scroll";
+import { Button } from "@vault/ui/components/button";
+import { MobileNav } from "@/components/mobile-nav";
 
-import { ModeToggle } from "./mode-toggle";
-import UserMenu from "./user-menu";
+export const navLinks = [
+	{
+		label: "Features",
+		href: "#",
+	},
+	{
+		label: "Pricing",
+		href: "#",
+	},
+	{
+		label: "About",
+		href: "#",
+	},
+];
 
-export default function Header() {
-  const links = [
-    { to: "/", label: "Home" },
-    { to: "/dashboard", label: "Dashboard" },
-  ] as const;
+export function Header() {
+	const scrolled = useScroll(10);
 
-  return (
-    <div>
-      <div className="flex flex-row items-center justify-between px-2 py-1">
-        <nav className="flex gap-4 text-lg">
-          {links.map(({ to, label }) => {
-            return (
-              <Link key={to} to={to}>
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="flex items-center gap-2">
-          <ModeToggle />
-          <UserMenu />
-        </div>
-      </div>
-      <hr />
-    </div>
-  );
+	return (
+		<header
+			className={cn("sticky top-0 z-50 w-full border-transparent border-b", {
+				"border-border bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/50":
+					scrolled,
+			})}
+		>
+			<nav className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
+				<a
+					className="rounded-md p-2 hover:bg-muted dark:hover:bg-muted/50"
+					href="#"
+				>
+					<Logo className="h-4" />
+				</a>
+				<div className="hidden items-center gap-2 md:flex">
+					{navLinks.map((link) => (
+						<Button key={link.label} size="sm" variant="ghost" render={<a href={link.href} />} nativeButton={false}>{link.label}</Button>
+					))}
+					<Button size="sm" variant="outline">
+						Sign In
+					</Button>
+					<Button size="sm">Get Started</Button>
+				</div>
+				<MobileNav />
+			</nav>
+		</header>
+	);
 }

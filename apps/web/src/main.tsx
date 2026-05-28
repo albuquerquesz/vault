@@ -13,7 +13,9 @@ const router = createRouter({
   defaultPendingComponent: () => <Loader />,
   context: { trpc, queryClient },
   Wrap: function WrapComponent({ children }: { children: React.ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>;
   },
 });
 
@@ -25,9 +27,8 @@ declare module "@tanstack/react-router" {
 
 const rootElement = document.getElementById("app");
 
-if (!rootElement) {
+if (!rootElement)
   throw new Error("Root element not found");
-}
 
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
