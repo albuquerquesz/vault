@@ -5,10 +5,12 @@ export function FinancialDashboard() {
   return (
     <main
       className="financial-dashboard h-full w-full text-foreground"
-      style={{ fontFamily: '"Space Grotesk", sans-serif' }}
     >
       <style>{`
         .financial-dashboard, .financial-dashboard * { background-color: #0000 !important; }
+        .financial-dashboard {
+          font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        }
         .financial-dashboard { --panel-border: #d4d4d8; }
         .dark .financial-dashboard { --panel-border: #2a2a2a; }
         .financial-panel-border {
@@ -52,7 +54,14 @@ export function FinancialDashboard() {
         .financial-panel-border [data-slot="card-footer"] {
           border-top: 1px solid var(--panel-border) !important;
         }
-        .financial-dashboard [data-slot="card-title"] { font-size: 1.5rem !important; line-height: 1.2 !important; }
+        .financial-dashboard [data-slot="card-title"] {
+          font-family: "Space Grotesk", sans-serif !important;
+          font-size: 1.5rem !important;
+          line-height: 1.2 !important;
+        }
+        .financial-dashboard h1 {
+          font-family: "Space Grotesk", sans-serif !important;
+        }
         .financial-dashboard [data-slot="card-description"] { font-size: 1rem !important; line-height: 1.45 !important; }
         .financial-dashboard [data-slot="card-content"] { font-size: 1rem !important; }
         .financial-dashboard [data-slot="card-footer"] { font-size: 0.95rem !important; }
