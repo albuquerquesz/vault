@@ -1,0 +1,32 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
+	"files": {
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/node_modules",
+			"!**/.turbo",
+			"!**/routeTree.gen.ts"
+		]
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"linter": {
+		"rules": {
+			"a11y": {
+				"noLabelWithoutControl": "off",
+				"useFocusableInteractive": "off",
+				"useAnchorContent": "off",
+				"useSemanticElements": "off",
+				"useValidAnchor": "off"
+			},
+			"suspicious": {
+				"noDocumentCookie": "off",
+				"noExplicitAny": "off"
+			}
+		}
+	}
+}
