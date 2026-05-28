@@ -32,7 +32,7 @@
 		"db:studio": "turbo --ui=stream -F @vault/db db:studio",
 		"db:generate": "turbo --ui=stream -F @vault/db db:generate",
 		"db:migrate": "turbo --ui=stream -F @vault/db db:migrate",
-		"db:start": "turbo --ui=stream -F @vault/db db:start",
+		"db:up": "turbo --ui=stream -F @vault/db db:start",
 		"db:watch": "turbo --ui=stream -F @vault/db db:watch",
 		"db:stop": "turbo --ui=stream -F @vault/db db:stop",
 		"db:down": "turbo --ui=stream -F @vault/db db:down"
