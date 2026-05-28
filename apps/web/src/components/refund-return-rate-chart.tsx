@@ -55,7 +55,7 @@ export function RefundReturnRateChart() {
 					<CardTitle>Return rate</CardTitle>
 					<CardDescription>Last 7 days</CardDescription>
 				</div>
-				<div className="space-y-1">
+				<div className="space-y-1 sm:text-right">
 					<CardTitle className="text-right">
 						{REFUNDED_SHARE_OF_ORDERS_PCT}%
 					</CardTitle>

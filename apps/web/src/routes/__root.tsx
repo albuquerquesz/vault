@@ -9,7 +9,6 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@vault/ui/components/sonner";
 
-import { Header } from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { trpc } from "@/utils/trpc";
 
@@ -45,7 +44,6 @@ function RootComponent() {
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
-	const showHeader = pathname !== "/" && pathname !== "/login";
 	const forcedTheme = pathname === "/login" ? "dark" : undefined;
 
 	return (
@@ -53,13 +51,12 @@ function RootComponent() {
 			<HeadContent />
 			<ThemeProvider
 				attribute="class"
-				defaultTheme="light"
+				defaultTheme="dark"
 				disableTransitionOnChange
 				forcedTheme={forcedTheme}
 				storageKey="vite-ui-theme"
 			>
 				<div className="grid h-svh grid-rows-[auto_1fr]">
-					{showHeader ? <Header /> : null}
 					<Outlet />
 				</div>
 				<Toaster richColors />

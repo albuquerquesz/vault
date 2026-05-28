@@ -105,7 +105,7 @@ export function CategoryRankChart() {
 	);
 
 	return (
-		<Card className="financial-panel-border ring-0">
+		<Card className="financial-panel-border ring-0 md:col-span-2">
 			<CardHeader>
 				<CardTitle>Revenue Share by Category</CardTitle>
 				<CardDescription>Last {periodDays} days.</CardDescription>
