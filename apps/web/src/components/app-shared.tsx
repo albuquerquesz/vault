@@ -1,14 +1,8 @@
-import {
-	ActivityIcon,
-	BarChart3Icon,
-	FileTextIcon,
-	HelpCircleIcon,
-	LayoutGridIcon,
-	MegaphoneIcon,
-	SettingsIcon,
-	ShoppingCartIcon,
-	UsersIcon,
-} from "lucide-react";
+import { ActivityIcon } from "@vault/ui/components/activity";
+import { CircleHelpIcon } from "@vault/ui/components/circle-help";
+import { LayoutGridIcon } from "@vault/ui/components/layout-grid";
+import { SettingsIcon } from "@vault/ui/components/settings";
+import { WalletIcon } from "@vault/ui/components/wallet";
 import type { ReactNode } from "react";
 
 export type SidebarNavItem = {
@@ -26,18 +20,23 @@ export type SidebarNavGroup = {
 
 export const navGroups: SidebarNavGroup[] = [
 	{
-		label: "Overview",
+		label: "Finance",
 		items: [
 			{
 				title: "Dashboard",
-				path: "#/dashboard",
-				icon: <LayoutGridIcon />,
+				path: "/dashboard",
+				icon: <LayoutGridIcon size={16} />,
 				isActive: true,
 			},
 			{
-				title: "Sales",
-				path: "#/sales",
-				icon: <BarChart3Icon />,
+				title: "Expenses",
+				path: "/finance/expenses",
+				icon: <WalletIcon size={16} />,
+			},
+			{
+				title: "Stability",
+				path: "/finance/stability",
+				icon: <ActivityIcon size={16} />,
 			},
 		],
 	},
@@ -47,7 +46,7 @@ export const navGroups: SidebarNavGroup[] = [
 			{
 				title: "Orders",
 				path: "#/orders",
-				icon: <ShoppingCartIcon />,
+				icon: <WalletIcon size={16} />,
 				subItems: [
 					{ title: "All orders", path: "#/orders/all" },
 					{ title: "Unfulfilled", path: "#/orders/unfulfilled" },
@@ -57,7 +56,7 @@ export const navGroups: SidebarNavGroup[] = [
 			{
 				title: "Products",
 				path: "#/products",
-				icon: <FileTextIcon />,
+				icon: <LayoutGridIcon size={16} />,
 				subItems: [
 					{ title: "Catalog", path: "#/products/catalog" },
 					{ title: "Inventory", path: "#/products/inventory" },
@@ -67,12 +66,12 @@ export const navGroups: SidebarNavGroup[] = [
 			{
 				title: "Customers",
 				path: "#/customers",
-				icon: <UsersIcon />,
+				icon: <CircleHelpIcon size={16} />,
 			},
 			{
 				title: "Marketing",
 				path: "#/marketing",
-				icon: <MegaphoneIcon />,
+				icon: <ActivityIcon size={16} />,
 			},
 		],
 	},
@@ -82,7 +81,7 @@ export const navGroups: SidebarNavGroup[] = [
 			{
 				title: "Store settings",
 				path: "#/store-settings",
-				icon: <SettingsIcon />,
+				icon: <SettingsIcon size={16} />,
 				subItems: [
 					{ title: "Store profile", path: "#/store-settings/profile" },
 					{ title: "Shipping & delivery", path: "#/store-settings/shipping" },
@@ -99,12 +98,12 @@ export const footerNavLinks: SidebarNavItem[] = [
 	{
 		title: "Seller help",
 		path: "#/seller-help",
-		icon: <HelpCircleIcon />,
+		icon: <CircleHelpIcon size={16} />,
 	},
 	{
 		title: "Platform status",
 		path: "#/status",
-		icon: <ActivityIcon />,
+		icon: <ActivityIcon size={16} />,
 	},
 ];
 

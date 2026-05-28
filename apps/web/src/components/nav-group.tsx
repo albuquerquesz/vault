@@ -33,7 +33,12 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 						{item.subItems?.length ? (
 							<>
 								<CollapsibleTrigger
-									render={<SidebarMenuButton isActive={item.isActive} />}
+									render={
+										<SidebarMenuButton
+											isActive={item.isActive}
+											tooltip={item.title}
+										/>
+									}
 								>
 									{item.icon}
 									<span>{item.title}</span>
@@ -58,6 +63,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 						) : (
 							<SidebarMenuButton
 								isActive={item.isActive}
+								tooltip={item.title}
 								render={<a href={item.path} />}
 							>
 								{item.icon}

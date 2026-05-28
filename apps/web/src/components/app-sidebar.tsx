@@ -1,5 +1,6 @@
 "use client";
 
+import { AArrowUpIcon } from "@vault/ui/components/a-arrow-up";
 import {
 	Sidebar,
 	SidebarContent,
@@ -9,41 +10,56 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@vault/ui/components/sidebar";
-import { footerNavLinks, navGroups } from "@/components/app-shared";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@vault/ui/components/tooltip";
+import { navGroups } from "@/components/app-shared";
 import { LatestChange } from "@/components/latest-change";
 import { NavGroup } from "@/components/nav-group";
 
 export function AppSidebar() {
 	return (
-		<Sidebar
-			className="[&_[data-slot=sidebar-inner]]:ring-0 [&_[data-slot=sidebar-inner]]:border-0 [&_[data-slot=sidebar-inner]]:shadow-none"
-			collapsible="icon"
-			variant="floating"
-		>
-			<SidebarHeader className="h-14 justify-center" />
-			<SidebarContent>
-				{navGroups.map((group, index) => (
-					<NavGroup key={`sidebar-group-${index}`} {...group} />
-				))}
-			</SidebarContent>
-			<SidebarFooter>
-				<LatestChange />
-				<SidebarMenu className="mt-2">
-					{footerNavLinks.map((item) => (
-						<SidebarMenuItem key={item.title}>
+		<TooltipProvider delay={1000}>
+			<Sidebar
+				className="border-r border-border [&_[data-slot=sidebar-inner]]:ring-0 [&_[data-slot=sidebar-inner]]:border-0 [&_[data-slot=sidebar-inner]]:shadow-none"
+				collapsible="icon"
+				variant="floating"
+			>
+				<SidebarHeader className="h-14 items-center justify-center">
+					<Tooltip>
+						<TooltipTrigger
+							render={<button type="button" aria-label="Growth" />}
+						>
+							<AArrowUpIcon className="text-muted-foreground" size={20} />
+						</TooltipTrigger>
+						<TooltipContent side="right">Growth</TooltipContent>
+					</Tooltip>
+				</SidebarHeader>
+				<SidebarContent>
+					{navGroups.map((group, index) => (
+						<NavGroup key={`sidebar-group-${index}`} {...group} />
+					))}
+				</SidebarContent>
+				<SidebarFooter>
+					<LatestChange />
+					<SidebarMenu className="mt-2">
+						<SidebarMenuItem>
 							<SidebarMenuButton
 								className="text-muted-foreground"
-								isActive={item.isActive}
 								size="sm"
-								render={<a href={item.path} />}
+								tooltip="Growth"
+								render={<a href="/dashboard" />}
 							>
-								{item.icon}
-								<span>{item.title}</span>
+								<AArrowUpIcon size={16} />
+								<span>Growth</span>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
-					))}
-				</SidebarMenu>
-			</SidebarFooter>
-		</Sidebar>
+					</SidebarMenu>
+				</SidebarFooter>
+			</Sidebar>
+		</TooltipProvider>
 	);
 }
