@@ -51,7 +51,7 @@ const actions = [
 
 export function QuickActions() {
 	return (
-		<Card>
+		<Card className="financial-panel-border">
 			<CardHeader>
 				<CardTitle>Quick actions</CardTitle>
 				<CardDescription>Shortcuts to same destinations.</CardDescription>

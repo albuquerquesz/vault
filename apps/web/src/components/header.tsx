@@ -25,7 +25,7 @@ export function Header() {
 
 	return (
 		<header
-			className={cn("sticky top-0 z-50 w-full border-transparent border-b", {
+			className={cn("sticky top-0 z-50 w-full border-b border-border", {
 				"border-border bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/50":
 					scrolled,
 			})}

@@ -1,5 +1,4 @@
 import { CategoryRankChart } from "@/components/category-rank-chart";
-import { QuickActions } from "@/components/quick-actions";
 import { RefundReturnRateChart } from "@/components/refund-return-rate-chart";
 import { RevenueChart } from "@/components/revenue-chart";
 
@@ -9,7 +8,6 @@ export function Dashboard() {
 			<RevenueChart />
 			<RefundReturnRateChart />
 			<CategoryRankChart />
-			<QuickActions />
 		</div>
 	);
 }

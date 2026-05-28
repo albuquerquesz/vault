@@ -49,7 +49,7 @@ export function RefundReturnRateChart() {
 			: 0;
 
 	return (
-		<Card className="md:col-span-2">
+		<Card className="financial-panel-border ring-0 md:col-span-2">
 			<CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
 				<div className="space-y-1">
 					<CardTitle>Return rate</CardTitle>

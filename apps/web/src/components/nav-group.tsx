@@ -20,10 +20,10 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 	return (
 		<SidebarGroup>
 			{label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
-			<SidebarMenu>
+			<SidebarMenu className="space-y-2">
 				{items.map((item) => (
 					<Collapsible
-						className="group/collapsible"
+						className="group/collapsible py-0.5"
 						defaultOpen={
 							!!item.isActive || item.subItems?.some((i) => !!i.isActive)
 						}
