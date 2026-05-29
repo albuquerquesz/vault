@@ -23,7 +23,7 @@ export function AppSidebar() {
 			collapsible="offcanvas"
 			variant="floating"
 		>
-			<SidebarContent>
+			<SidebarContent className="pt-2">
           {navGroups.map((group, index) => (
             <NavGroup key={`sidebar-group-${index}`} {...group} />
           ))}
@@ -36,7 +36,7 @@ export function AppSidebar() {
                 className="text-muted-foreground text-sm"
                 size="default"
                 tooltip="Growth"
-                render={<a href="/dashboard" />}
+                render={<a href="/" />}
               >
                 <AArrowUpIcon size={18} />
                 <span>Growth</span>

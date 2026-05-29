@@ -9,6 +9,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@vault/ui/components/sonner";
 
+import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { trpc } from "@/utils/trpc";
 
@@ -56,9 +57,15 @@ function RootComponent() {
 				forcedTheme={forcedTheme}
 				storageKey="vite-ui-theme"
 			>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<Outlet />
-				</div>
+				{pathname === "/login" ? (
+					<div className="grid h-svh grid-rows-[auto_1fr]">
+						<Outlet />
+					</div>
+				) : (
+					<AppShell>
+						<Outlet />
+					</AppShell>
+				)}
 				<Toaster richColors />
 			</ThemeProvider>
 			<TanStackRouterDevtools position="top-right" />

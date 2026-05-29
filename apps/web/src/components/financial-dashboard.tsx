@@ -1,4 +1,3 @@
-import { AppShell } from "@/components/app-shell";
 import { Dashboard } from "@/components/dashboard";
 
 export function FinancialDashboard() {
@@ -71,9 +70,7 @@ export function FinancialDashboard() {
           padding-right: 1rem !important;
         }
       `}</style>
-      <AppShell>
-        <Dashboard />
-      </AppShell>
+      <Dashboard />
     </main>
   );
 }

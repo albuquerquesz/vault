@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "@/components/app-shell";
 import { ExpensesPage } from "@/components/expenses-page";
 
 export const Route = createFileRoute("/finance/expenses")({
@@ -7,9 +6,5 @@ export const Route = createFileRoute("/finance/expenses")({
 });
 
 function RouteComponent() {
-	return (
-		<AppShell>
-			<ExpensesPage />
-		</AppShell>
-	);
+	return <ExpensesPage />;
 }

@@ -23,7 +23,7 @@ export const navGroups: SidebarNavGroup[] = [
 		items: [
 			{
 				title: "Painel",
-				path: "/dashboard",
+				path: "/",
 				icon: <LayoutGridIcon size={16} />,
 				isActive: true,
 			},
