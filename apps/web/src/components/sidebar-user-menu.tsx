@@ -21,13 +21,21 @@ import {
 	MessageCircleIcon,
 	UsersIcon,
 } from "lucide-react";
+import { SidebarThemeSwitcher } from "@/components/sidebar-theme-switcher";
 
 const user = {
 	name: "Victor Albuquerque",
 	initials: "VA",
 };
 
+const MAX_USER_NAME_CHARS = 14;
+
 export function SidebarUserMenu() {
+	const displayName =
+		user.name.length > MAX_USER_NAME_CHARS
+			? `${user.name.slice(0, MAX_USER_NAME_CHARS)}...`
+			: user.name;
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -38,13 +46,17 @@ export function SidebarUserMenu() {
 				<div className="flex size-10 items-center justify-center rounded-md bg-primary/15 text-primary text-sm font-medium">
 					{user.initials}
 				</div>
-				<span className="text-foreground text-base font-medium">{user.name}</span>
+				<span className="text-foreground text-sm font-medium" title={user.name}>
+					{displayName}
+				</span>
 				<div className="ml-auto flex flex-col text-muted-foreground">
 					<ChevronUpIcon className="size-3" />
 					<ChevronDownIcon className="size-3" />
 				</div>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-68 bg-card p-2">
+				<SidebarThemeSwitcher />
+				<DropdownMenuSeparator />
 				<DropdownMenuItem>
 					<CogIcon />
 					Configurações

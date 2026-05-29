@@ -1,18 +1,15 @@
 "use client";
 
-import { AArrowUpIcon } from "@vault/ui/components/a-arrow-up";
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
+	SidebarHeader,
 } from "@vault/ui/components/sidebar";
 import { TooltipProvider } from "@vault/ui/components/tooltip";
 import { navGroups } from "@/components/app-shared";
+import { LogoIcon } from "@/components/logo";
 import { NavGroup } from "@/components/nav-group";
-import { SidebarThemeSwitcher } from "@/components/sidebar-theme-switcher";
 import { SidebarUserMenuSection } from "@/components/sidebar-user-menu";
 
 export function AppSidebar() {
@@ -23,26 +20,18 @@ export function AppSidebar() {
 			collapsible="offcanvas"
 			variant="floating"
 		>
+			<SidebarHeader>
+				<div className="flex items-center gap-2 px-1 py-1">
+					<LogoIcon className="size-4 text-foreground" />
+					<span className="font-medium text-foreground text-sm">Vault</span>
+				</div>
+			</SidebarHeader>
 			<SidebarContent className="pt-2">
           {navGroups.map((group, index) => (
             <NavGroup key={`sidebar-group-${index}`} {...group} />
           ))}
         </SidebarContent>
         <SidebarFooter>
-          <SidebarThemeSwitcher />
-          <SidebarMenu className="mt-2">
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                className="text-muted-foreground text-sm"
-                size="default"
-                tooltip="Growth"
-                render={<a href="/" />}
-              >
-                <AArrowUpIcon size={18} />
-                <span>Growth</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
           <SidebarUserMenuSection />
         </SidebarFooter>
       </Sidebar>

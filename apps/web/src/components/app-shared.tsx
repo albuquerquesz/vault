@@ -22,7 +22,7 @@ export const navGroups: SidebarNavGroup[] = [
 		label: "Finanças",
 		items: [
 			{
-				title: "Painel",
+				title: "Visão Geral",
 				path: "/",
 				icon: <LayoutGridIcon size={16} />,
 				isActive: true,
