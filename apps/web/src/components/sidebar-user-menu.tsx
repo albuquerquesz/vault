@@ -3,6 +3,7 @@
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
@@ -15,12 +16,13 @@ import {
 import {
 	ChevronDownIcon,
 	ChevronUpIcon,
-	CogIcon,
 	CreditCardIcon,
 	LogOutIcon,
 	MessageCircleIcon,
 	UsersIcon,
 } from "lucide-react";
+import { motion } from "motion/react";
+import { SettingsIcon } from "@vault/ui/components/settings";
 import { SidebarThemeSwitcher } from "@/components/sidebar-theme-switcher";
 
 const user = {
@@ -54,31 +56,63 @@ export function SidebarUserMenu() {
 					<ChevronDownIcon className="size-3" />
 				</div>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-68 bg-card p-2">
-				<SidebarThemeSwitcher />
+			<DropdownMenuContent align="end" className="mb-2 mr-2 w-56 bg-card p-2">
+				<div className="px-1 py-1.5">
+					<SidebarThemeSwitcher />
+				</div>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>
-					<CogIcon />
-					Configurações
-				</DropdownMenuItem>
-				<DropdownMenuItem>
-					<CreditCardIcon />
-					Plano
-				</DropdownMenuItem>
+				<DropdownMenuGroup>
+					<DropdownMenuItem className="group">
+						<SettingsIcon className="text-muted-foreground group-hover:text-foreground" size={16} />
+						Configurações
+					</DropdownMenuItem>
+					<DropdownMenuItem className="group">
+						<motion.span
+							className="inline-flex"
+							whileHover={{ y: -1, scale: 1.05 }}
+							transition={{ duration: 0.15 }}
+						>
+							<CreditCardIcon />
+						</motion.span>
+						Plano
+					</DropdownMenuItem>
+				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>
-					<MessageCircleIcon />
-					Feedback e Bugs
-				</DropdownMenuItem>
-				<DropdownMenuItem>
-					<UsersIcon />
-					Comunidade
-				</DropdownMenuItem>
+				<DropdownMenuGroup>
+					<DropdownMenuItem className="group">
+						<motion.span
+							className="inline-flex"
+							whileHover={{ x: 1, scale: 1.05 }}
+							transition={{ duration: 0.15 }}
+						>
+							<MessageCircleIcon />
+						</motion.span>
+						Feedback e Bugs
+					</DropdownMenuItem>
+					<DropdownMenuItem className="group">
+						<motion.span
+							className="inline-flex"
+							whileHover={{ y: -1, scale: 1.05 }}
+							transition={{ duration: 0.15 }}
+						>
+							<UsersIcon />
+						</motion.span>
+						Comunidade
+					</DropdownMenuItem>
+				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem variant="destructive">
-					<LogOutIcon />
-					Sair
-				</DropdownMenuItem>
+				<DropdownMenuGroup>
+					<DropdownMenuItem className="group" variant="destructive">
+						<motion.span
+							className="inline-flex"
+							whileHover={{ x: -1, scale: 1.05 }}
+							transition={{ duration: 0.15 }}
+						>
+							<LogOutIcon />
+						</motion.span>
+						Sair
+					</DropdownMenuItem>
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
