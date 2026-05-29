@@ -16,12 +16,12 @@ import {
 import {
 	ChevronDownIcon,
 	ChevronUpIcon,
-	CreditCardIcon,
 	LogOutIcon,
-	MessageCircleIcon,
-	UsersIcon,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { ActivityIcon } from "@vault/ui/components/activity";
+import { CircleHelpIcon } from "@vault/ui/components/circle-help";
+import { WalletIcon } from "@vault/ui/components/wallet";
 import { SettingsIcon } from "@vault/ui/components/settings";
 import { SidebarThemeSwitcher } from "@/components/sidebar-theme-switcher";
 
@@ -67,36 +67,18 @@ export function SidebarUserMenu() {
 						Configurações
 					</DropdownMenuItem>
 					<DropdownMenuItem className="group">
-						<motion.span
-							className="inline-flex"
-							whileHover={{ y: -1, scale: 1.05 }}
-							transition={{ duration: 0.15 }}
-						>
-							<CreditCardIcon />
-						</motion.span>
+						<WalletIcon className="text-muted-foreground group-hover:text-foreground" size={16} />
 						Plano
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem className="group">
-						<motion.span
-							className="inline-flex"
-							whileHover={{ x: 1, scale: 1.05 }}
-							transition={{ duration: 0.15 }}
-						>
-							<MessageCircleIcon />
-						</motion.span>
+						<CircleHelpIcon className="text-muted-foreground group-hover:text-foreground" size={16} />
 						Feedback e Bugs
 					</DropdownMenuItem>
 					<DropdownMenuItem className="group">
-						<motion.span
-							className="inline-flex"
-							whileHover={{ y: -1, scale: 1.05 }}
-							transition={{ duration: 0.15 }}
-						>
-							<UsersIcon />
-						</motion.span>
+						<ActivityIcon className="text-muted-foreground group-hover:text-foreground" size={16} />
 						Comunidade
 					</DropdownMenuItem>
 				</DropdownMenuGroup>

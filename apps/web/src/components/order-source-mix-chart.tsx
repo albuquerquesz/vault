@@ -11,28 +11,33 @@ import {
 	type ChartConfig,
 	ChartContainer,
 } from "@vault/ui/components/chart";
+import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import { useMemo } from "react";
 import { Cell, Pie, PieChart } from "recharts";
 
+type MonthOverMonthTrend = "up" | "down" | "neutral";
+
 export type OrderSourceDatum = {
 	source: string;
-	percent: number;
+	amount: number;
 	orders: number;
+	monthOverMonthTrend: MonthOverMonthTrend;
 };
 
 type OrderSourceMixChartProps = {
 	data?: OrderSourceDatum[];
 	totalOrders?: number;
+	totalNetWorth: number;
 	periodLabel?: string;
 	deltaPct?: number;
 };
 
 const defaultData: OrderSourceDatum[] = [
-	{ source: "Busca orgânica", percent: 37.9, orders: 698 },
-	{ source: "Direto", percent: 28.0, orders: 516 },
-	{ source: "Referência", percent: 15.0, orders: 276 },
-	{ source: "Social pago", percent: 12.0, orders: 221 },
-	{ source: "Outros", percent: 7.1, orders: 131 },
+	{ source: "Busca orgânica", amount: 698, orders: 698, monthOverMonthTrend: "up" },
+	{ source: "Direto", amount: 516, orders: 516, monthOverMonthTrend: "neutral" },
+	{ source: "Referência", amount: 276, orders: 276, monthOverMonthTrend: "up" },
+	{ source: "Social pago", amount: 221, orders: 221, monthOverMonthTrend: "down" },
+	{ source: "Outros", amount: 131, orders: 131, monthOverMonthTrend: "down" },
 ];
 
 const slicePalette = [
@@ -55,9 +60,22 @@ function formatSignedPercent(value: number): string {
 	return `${sign}${value.toFixed(1)}%`;
 }
 
+function TrendIcon({ trend }: { trend: MonthOverMonthTrend }) {
+	if (trend === "up") {
+		return <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500" aria-label="Melhor que mês passado" />;
+	}
+
+	if (trend === "down") {
+		return <ArrowDownRight className="h-3.5 w-3.5 text-rose-500" aria-label="Pior que mês passado" />;
+	}
+
+	return <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" aria-label="Sem variação em relação ao mês passado" />;
+}
+
 export function OrderSourceMixChart({
 	data = defaultData,
 	totalOrders,
+	totalNetWorth,
 	periodLabel = "últimos 30 dias",
 	deltaPct = 0.5,
 }: OrderSourceMixChartProps) {
@@ -105,11 +123,11 @@ export function OrderSourceMixChart({
 						</PieChart>
 					</ChartContainer>
 
-					<ul className="space-y-3" aria-label="Detalhamento das origens de pedidos">
+					<ul className="w-full" aria-label="Detalhamento das origens de pedidos">
 						{safeData.map((row, index) => (
 							<li
 								key={row.source}
-								className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-x-3"
+								className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-3 border-border border-b py-2.5 last:pb-1"
 							>
 								<span
 									className="h-2.5 w-2.5 rounded-none"
@@ -119,11 +137,18 @@ export function OrderSourceMixChart({
 								/>
 								<span className="min-w-0 truncate text-sm">{row.source}</span>
 								<span className="text-muted-foreground text-sm tabular-nums">
-									{row.percent.toFixed(1)}%
+									{totalNetWorth > 0
+										? `${((row.amount / totalNetWorth) * 100).toFixed(1)}%`
+										: "0%"}
 								</span>
-								<span className="text-muted-foreground text-sm tabular-nums">
-									{row.orders.toLocaleString()}
+								<span className="text-sm tabular-nums">
+									{new Intl.NumberFormat("pt-BR", {
+										style: "currency",
+										currency: "BRL",
+										maximumFractionDigits: 0,
+									}).format(row.amount)}
 								</span>
+								<TrendIcon trend={row.monthOverMonthTrend} />
 							</li>
 						))}
 					</ul>

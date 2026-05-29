@@ -1,7 +1,18 @@
 import { SidebarInset, SidebarProvider } from "@vault/ui/components/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { useTheme } from "@/components/theme-provider";
+import { useKeybind } from "@/hooks/use-keybind";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { resolvedTheme, setTheme } = useTheme();
+
+  useKeybind({
+    key: "m",
+    onTrigger: () => {
+      setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    },
+  });
+
   return (
     <SidebarProvider defaultOpen>
       <AppSidebar />

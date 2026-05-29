@@ -1,4 +1,6 @@
 import { Dashboard } from "@/components/dashboard";
+import { TabPageHeader } from "@/components/tab-page-header";
+import { LayoutGridIcon } from "@vault/ui/components/layout-grid";
 
 export function FinancialDashboard() {
   return (
@@ -70,6 +72,7 @@ export function FinancialDashboard() {
           padding-right: 1rem !important;
         }
       `}</style>
+      <TabPageHeader icon={<LayoutGridIcon size={16} />} title="Visão Geral" />
       <Dashboard />
     </main>
   );
