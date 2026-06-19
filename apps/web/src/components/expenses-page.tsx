@@ -102,7 +102,10 @@ export function ExpensesPage() {
 			<TabPageHeader icon={<WalletIcon size={16} />} title="Despesas" />
 			<Card className="border-0">
 				<CardHeader className="flex flex-row items-center justify-between gap-2">
-					<CardTitle className="text-2xl" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+					<CardTitle
+						className="text-2xl"
+						style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+					>
 						Lista de despesas
 					</CardTitle>
 					<Button onClick={() => setIsOpen(true)} size="sm">

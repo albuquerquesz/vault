@@ -1,13 +1,11 @@
+import { LayoutGridIcon } from "@vault/ui/components/layout-grid";
 import { Dashboard } from "@/components/dashboard";
 import { TabPageHeader } from "@/components/tab-page-header";
-import { LayoutGridIcon } from "@vault/ui/components/layout-grid";
 
 export function FinancialDashboard() {
-  return (
-    <main
-      className="financial-dashboard h-full w-full text-foreground"
-    >
-      <style>{`
+	return (
+		<main className="financial-dashboard h-full w-full text-foreground">
+			<style>{`
         .financial-dashboard, .financial-dashboard * { background-color: #0000 !important; }
         .financial-dashboard {
           font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -72,10 +70,10 @@ export function FinancialDashboard() {
           padding-right: 1rem !important;
         }
       `}</style>
-      <TabPageHeader icon={<LayoutGridIcon size={16} />} title="Visão Geral" />
-      <Dashboard />
-    </main>
-  );
+			<TabPageHeader icon={<LayoutGridIcon size={16} />} title="Visão Geral" />
+			<Dashboard />
+		</main>
+	);
 }
 
 export default FinancialDashboard;

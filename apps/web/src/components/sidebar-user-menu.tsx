@@ -1,5 +1,7 @@
 "use client";
 
+import { ActivityIcon } from "@vault/ui/components/activity";
+import { CircleHelpIcon } from "@vault/ui/components/circle-help";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -8,21 +10,15 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@vault/ui/components/dropdown-menu";
+import { SettingsIcon } from "@vault/ui/components/settings";
 import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@vault/ui/components/sidebar";
-import {
-	ChevronDownIcon,
-	ChevronUpIcon,
-	LogOutIcon,
-} from "lucide-react";
-import { motion } from "motion/react";
-import { ActivityIcon } from "@vault/ui/components/activity";
-import { CircleHelpIcon } from "@vault/ui/components/circle-help";
 import { WalletIcon } from "@vault/ui/components/wallet";
-import { SettingsIcon } from "@vault/ui/components/settings";
+import { ChevronDownIcon, ChevronUpIcon, LogOutIcon } from "lucide-react";
+import { motion } from "motion/react";
 import { SidebarThemeSwitcher } from "@/components/sidebar-theme-switcher";
 
 const user = {
@@ -42,7 +38,11 @@ export function SidebarUserMenu() {
 		<DropdownMenu>
 			<DropdownMenuTrigger
 				render={
-					<SidebarMenuButton className="h-12 px-2" size="lg" tooltip={user.name} />
+					<SidebarMenuButton
+						className="h-12 px-2"
+						size="lg"
+						tooltip={user.name}
+					/>
 				}
 			>
 				<div className="flex size-10 items-center justify-center rounded-md bg-primary/15 text-primary text-sm font-medium">
@@ -63,22 +63,34 @@ export function SidebarUserMenu() {
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem className="group">
-						<SettingsIcon className="text-muted-foreground group-hover:text-foreground" size={16} />
+						<SettingsIcon
+							className="text-muted-foreground group-hover:text-foreground"
+							size={16}
+						/>
 						Configurações
 					</DropdownMenuItem>
 					<DropdownMenuItem className="group">
-						<WalletIcon className="text-muted-foreground group-hover:text-foreground" size={16} />
+						<WalletIcon
+							className="text-muted-foreground group-hover:text-foreground"
+							size={16}
+						/>
 						Plano
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem className="group">
-						<CircleHelpIcon className="text-muted-foreground group-hover:text-foreground" size={16} />
+						<CircleHelpIcon
+							className="text-muted-foreground group-hover:text-foreground"
+							size={16}
+						/>
 						Feedback e Bugs
 					</DropdownMenuItem>
 					<DropdownMenuItem className="group">
-						<ActivityIcon className="text-muted-foreground group-hover:text-foreground" size={16} />
+						<ActivityIcon
+							className="text-muted-foreground group-hover:text-foreground"
+							size={16}
+						/>
 						Comunidade
 					</DropdownMenuItem>
 				</DropdownMenuGroup>

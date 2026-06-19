@@ -28,7 +28,9 @@ function triggerIconHover(
 export function NavGroup({ label, items }: SidebarNavGroup) {
 	return (
 		<SidebarGroup className="py-0">
-			{label ? <SidebarGroupLabel className="sr-only">{label}</SidebarGroupLabel> : null}
+			{label ? (
+				<SidebarGroupLabel className="sr-only">{label}</SidebarGroupLabel>
+			) : null}
 			<SidebarMenu className="space-y-1">
 				{items.map((item) => (
 					<Collapsible

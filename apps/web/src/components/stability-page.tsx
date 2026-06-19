@@ -1,3 +1,4 @@
+import { ActivityIcon } from "@vault/ui/components/activity";
 import {
 	Card,
 	CardContent,
@@ -5,7 +6,6 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { Input } from "@vault/ui/components/input";
-import { ActivityIcon } from "@vault/ui/components/activity";
 import { useMemo, useState } from "react";
 import { formatFullCurrency, formatPercent } from "@/components/formater";
 import { TabPageHeader } from "@/components/tab-page-header";
@@ -32,10 +32,7 @@ export function StabilityPage() {
 	return (
 		<div className="grid gap-4 md:grid-cols-2">
 			<div className="md:col-span-2">
-				<TabPageHeader
-					icon={<ActivityIcon size={16} />}
-					title="Estabilidade"
-				/>
+				<TabPageHeader icon={<ActivityIcon size={16} />} title="Estabilidade" />
 			</div>
 			<Card className="financial-panel-border md:col-span-2">
 				<CardHeader>

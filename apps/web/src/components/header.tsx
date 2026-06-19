@@ -2,8 +2,8 @@
 import { Button } from "@vault/ui/components/button";
 import { cn } from "@vault/ui/lib/utils";
 import { Logo } from "@/components/logo";
-import { ModeToggle } from "@/components/mode-toggle";
 import { MobileNav } from "@/components/mobile-nav";
+import { ModeToggle } from "@/components/mode-toggle";
 import { useScroll } from "@/hooks/use-scroll";
 
 export const navLinks = [
