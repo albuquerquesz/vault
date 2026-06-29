@@ -114,7 +114,7 @@ export function MonthlySavingsInsightCard({
 						<path
 							d={chart.baselinePath}
 							fill="none"
-							stroke="rgba(255,255,255,0.18)"
+							stroke="rgba(255,255,255,0.32)"
 							strokeDasharray="2.5 3"
 							strokeLinecap="round"
 							strokeLinejoin="round"
@@ -139,7 +139,7 @@ export function MonthlySavingsInsightCard({
 						/>
 					</svg>
 
-					<div className="absolute right-6 bottom-11 rounded-md bg-[#22d35c] px-4 py-2 text-lg font-semibold text-white shadow-[0_10px_28px_rgba(34,211,92,0.26)]">
+					<div className="absolute right-6 bottom-11 rounded-md bg-[#22d35c] px-4 py-2 text-lg font-semibold text-white">
 						{resolvedBadgeLabel}
 						<div className="absolute right-5 top-full h-0 w-0 border-x-[8px] border-t-[10px] border-x-transparent border-t-[#22d35c]" />
 					</div>
