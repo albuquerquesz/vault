@@ -13,7 +13,7 @@ export function Dashboard() {
 			<div className="h-full md:col-span-6">
 				<OrderSourceMixChart totalNetWorth={1842} />
 			</div>
-			<div className="grid max-h-[38rem] grid-cols-1 gap-6 overflow-y-auto pr-2 md:col-span-10 lg:grid-cols-3">
+			<div className="grid max-h-[38rem] grid-cols-1 gap-6 overflow-y-auto md:col-span-10 lg:grid-cols-3">
 				<div className="h-full">
 					<SalesByHourHeatmap />
 				</div>
