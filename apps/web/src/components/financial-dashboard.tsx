@@ -31,6 +31,8 @@ export function FinancialDashboard() {
           --tw-ring-shadow: 0 0 #0000 !important;
           --tw-ring-offset-shadow: 0 0 #0000 !important;
           --tw-shadow: 0 0 #0000 !important;
+          padding-top: 2rem !important;
+          padding-bottom: 2rem !important;
         }
         .financial-panel-border::after {
           content: "" !important;
@@ -48,10 +50,17 @@ export function FinancialDashboard() {
             linear-gradient(var(--panel-corner), var(--panel-corner)) bottom right / 1px 16px no-repeat !important;
         }
         .financial-panel-border [data-slot="card-header"] {
+          padding-left: 2rem !important;
+          padding-right: 2rem !important;
           padding-bottom: 1rem !important;
+        }
+        .financial-panel-border [data-slot="card-content"] {
+          padding-left: 2rem !important;
+          padding-right: 2rem !important;
         }
         .financial-panel-border [data-slot="card-footer"] {
           border-top: 1px solid var(--panel-border) !important;
+          padding: 2rem !important;
         }
         .financial-dashboard [data-slot="card-title"] {
           font-family: "Space Grotesk", sans-serif !important;
