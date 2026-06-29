@@ -152,7 +152,7 @@ export function SalesByHourHeatmap({
 	}, [safeData]);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[28rem] ring-0">
+		<Card className="financial-panel-border h-full min-h-[32rem] ring-0">
 			<CardHeader className="gap-5">
 				<div className="flex items-start justify-between gap-4">
 					<div className="flex items-center gap-2 text-muted-foreground">

@@ -105,14 +105,14 @@ export function CategoryRankChart() {
 	);
 
 	return (
-		<Card className="financial-panel-border ring-0 md:col-span-2">
+		<Card className="financial-panel-border h-full min-h-[32rem] ring-0 md:col-span-2">
 			<CardHeader>
 				<CardTitle>Participação da receita por categoria</CardTitle>
 				<CardDescription>Últimos {periodDays} dias.</CardDescription>
 			</CardHeader>
 			<CardContent className="my-auto p-0">
 				<ChartContainer
-					className="aspect-auto h-72 w-full"
+					className="aspect-auto h-80 w-full"
 					config={chartConfig}
 				>
 					<PieChart accessibilityLayer>

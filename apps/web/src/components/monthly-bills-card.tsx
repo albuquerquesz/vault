@@ -40,7 +40,7 @@ export function MonthlyBillsCard({
 	return (
 		<section
 			className={cn(
-				"h-full min-h-[28rem] rounded-[1.75rem] border border-white/6 px-8 py-8 text-foreground shadow-[0_18px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.04)]",
+				"h-full min-h-[32rem] rounded-[1.75rem] border border-white/6 px-8 py-8 text-foreground shadow-[0_18px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.04)]",
 				"[background-image:linear-gradient(180deg,rgba(34,34,36,0.98),rgba(24,24,26,0.98))]",
 			)}
 		>
