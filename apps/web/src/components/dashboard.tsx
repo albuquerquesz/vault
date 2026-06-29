@@ -1,4 +1,5 @@
 import { CategoryRankChart } from "@/components/category-rank-chart";
+import { MonthlyBillsCard } from "@/components/monthly-bills-card";
 import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
 import { RefundReturnRateChart } from "@/components/refund-return-rate-chart";
 import { SalesByHourHeatmap } from "@/components/sales-by-hour-heatmap";
@@ -12,11 +13,16 @@ export function Dashboard() {
 			<div className="h-full md:col-span-6">
 				<OrderSourceMixChart totalNetWorth={1842} />
 			</div>
-			<div className="h-full md:col-span-4">
-				<SalesByHourHeatmap />
-			</div>
-			<div className="md:col-span-6">
-				<CategoryRankChart />
+			<div className="grid grid-cols-1 gap-6 md:col-span-10 lg:grid-cols-3">
+				<div className="h-full">
+					<SalesByHourHeatmap />
+				</div>
+				<div className="h-full">
+					<MonthlyBillsCard />
+				</div>
+				<div className="h-full">
+					<CategoryRankChart />
+				</div>
 			</div>
 		</div>
 	);
