@@ -2,115 +2,115 @@
 
 import { Button } from "@vault/ui/components/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
 } from "@vault/ui/components/card";
 import {
-  type ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
+	type ChartConfig,
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
 } from "@vault/ui/components/chart";
 import { ArrowRightIcon } from "lucide-react";
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import { Delta, DeltaIcon, DeltaValue } from "@/components/delta";
 
 const returnDaily7 = [
-  { day: "Mon", returnRate: 2.2 },
-  { day: "Tue", returnRate: 1.5 },
-  { day: "Wed", returnRate: 3.1 },
-  { day: "Thu", returnRate: 4.8 },
-  { day: "Fri", returnRate: 2.4 },
-  { day: "Sat", returnRate: 3.2 },
-  { day: "Sun", returnRate: 3.9 },
+	{ day: "Mon", returnRate: 2.2 },
+	{ day: "Tue", returnRate: 1.5 },
+	{ day: "Wed", returnRate: 3.1 },
+	{ day: "Thu", returnRate: 4.8 },
+	{ day: "Fri", returnRate: 2.4 },
+	{ day: "Sat", returnRate: 3.2 },
+	{ day: "Sun", returnRate: 3.9 },
 ] as const;
 
 const REFUNDED_SHARE_OF_ORDERS_PCT = 2.6;
 
 const chartConfig = {
-  returnRate: {
-    label: "Devolução %",
-    color: "var(--chart-1)",
-  },
+	returnRate: {
+		label: "Devolução %",
+		color: "var(--chart-1)",
+	},
 } satisfies ChartConfig;
 
 export function RefundReturnRateChart() {
-  const first = returnDaily7[0];
-  const lastW = returnDaily7.at(-1) ?? first;
-  const returnTrendPct =
-    first.returnRate > 0
-      ? ((lastW.returnRate - first.returnRate) / first.returnRate) * 100
-      : 0;
+	const first = returnDaily7[0];
+	const lastW = returnDaily7.at(-1) ?? first;
+	const returnTrendPct =
+		first.returnRate > 0
+			? ((lastW.returnRate - first.returnRate) / first.returnRate) * 100
+			: 0;
 
-  return (
-    <Card className="financial-panel-border h-full min-h-[32rem] ring-0 md:col-span-2">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <CardTitle>Taxa de devolução</CardTitle>
-          <CardDescription>Últimos 7 dias</CardDescription>
-        </div>
-        <div className="space-y-1 sm:text-right">
-          <CardTitle className="text-right">
-            {REFUNDED_SHARE_OF_ORDERS_PCT}%
-          </CardTitle>
-          <CardDescription>dos pedidos reembolsados</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="mt-auto">
-        <ChartContainer
-          className="aspect-auto h-64 w-full"
-          config={chartConfig}
-        >
-          <LineChart
-            accessibilityLayer
-            data={returnDaily7}
-            margin={{ left: 12, right: 12, top: 12, bottom: 0 }}
-          >
-            <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-            <XAxis
-              axisLine={false}
-              dataKey="day"
-              interval={1}
-              minTickGap={8}
-              tickLine={false}
-              tickMargin={8}
-            />
-            <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-            <Line
-              dataKey="returnRate"
-              dot={false}
-              stroke="var(--color-returnRate)"
-              strokeWidth={2.5}
-              type="monotone"
-            />
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
-      <CardFooter>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-muted-foreground text-xs">
-          <Delta value={returnTrendPct}>
-            <DeltaIcon />
-            <DeltaValue />
-          </Delta>
-          <span className="inline-flex min-w-0 text-pretty">
-            vs primeiro dia (últimos 7 dias)
-          </span>
-        </div>
-        <Button
-          className="text-muted-foreground"
-          size="xs"
-          variant="ghost"
-          render={<a href="#/orders/returns" />}
-          nativeButton={false}
-        >
-          Central de devoluções
-          <ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
+	return (
+		<Card className="financial-panel-border h-full min-h-[32rem] ring-0 md:col-span-2">
+			<CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+				<div className="space-y-1">
+					<CardTitle>Taxa de devolução</CardTitle>
+					<CardDescription>Últimos 7 dias</CardDescription>
+				</div>
+				<div className="space-y-1 sm:text-right">
+					<CardTitle className="text-right">
+						{REFUNDED_SHARE_OF_ORDERS_PCT}%
+					</CardTitle>
+					<CardDescription>dos pedidos reembolsados</CardDescription>
+				</div>
+			</CardHeader>
+			<CardContent className="mt-auto">
+				<ChartContainer
+					className="aspect-auto h-64 w-full"
+					config={chartConfig}
+				>
+					<LineChart
+						accessibilityLayer
+						data={returnDaily7}
+						margin={{ left: 12, right: 12, top: 12, bottom: 0 }}
+					>
+						<CartesianGrid horizontal={false} strokeDasharray="3 3" />
+						<XAxis
+							axisLine={false}
+							dataKey="day"
+							interval={1}
+							minTickGap={8}
+							tickLine={false}
+							tickMargin={8}
+						/>
+						<ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+						<Line
+							dataKey="returnRate"
+							dot={false}
+							stroke="var(--color-returnRate)"
+							strokeWidth={2.5}
+							type="monotone"
+						/>
+					</LineChart>
+				</ChartContainer>
+			</CardContent>
+			<CardFooter>
+				<div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-muted-foreground text-xs">
+					<Delta value={returnTrendPct}>
+						<DeltaIcon />
+						<DeltaValue />
+					</Delta>
+					<span className="inline-flex min-w-0 text-pretty">
+						vs primeiro dia (últimos 7 dias)
+					</span>
+				</div>
+				<Button
+					className="text-muted-foreground"
+					size="xs"
+					variant="ghost"
+					render={<a href="#/orders/returns" />}
+					nativeButton={false}
+				>
+					Central de devoluções
+					<ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
+				</Button>
+			</CardFooter>
+		</Card>
+	);
 }
