@@ -420,18 +420,15 @@ function MiniBars({ bars }: { bars: readonly number[] }) {
     return Math.max(...slice, 1);
   });
   const max = Math.max(...groupedBars, 1);
-  const highlightStartIndex = Math.max(0, Math.floor(groupedBars.length * 0.5));
+  const highlightedColumnIndex = groupedBars.length - 1;
 
   return (
     <div className="flex h-[5.5rem] shrink-0 items-end gap-[4px]">
       {groupedBars.map((bar, index) => (
         <OverviewSegmentedColumn
           key={`mini-bar-${index}`}
-          segments={Array.from({ length: bar }, (_, segmentIndex) => ({
-            status:
-              index >= highlightStartIndex && segmentIndex < Math.max(2, Math.floor(bar * 0.45))
-                ? ("primary" as const)
-                : ("secondary" as const),
+          segments={Array.from({ length: bar }, () => ({
+            status: index === highlightedColumnIndex ? ("primary" as const) : ("secondary" as const),
           }))}
           height={`${(bar / max) * 100}%`}
           widthClassName="w-[10px]"
