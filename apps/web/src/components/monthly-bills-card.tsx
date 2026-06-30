@@ -7,6 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
+import { AnimatedNumber } from "@/components/animated-number";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
 type MonthlyBillsCardProps = {
@@ -52,7 +53,9 @@ export function MonthlyBillsCard({
 					<CardDescription className="text-base">{title}</CardDescription>
 
 					<div className="space-y-2">
-						<CardTitle className="text-5xl">{formatCurrency(total)}</CardTitle>
+						<CardTitle className="text-5xl">
+							<AnimatedNumber value={total} format={formatCurrency} />
+						</CardTitle>
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-base text-muted-foreground">
 							<span>{formatCurrency(installments)} em parcelas</span>
 							<span className="text-white/24">·</span>
@@ -75,7 +78,7 @@ export function MonthlyBillsCard({
 
 					<div className="flex items-center gap-3">
 						<div className="text-right font-['Space_Grotesk'] text-xl font-medium tracking-tight text-foreground">
-							{formatCurrency(total)}{" "}
+							<AnimatedNumber value={total} format={formatCurrency} />{" "}
 							<span className="text-muted-foreground">
 								/ {formatCurrency(limit)}
 							</span>
