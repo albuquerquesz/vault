@@ -11,6 +11,7 @@ import { type ChartConfig, ChartContainer } from "@vault/ui/components/chart";
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import { useMemo } from "react";
 import { Cell, Pie, PieChart } from "recharts";
+import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
 type MonthOverMonthTrend = "up" | "down" | "neutral";
 
@@ -27,6 +28,7 @@ type OrderSourceMixChartProps = {
 	totalNetWorth: number;
 	periodLabel?: string;
 	deltaPct?: number;
+	loading?: boolean;
 };
 
 const defaultData: OrderSourceDatum[] = [
@@ -105,7 +107,12 @@ export function OrderSourceMixChart({
 	totalNetWorth,
 	periodLabel = "últimos 30 dias",
 	deltaPct = 0.5,
+	loading = false,
 }: OrderSourceMixChartProps) {
+	if (loading) {
+		return <HomeCardSkeleton variant="mix" />;
+	}
+
 	const safeData = data.length > 0 ? data : defaultData;
 	const resolvedTotalOrders = useMemo(
 		() => totalOrders ?? safeData.reduce((sum, row) => sum + row.orders, 0),

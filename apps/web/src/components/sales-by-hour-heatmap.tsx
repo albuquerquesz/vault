@@ -10,6 +10,7 @@ import {
 import { cn } from "@vault/ui/lib/utils";
 import { Clock3Icon } from "lucide-react";
 import { useMemo } from "react";
+import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
 export type SalesByHourDatum = {
 	day: string;
@@ -22,6 +23,7 @@ type SalesByHourHeatmapProps = {
 	currency?: string;
 	locale?: string;
 	data?: readonly SalesByHourDatum[];
+	loading?: boolean;
 };
 
 const HOUR_LABELS = ["0h", "6h", "12h", "18h", "24h"] as const;
@@ -120,7 +122,12 @@ export function SalesByHourHeatmap({
 	currency = "BRL",
 	locale = "pt-BR",
 	data = DEFAULT_DATA,
+	loading = false,
 }: SalesByHourHeatmapProps) {
+	if (loading) {
+		return <HomeCardSkeleton variant="heatmap" />;
+	}
+
 	const safeData = useMemo(() => clampHeatmapData(data), [data]);
 
 	const metrics = useMemo(() => {

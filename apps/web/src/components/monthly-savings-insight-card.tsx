@@ -14,6 +14,7 @@ import {
 	TooltipTrigger,
 } from "@vault/ui/components/tooltip";
 import { useMemo } from "react";
+import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
 type MonthlySavingsInsightCardProps = {
 	title?: string;
@@ -22,6 +23,7 @@ type MonthlySavingsInsightCardProps = {
 	dayLabels?: readonly string[];
 	actualSeries?: readonly number[];
 	baselineSeries?: readonly number[];
+	loading?: boolean;
 };
 
 const DEFAULT_ACTUAL_SERIES = [
@@ -80,7 +82,12 @@ export function MonthlySavingsInsightCard({
 	dayLabels = DEFAULT_DAY_LABELS,
 	actualSeries = DEFAULT_ACTUAL_SERIES,
 	baselineSeries = DEFAULT_BASELINE_SERIES,
+	loading = false,
 }: MonthlySavingsInsightCardProps) {
+	if (loading) {
+		return <HomeCardSkeleton variant="savings" />;
+	}
+
 	const chart = useMemo(() => {
 		const safeActual =
 			actualSeries.length > 1 ? actualSeries : DEFAULT_ACTUAL_SERIES;

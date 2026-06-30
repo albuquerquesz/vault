@@ -7,6 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
+import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
 type MonthlyBillsCardProps = {
 	title?: string;
@@ -16,6 +17,7 @@ type MonthlyBillsCardProps = {
 	limit?: number;
 	providerName?: string;
 	planName?: string;
+	loading?: boolean;
 };
 
 function formatCurrency(value: number, locale = "pt-BR", currency = "BRL") {
@@ -35,7 +37,12 @@ export function MonthlyBillsCard({
 	limit = 550,
 	providerName = "nu",
 	planName = "gold",
+	loading = false,
 }: MonthlyBillsCardProps) {
+	if (loading) {
+		return <HomeCardSkeleton variant="bills" />;
+	}
+
 	const usagePct = limit > 0 ? Math.round((total / limit) * 100) : 0;
 
 	return (

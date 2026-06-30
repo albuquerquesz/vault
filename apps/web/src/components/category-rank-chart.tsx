@@ -15,6 +15,7 @@ import {
 } from "@vault/ui/components/chart";
 import React from "react";
 import { LabelList, Pie, PieChart } from "recharts";
+import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
 export type CategoryMixDatum = {
 	category: string;
@@ -98,7 +99,15 @@ function buildSlices(data: readonly CategoryMixDatum[]): {
 	return { chartConfig, pieData };
 }
 
-export function CategoryRankChart() {
+type CategoryRankChartProps = {
+	loading?: boolean;
+};
+
+export function CategoryRankChart({ loading = false }: CategoryRankChartProps) {
+	if (loading) {
+		return <HomeCardSkeleton variant="category" />;
+	}
+
 	const { chartConfig, pieData } = React.useMemo(
 		() => buildSlices(consolidateTopFourAndOthers(data)),
 		[],
