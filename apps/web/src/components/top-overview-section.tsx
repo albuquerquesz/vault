@@ -37,6 +37,10 @@ export type TopOverviewMainFlowBar = {
   essenciais: number;
   naoEssenciais: number;
 };
+type OverviewColumnStatus = "primary" | "secondary";
+type OverviewSegmentedColumnSegment = {
+  status: OverviewColumnStatus;
+};
 
 export type TopOverviewMainFlowRange = {
   total: number;
@@ -352,16 +356,73 @@ function TrendLabel({
   );
 }
 
+function OverviewColumnSegment({
+  status,
+  className,
+}: {
+  status: OverviewColumnStatus;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[2px]",
+        status === "primary" ? "bg-white/88" : "bg-white/32",
+        className,
+      )}
+    />
+  );
+}
+
+function OverviewSegmentedColumn({
+  segments,
+  height,
+  gapClassName = "gap-[3px]",
+  widthClassName = "w-full",
+  segmentClassName,
+  className,
+}: {
+  segments: readonly OverviewSegmentedColumnSegment[];
+  height: string;
+  gapClassName?: string;
+  widthClassName?: string;
+  segmentClassName?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col justify-end",
+        widthClassName,
+        gapClassName,
+        className,
+      )}
+      style={{ height }}
+    >
+      {segments.map((segment, index) => (
+        <OverviewColumnSegment
+          key={`${segment.status}-${index}`}
+          status={segment.status}
+          className={segmentClassName}
+        />
+      ))}
+    </div>
+  );
+}
+
 function MiniBars({ bars }: { bars: readonly number[] }) {
   const max = Math.max(...bars, 1);
 
   return (
     <div className="flex h-10 items-end gap-1">
       {bars.map((bar, index) => (
-        <div
+        <OverviewSegmentedColumn
           key={`mini-bar-${index}`}
-          className="w-1.5 rounded-[1px] bg-white/28"
-          style={{ height: `${(bar / max) * 100}%` }}
+          segments={Array.from({ length: bar }, () => ({ status: "secondary" as const }))}
+          height={`${(bar / max) * 100}%`}
+          widthClassName="w-1.5"
+          gapClassName="gap-1"
+          segmentClassName="h-1.5 rounded-[1px] bg-white/28"
         />
       ))}
     </div>
@@ -561,25 +622,19 @@ function LargeBarChart({
               key={`daily-bar-${index}`}
               className="relative z-10 flex h-full items-end justify-center"
             >
-              <div
-                className="flex w-full max-w-[0.95rem] flex-col justify-end gap-[3px]"
-                style={{
-                  height: `${((bar.essenciais + bar.naoEssenciais) / chartMax) * 100}%`,
-                }}
-              >
-                {Array.from({ length: bar.naoEssenciais }).map((_, segmentIndex) => (
-                  <div
-                    key={`daily-bar-top-${index}-segment-${segmentIndex}`}
-                    className="h-[7px] rounded-[2px] bg-white/32"
-                  />
-                ))}
-                {Array.from({ length: bar.essenciais }).map((_, segmentIndex) => (
-                  <div
-                    key={`daily-bar-bottom-${index}-segment-${segmentIndex}`}
-                    className="h-[7px] rounded-[2px] bg-white/88"
-                  />
-                ))}
-              </div>
+              <OverviewSegmentedColumn
+                segments={[
+                  ...Array.from({ length: bar.naoEssenciais }, () => ({
+                    status: "secondary" as const,
+                  })),
+                  ...Array.from({ length: bar.essenciais }, () => ({
+                    status: "primary" as const,
+                  })),
+                ]}
+                height={`${((bar.essenciais + bar.naoEssenciais) / chartMax) * 100}%`}
+                widthClassName="w-full max-w-[0.95rem]"
+                segmentClassName="h-[7px]"
+              />
             </div>
           ))}
         </div>
@@ -636,20 +691,18 @@ function MonthlyBarChart({
               key={`month-bar-${index}`}
               className="relative z-10 flex h-full items-end justify-center"
             >
-              <div
-                className="flex w-full max-w-[0.95rem] flex-col justify-end gap-[3px]"
-                style={{ height: `${(bar / chartMax) * 100}%` }}
-              >
-                {Array.from({ length: bar }).map((_, segmentIndex) => (
-                  <div
-                    key={`month-bar-${index}-segment-${segmentIndex}`}
-                    className={cn(
-                      "h-[6px] rounded-[2px]",
-                      index === highlightedIndex ? "bg-white/88" : "bg-white/24",
-                    )}
-                  />
-                ))}
-              </div>
+              <OverviewSegmentedColumn
+                segments={Array.from({ length: bar }, () => ({
+                  status: index === highlightedIndex ? ("primary" as const) : ("secondary" as const),
+                }))}
+                height={`${(bar / chartMax) * 100}%`}
+                widthClassName="w-full max-w-[0.95rem]"
+                segmentClassName={cn(
+                  "h-[6px]",
+                  index === highlightedIndex && "bg-white/88",
+                  index !== highlightedIndex && "bg-white/24",
+                )}
+              />
             </div>
           ))}
         </div>
