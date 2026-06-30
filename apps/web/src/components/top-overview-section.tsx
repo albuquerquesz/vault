@@ -366,7 +366,7 @@ function OverviewColumnSegment({
   return (
     <div
       className={cn(
-        "rounded-[2px]",
+        "shrink-0 rounded-[2px]",
         status === "primary" ? "bg-white/88" : "bg-white/24",
         className,
       )}
