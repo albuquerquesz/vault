@@ -367,7 +367,7 @@ function OverviewColumnSegment({
     <div
       className={cn(
         "rounded-[2px]",
-        status === "primary" ? "bg-white/88" : "bg-white/32",
+        status === "primary" ? "bg-white/88" : "bg-white/24",
         className,
       )}
     />
@@ -411,12 +411,20 @@ function OverviewSegmentedColumn({
 }
 
 function MiniBars({ bars }: { bars: readonly number[] }) {
-  const max = Math.max(...bars, 1);
-  const highlightStartIndex = Math.max(0, Math.floor(bars.length * 0.5));
+  const targetColumnCount = Math.min(5, bars.length);
+  const groupedBars = Array.from({ length: targetColumnCount }, (_, groupIndex) => {
+    const start = Math.floor((groupIndex * bars.length) / targetColumnCount);
+    const end = Math.floor(((groupIndex + 1) * bars.length) / targetColumnCount);
+    const slice = bars.slice(start, Math.max(start + 1, end));
+
+    return Math.max(...slice, 1);
+  });
+  const max = Math.max(...groupedBars, 1);
+  const highlightStartIndex = Math.max(0, Math.floor(groupedBars.length * 0.5));
 
   return (
-    <div className="flex h-10 shrink-0 items-end gap-[3px]">
-      {bars.map((bar, index) => (
+    <div className="flex h-[5.5rem] shrink-0 items-end gap-[4px]">
+      {groupedBars.map((bar, index) => (
         <OverviewSegmentedColumn
           key={`mini-bar-${index}`}
           segments={Array.from({ length: bar }, (_, segmentIndex) => ({
@@ -426,9 +434,9 @@ function MiniBars({ bars }: { bars: readonly number[] }) {
                 : ("secondary" as const),
           }))}
           height={`${(bar / max) * 100}%`}
-          widthClassName="w-[5px]"
+          widthClassName="w-[10px]"
           gapClassName="gap-[2px]"
-          segmentClassName="h-[4px] rounded-[1px]"
+          segmentClassName="h-[6px] rounded-[1px]"
         />
       ))}
     </div>
