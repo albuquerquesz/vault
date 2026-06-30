@@ -1,5 +1,6 @@
 import { SidebarInset, SidebarProvider } from "@vault/ui/components/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { AppTopHeader } from "@/components/app-top-header";
 import { useTheme } from "@/components/theme-provider";
 import { useKeybind } from "@/hooks/use-keybind";
 
@@ -17,8 +18,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 		<SidebarProvider defaultOpen>
 			<AppSidebar />
 			<SidebarInset>
-				<div className="p-4 md:p-6">
-					<div className="flex flex-1 flex-col gap-4">{children}</div>
+				<div className="flex min-h-svh flex-col">
+					<AppTopHeader />
+					<div className="flex-1 p-4 md:p-6">
+						<div className="flex flex-1 flex-col gap-4">{children}</div>
+					</div>
 				</div>
 			</SidebarInset>
 		</SidebarProvider>

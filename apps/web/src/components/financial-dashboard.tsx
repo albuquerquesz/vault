@@ -1,6 +1,4 @@
-import { LayoutGridIcon } from "@vault/ui/components/layout-grid";
 import { Dashboard } from "@/components/dashboard";
-import { TabPageHeader } from "@/components/tab-page-header";
 
 export function FinancialDashboard() {
   return (

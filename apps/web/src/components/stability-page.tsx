@@ -1,4 +1,3 @@
-import { ActivityIcon } from "@vault/ui/components/activity";
 import {
 	Card,
 	CardContent,
@@ -8,7 +7,6 @@ import {
 import { Input } from "@vault/ui/components/input";
 import { useMemo, useState } from "react";
 import { formatFullCurrency, formatPercent } from "@/components/formater";
-import { TabPageHeader } from "@/components/tab-page-header";
 
 const monthDays = new Date(
 	new Date().getFullYear(),
@@ -31,9 +29,6 @@ export function StabilityPage() {
 
 	return (
 		<div className="grid gap-4 md:grid-cols-2">
-			<div className="md:col-span-2">
-				<TabPageHeader icon={<ActivityIcon size={16} />} title="Estabilidade" />
-			</div>
 			<Card className="financial-panel-border md:col-span-2">
 				<CardHeader>
 					<CardTitle>Planejador de estabilidade</CardTitle>

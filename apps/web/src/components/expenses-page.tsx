@@ -14,10 +14,8 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@vault/ui/components/sheet";
-import { WalletIcon } from "@vault/ui/components/wallet";
 import { useState } from "react";
 import { formatFullCurrency } from "@/components/formater";
-import { TabPageHeader } from "@/components/tab-page-header";
 
 const categories = [
 	"Moradia",
@@ -99,7 +97,6 @@ export function ExpensesPage() {
 
 	return (
 		<div className="grid gap-4">
-			<TabPageHeader icon={<WalletIcon size={16} />} title="Despesas" />
 			<Card className="border-0">
 				<CardHeader className="flex flex-row items-center justify-between gap-2">
 					<CardTitle
