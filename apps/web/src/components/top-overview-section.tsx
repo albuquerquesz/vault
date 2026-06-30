@@ -615,7 +615,7 @@ function LargeBarChart({
         </div>
 
         <div
-          className="absolute inset-y-0 right-0 left-11 grid items-end gap-2"
+          className="absolute inset-y-0 right-0 left-11 grid items-end gap-1.5"
           style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
         >
           <div className="pointer-events-none absolute inset-0 rounded-[0.45rem] border border-white/[0.04] bg-[linear-gradient(to_right,rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.014)_1px,transparent_1px)] bg-[size:calc(100%/30)_100%,100%_25%]" />
@@ -646,7 +646,7 @@ function LargeBarChart({
                   })),
                 ]}
                 height={`${((bar.essenciais + bar.naoEssenciais) / chartMax) * 100}%`}
-                widthClassName="w-full max-w-[0.95rem]"
+                widthClassName="w-full max-w-[1.15rem]"
                 segmentClassName="h-[7px]"
               />
             </div>

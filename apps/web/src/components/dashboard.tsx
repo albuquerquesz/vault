@@ -23,9 +23,32 @@ const mainFlowYTicks = [
   { value: 20, label: "20k" },
 ] as const;
 
-function buildSequentialDateLabels(
-  count: number,
+function buildSequentialDateLabels(count: number, startDate: string, stepDays = 1) {
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC",
+  });
+  const start = new Date(`${startDate}T00:00:00Z`);
+
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(start);
+    date.setUTCDate(start.getUTCDate() + index * stepDays);
+
+    return {
+      index,
+      label: formatter
+        .format(date)
+        .replace(".", "")
+        .replace(" de ", " ")
+        .replace(/^(\d{2})\s(.+)$/, "$1 $2"),
+    };
+  });
+}
+
+function buildIndexedDateLabels(
   startDate: string,
+  indexes: readonly number[],
   stepDays = 1,
 ) {
   const formatter = new Intl.DateTimeFormat("pt-BR", {
@@ -35,7 +58,7 @@ function buildSequentialDateLabels(
   });
   const start = new Date(`${startDate}T00:00:00Z`);
 
-  return Array.from({ length: count }, (_, index) => {
+  return indexes.map((index) => {
     const date = new Date(start);
     date.setUTCDate(start.getUTCDate() + index * stepDays);
 
@@ -157,7 +180,7 @@ const topMainFlowData: Record<
       { essenciais: 7, naoEssenciais: 9 },
       { essenciais: 8, naoEssenciais: 10 },
     ],
-    xLabels: buildSequentialDateLabels(14, "2026-04-05"),
+    xLabels: buildIndexedDateLabels("2026-04-05", [0, 2, 4, 6, 8, 10, 13]),
     yTicks: mainFlowYTicks,
   },
   "1M": {
@@ -197,7 +220,7 @@ const topMainFlowData: Record<
       { essenciais: 5, naoEssenciais: 5 },
       { essenciais: 6, naoEssenciais: 6 },
     ],
-    xLabels: buildSequentialDateLabels(30, "2026-03-22"),
+    xLabels: buildIndexedDateLabels("2026-03-22", [0, 4, 8, 12, 16, 20, 24, 29]),
     yTicks: mainFlowYTicks,
   },
   "3M": {
