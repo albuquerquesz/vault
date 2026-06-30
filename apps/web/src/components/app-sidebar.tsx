@@ -3,14 +3,12 @@
 import {
 	Sidebar,
 	SidebarContent,
-	SidebarFooter,
 	SidebarHeader,
 } from "@vault/ui/components/sidebar";
 import { TooltipProvider } from "@vault/ui/components/tooltip";
 import { navGroups } from "@/components/app-shared";
 import { LogoIcon } from "@/components/logo";
 import { NavGroup } from "@/components/nav-group";
-import { SidebarUserMenuSection } from "@/components/sidebar-user-menu";
 
 export function AppSidebar() {
 	return (
@@ -31,9 +29,6 @@ export function AppSidebar() {
 						<NavGroup key={`sidebar-group-${index}`} {...group} />
 					))}
 				</SidebarContent>
-				<SidebarFooter>
-					<SidebarUserMenuSection />
-				</SidebarFooter>
 			</Sidebar>
 		</TooltipProvider>
 	);

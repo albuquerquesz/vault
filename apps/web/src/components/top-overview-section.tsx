@@ -1,21 +1,11 @@
 "use client";
 
-import { Button } from "@vault/ui/components/button";
 import { Card, CardContent, CardHeader } from "@vault/ui/components/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@vault/ui/components/dropdown-menu";
 import { cn } from "@vault/ui/lib/utils";
 import {
-  CalendarDaysIcon,
   CreditCardIcon,
-  EllipsisIcon,
   ReceiptTextIcon,
   ScaleIcon,
-  Settings2Icon,
   TrendingDownIcon,
   TrendingUpIcon,
   WalletIcon,
@@ -165,7 +155,6 @@ function SummaryCard({
             <span className="opacity-80">{icon}</span>
             <span>{title}</span>
           </div>
-          <EllipsisIcon className="size-4" />
         </div>
       </CardHeader>
       <CardContent className="flex items-end justify-between gap-4 px-4 py-4">
@@ -370,41 +359,10 @@ function SecondaryFlowCard() {
 export function TopOverviewSection() {
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-            Bem-vindo de volta, Victor.
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-2 self-start lg:self-auto">
-          <Button
-            className="rounded-[0.95rem] border-white/10 px-4 text-sm"
-            size="lg"
-            variant="outline"
-          >
-            <CalendarDaysIcon className="size-4" />
-            Nova meta
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  className="border-white/10"
-                  size="icon-lg"
-                  variant="outline"
-                />
-              }
-            >
-              <EllipsisIcon className="size-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="rounded-xl border border-white/10 bg-background text-foreground">
-              <DropdownMenuItem>Ajustar métricas</DropdownMenuItem>
-              <DropdownMenuItem>Editar período</DropdownMenuItem>
-              <DropdownMenuItem>Gerenciar metas</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+      <div className="space-y-1">
+        <h2 className="text-4xl font-semibold tracking-tight text-foreground">
+          Bem-vindo de volta, Victor.
+        </h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
