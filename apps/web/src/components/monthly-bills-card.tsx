@@ -7,6 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
+import { cn } from "@vault/ui/lib/utils";
 import { AnimatedNumber } from "@/components/animated-number";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
@@ -19,6 +20,7 @@ type MonthlyBillsCardProps = {
 	providerName?: string;
 	planName?: string;
 	loading?: boolean;
+	className?: string;
 };
 
 function formatCurrency(value: number, locale = "pt-BR", currency = "BRL") {
@@ -39,6 +41,7 @@ export function MonthlyBillsCard({
 	providerName = "nu",
 	planName = "gold",
 	loading = false,
+	className,
 }: MonthlyBillsCardProps) {
 	if (loading) {
 		return <HomeCardSkeleton variant="bills" />;
@@ -47,7 +50,12 @@ export function MonthlyBillsCard({
 	const usagePct = limit > 0 ? Math.round((total / limit) * 100) : 0;
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[32rem] ring-0">
+		<Card
+			className={cn(
+				"financial-panel-border h-full min-h-[32rem] ring-0",
+				className,
+			)}
+		>
 			<CardHeader className="gap-4">
 				<div className="space-y-4">
 					<CardDescription className="text-base">{title}</CardDescription>
@@ -66,7 +74,7 @@ export function MonthlyBillsCard({
 			</CardHeader>
 
 			<CardContent className="flex h-full flex-col">
-				<div className="mt-2 flex items-center justify-between gap-4 border-b border-border pb-5">
+				<div className="mt-2 flex items-center justify-between gap-4 border-b border-white/10 pb-5">
 					<div className="flex min-w-0 items-center gap-3">
 						<div className="flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold lowercase tracking-tight text-fuchsia-500 [background-image:linear-gradient(180deg,rgba(56,56,60,0.95),rgba(40,40,44,0.95))]">
 							{providerName}

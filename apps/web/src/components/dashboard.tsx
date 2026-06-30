@@ -23,6 +23,52 @@ const mainFlowYTicks = [
   { value: 20, label: "20k" },
 ] as const;
 
+function buildSequentialDateLabels(
+  count: number,
+  startDate: string,
+  stepDays = 1,
+) {
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC",
+  });
+  const start = new Date(`${startDate}T00:00:00Z`);
+
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(start);
+    date.setUTCDate(start.getUTCDate() + index * stepDays);
+
+    return {
+      index,
+      label: formatter
+        .format(date)
+        .replace(".", "")
+        .replace(" de ", " ")
+        .replace(/^(\d{2})\s(.+)$/, "$1 $2"),
+    };
+  });
+}
+
+function buildBiMonthlyLabels() {
+  const labels = [
+    "01 Nov",
+    "15 Nov",
+    "01 Dez",
+    "15 Dez",
+    "01 Jan",
+    "15 Jan",
+    "01 Fev",
+    "15 Fev",
+    "01 Mar",
+    "15 Mar",
+    "01 Abr",
+    "15 Abr",
+  ];
+
+  return labels.map((label, index) => ({ label, index }));
+}
+
 function formatCompactCurrency(value: number) {
   const absoluteValue = Math.abs(value);
 
@@ -111,15 +157,7 @@ const topMainFlowData: Record<
       { essenciais: 7, naoEssenciais: 9 },
       { essenciais: 8, naoEssenciais: 10 },
     ],
-    xLabels: [
-      { label: "05 Abr", index: 0 },
-      { label: "07 Abr", index: 2 },
-      { label: "09 Abr", index: 4 },
-      { label: "11 Abr", index: 6 },
-      { label: "13 Abr", index: 8 },
-      { label: "15 Abr", index: 10 },
-      { label: "19 Abr", index: 13 },
-    ],
+    xLabels: buildSequentialDateLabels(14, "2026-04-05"),
     yTicks: mainFlowYTicks,
   },
   "1M": {
@@ -159,16 +197,7 @@ const topMainFlowData: Record<
       { essenciais: 5, naoEssenciais: 5 },
       { essenciais: 6, naoEssenciais: 6 },
     ],
-    xLabels: [
-      { label: "22 Mar", index: 0 },
-      { label: "26 Mar", index: 5 },
-      { label: "30 Mar", index: 9 },
-      { label: "03 Abr", index: 12 },
-      { label: "07 Abr", index: 16 },
-      { label: "11 Abr", index: 20 },
-      { label: "15 Abr", index: 24 },
-      { label: "19 Abr", index: 29 },
-    ],
+    xLabels: buildSequentialDateLabels(30, "2026-03-22"),
     yTicks: mainFlowYTicks,
   },
   "3M": {
@@ -202,15 +231,7 @@ const topMainFlowData: Record<
       { essenciais: 11, naoEssenciais: 14 },
       { essenciais: 10, naoEssenciais: 13 },
     ],
-    xLabels: [
-      { label: "Jan", index: 0 },
-      { label: "Fev", index: 4 },
-      { label: "Mar", index: 8 },
-      { label: "Abr", index: 12 },
-      { label: "Mai", index: 16 },
-      { label: "Jun", index: 20 },
-      { label: "Jul", index: 23 },
-    ],
+    xLabels: buildSequentialDateLabels(24, "2026-01-01", 4),
     yTicks: mainFlowYTicks,
   },
   "6M": {
@@ -232,15 +253,7 @@ const topMainFlowData: Record<
       { essenciais: 10, naoEssenciais: 13 },
       { essenciais: 11, naoEssenciais: 14 },
     ],
-    xLabels: [
-      { label: "Nov", index: 0 },
-      { label: "Dez", index: 2 },
-      { label: "Jan", index: 4 },
-      { label: "Fev", index: 6 },
-      { label: "Mar", index: 8 },
-      { label: "Abr", index: 10 },
-      { label: "Mai", index: 11 },
-    ],
+    xLabels: buildBiMonthlyLabels(),
     yTicks: mainFlowYTicks,
   },
 };
@@ -270,12 +283,10 @@ export function Dashboard() {
         summaryCards={topSummaryCards}
         mainFlowData={topMainFlowData}
         secondaryFlow={topSecondaryFlow}
+        rightContent={<MonthlyBillsCard className="min-h-0" />}
         initialRange="1M"
       />
-      <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]">
-        <div className="h-full">
-          <MonthlyBillsCard />
-        </div>
+      <div className="grid grid-cols-1 items-stretch gap-6">
         <div className="h-full">
           <OrderSourceMixChart totalNetWorth={1842} />
         </div>

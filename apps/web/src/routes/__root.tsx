@@ -6,7 +6,6 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { Toaster } from "@vault/ui/components/sonner";
-import { lazy, Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -18,10 +17,6 @@ export interface RouterAppContext {
 	trpc: typeof trpc;
 	queryClient: QueryClient;
 }
-
-const Devtools = import.meta.env.DEV
-	? lazy(() => import("@/components/devtools"))
-	: null;
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	component: RootComponent,
@@ -71,11 +66,6 @@ function RootComponent() {
 				)}
 				<Toaster richColors />
 			</ThemeProvider>
-			{Devtools ? (
-				<Suspense fallback={null}>
-					<Devtools />
-				</Suspense>
-			) : null}
 		</>
 	);
 }

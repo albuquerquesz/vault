@@ -63,6 +63,7 @@ type TopOverviewSectionProps = {
   summaryCards?: TopOverviewSummaryCard[];
   mainFlowData?: Record<TopOverviewRangeOption, TopOverviewMainFlowRange>;
   secondaryFlow?: TopOverviewSecondaryFlow;
+  rightContent?: React.ReactNode;
   initialRange?: TopOverviewRangeOption;
 };
 
@@ -431,13 +432,45 @@ function AxisLabels({
   offsetLeft = 0,
   offsetRight = 0,
   className,
+  denseLabelClassName,
 }: {
   barCount: number;
   labels: readonly TopOverviewAxisLabel[];
   offsetLeft?: number;
   offsetRight?: number;
   className?: string;
+  denseLabelClassName?: string;
 }) {
+  const denseMode = labels.length === barCount;
+
+  if (denseMode) {
+    const labelByIndex = new Map(labels.map((item) => [item.index, item.label]));
+
+    return (
+      <div
+        className={cn("mt-3 text-sm text-muted-foreground", className)}
+        style={{ paddingLeft: offsetLeft, paddingRight: offsetRight }}
+      >
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
+        >
+          {Array.from({ length: barCount }, (_, index) => (
+            <span
+              key={`dense-axis-${index}`}
+              className={cn(
+                "min-w-0 text-center text-[0.6rem] leading-none whitespace-nowrap text-muted-foreground/95",
+                denseLabelClassName,
+              )}
+            >
+              {labelByIndex.get(index) ?? ""}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("relative mt-3 h-5 text-sm text-muted-foreground", className)}>
       {labels.map((item) => {
@@ -557,6 +590,8 @@ function LargeBarChart({
         labels={xLabels}
         offsetLeft={axisWidth}
         offsetRight={8}
+        className="mt-2"
+        denseLabelClassName="text-[0.52rem] md:text-[0.58rem]"
       />
     </div>
   );
@@ -582,47 +617,49 @@ function MonthlyBarChart({
 
   return (
     <div className="mt-6">
-      <div
-        className="relative grid h-[16rem] items-end gap-3"
-        style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
-      >
+      <div className="relative h-[16rem]">
         <div className="pointer-events-none absolute inset-0 rounded-[0.45rem] border border-white/[0.04] bg-[linear-gradient(to_right,rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.014)_1px,transparent_1px)] bg-[size:calc(100%/12)_100%,100%_25%]" />
         {highlightedValueLabel ? (
           <span
-            className="pointer-events-none absolute top-0 z-20 -translate-x-1/2 -translate-y-[1.15rem] whitespace-nowrap text-xs font-medium text-foreground"
+            className="pointer-events-none absolute top-2 z-20 -translate-x-1/2 whitespace-nowrap text-xs font-medium text-foreground"
             style={{ left: highlightedLeft }}
           >
             {highlightedValueLabel}
           </span>
         ) : null}
-        {bars.map((bar, index) => (
-          <div
-            key={`month-bar-${index}`}
-            className="relative z-10 flex h-full items-end justify-center"
-          >
+        <div
+          className="absolute inset-x-0 bottom-0 top-8 grid items-end gap-3 px-px"
+          style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
+        >
+          {bars.map((bar, index) => (
             <div
-              className="flex w-full max-w-[0.95rem] flex-col justify-end gap-[3px]"
-              style={{ height: `${(bar / chartMax) * 100}%` }}
+              key={`month-bar-${index}`}
+              className="relative z-10 flex h-full items-end justify-center"
             >
-              {Array.from({ length: bar }).map((_, segmentIndex) => (
-                <div
-                  key={`month-bar-${index}-segment-${segmentIndex}`}
-                  className={cn(
-                    "h-[6px] rounded-[2px]",
-                    index === highlightedIndex ? "bg-white/88" : "bg-white/24",
-                  )}
-                />
-              ))}
+              <div
+                className="flex w-full max-w-[0.95rem] flex-col justify-end gap-[3px]"
+                style={{ height: `${(bar / chartMax) * 100}%` }}
+              >
+                {Array.from({ length: bar }).map((_, segmentIndex) => (
+                  <div
+                    key={`month-bar-${index}-segment-${segmentIndex}`}
+                    className={cn(
+                      "h-[6px] rounded-[2px]",
+                      index === highlightedIndex ? "bg-white/88" : "bg-white/24",
+                    )}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <AxisLabels
         barCount={bars.length}
         labels={xLabels}
         offsetRight={4}
-        className="mt-[0.1875rem] h-4"
+        className="mt-2 h-4"
       />
     </div>
   );
@@ -724,6 +761,7 @@ export function TopOverviewSection({
   summaryCards: cards = summaryCards,
   mainFlowData: mainFlow = mainFlowData,
   secondaryFlow = defaultSecondaryFlow,
+  rightContent,
   initialRange = "1M",
 }: TopOverviewSectionProps) {
   return (
@@ -742,7 +780,7 @@ export function TopOverviewSection({
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <MainFlowCard data={mainFlow} initialRange={initialRange} />
-        <SecondaryFlowCard data={secondaryFlow} />
+        {rightContent ?? <SecondaryFlowCard data={secondaryFlow} />}
       </div>
     </section>
   );
