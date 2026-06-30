@@ -33,6 +33,10 @@ export function FinancialDashboard() {
           padding-top: 2rem !important;
           padding-bottom: 2rem !important;
         }
+        .financial-panel-border.top-overview-card[data-slot="card"] {
+          padding-top: 1rem !important;
+          padding-bottom: 1.5rem !important;
+        }
         .financial-panel-border::after {
           content: "" !important;
           position: absolute !important;

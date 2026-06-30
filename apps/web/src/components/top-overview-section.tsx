@@ -430,14 +430,16 @@ function AxisLabels({
   labels,
   offsetLeft = 0,
   offsetRight = 0,
+  className,
 }: {
   barCount: number;
   labels: readonly TopOverviewAxisLabel[];
   offsetLeft?: number;
   offsetRight?: number;
+  className?: string;
 }) {
   return (
-    <div className="relative mt-3 h-5 text-sm text-muted-foreground">
+    <div className={cn("relative mt-3 h-5 text-sm text-muted-foreground", className)}>
       {labels.map((item) => {
         const ratio = barCount <= 1 ? 0 : item.index / (barCount - 1);
         const left = `calc(${offsetLeft}px + (${ratio} * (100% - ${offsetLeft + offsetRight}px)))`;
@@ -462,6 +464,15 @@ function AxisLabels({
   );
 }
 
+function getChartMaxWithHeadroom(
+  maxValue: number,
+  minimumMax: number,
+  headroomRatio: number,
+  absolutePadding = 0,
+) {
+  return Math.max(minimumMax, Math.ceil(maxValue * headroomRatio), maxValue + absolutePadding, 1);
+}
+
 function LargeBarChart({
   bars,
   xLabels,
@@ -473,7 +484,7 @@ function LargeBarChart({
 }) {
   const maxBarValue = Math.max(...bars.map((bar) => bar.essenciais + bar.naoEssenciais), 1);
   const maxTickValue = Math.max(...yTicks.map((tick) => tick.value), 1);
-  const chartMax = Math.max(maxBarValue, maxTickValue);
+  const chartMax = getChartMaxWithHeadroom(maxBarValue, maxTickValue, 1.08);
   const axisWidth = 44;
 
   return (
@@ -563,27 +574,35 @@ function MonthlyBarChart({
   highlightedValueLabel?: string;
 }) {
   const max = Math.max(...bars, 1);
+  const chartMax = getChartMaxWithHeadroom(max, 1, 1.12, 2);
+  const highlightedLeft =
+    bars.length <= 1
+      ? "0%"
+      : `calc(${(highlightedIndex / (bars.length - 1)) * 100}% - 0px)`;
 
   return (
-    <div className="mt-8">
+    <div className="mt-6">
       <div
         className="relative grid h-[16rem] items-end gap-3"
         style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
       >
         <div className="pointer-events-none absolute inset-0 rounded-[0.45rem] border border-white/[0.04] bg-[linear-gradient(to_right,rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.014)_1px,transparent_1px)] bg-[size:calc(100%/12)_100%,100%_25%]" />
+        {highlightedValueLabel ? (
+          <span
+            className="pointer-events-none absolute top-0 z-20 -translate-x-1/2 -translate-y-[1.15rem] whitespace-nowrap text-xs font-medium text-foreground"
+            style={{ left: highlightedLeft }}
+          >
+            {highlightedValueLabel}
+          </span>
+        ) : null}
         {bars.map((bar, index) => (
           <div
             key={`month-bar-${index}`}
             className="relative z-10 flex h-full items-end justify-center"
           >
-            {index === highlightedIndex && highlightedValueLabel ? (
-              <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium text-foreground">
-                {highlightedValueLabel}
-              </span>
-            ) : null}
             <div
               className="flex w-full max-w-[0.95rem] flex-col justify-end gap-[3px]"
-              style={{ height: `${(bar / max) * 100}%` }}
+              style={{ height: `${(bar / chartMax) * 100}%` }}
             >
               {Array.from({ length: bar }).map((_, segmentIndex) => (
                 <div
@@ -599,7 +618,12 @@ function MonthlyBarChart({
         ))}
       </div>
 
-      <AxisLabels barCount={bars.length} labels={xLabels} offsetRight={4} />
+      <AxisLabels
+        barCount={bars.length}
+        labels={xLabels}
+        offsetRight={4}
+        className="mt-[0.1875rem] h-4"
+      />
     </div>
   );
 }
@@ -616,8 +640,8 @@ function MainFlowCard({
   const legend = currentRange.legend ?? ["Essenciais", "Não essenciais"];
 
   return (
-    <Card className="financial-panel-border gap-0 p-0 ring-0">
-      <CardContent className="px-5 py-5">
+    <Card className="financial-panel-border top-overview-card gap-0 p-0 ring-0">
+      <CardContent className="px-5 pt-4 pb-5">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3">
@@ -667,8 +691,8 @@ function MainFlowCard({
 
 function SecondaryFlowCard({ data }: { data: TopOverviewSecondaryFlow }) {
   return (
-    <Card className="financial-panel-border gap-0 p-0 ring-0">
-      <CardContent className="px-5 py-5">
+    <Card className="financial-panel-border top-overview-card gap-0 p-0 ring-0">
+      <CardContent className="px-5 pt-4 pb-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-3">
             <div className="text-[2.25rem] leading-none font-semibold tracking-tight">
