@@ -342,7 +342,7 @@ function TrendLabel({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 text-sm",
+        "inline-flex items-center gap-1.5 whitespace-nowrap text-sm",
         positive ? "text-emerald-400" : "text-rose-400",
       )}
     >
@@ -392,7 +392,7 @@ function OverviewSegmentedColumn({
   return (
     <div
       className={cn(
-        "flex flex-col justify-end",
+        "shrink-0 flex flex-col justify-end",
         widthClassName,
         gapClassName,
         className,
@@ -412,17 +412,23 @@ function OverviewSegmentedColumn({
 
 function MiniBars({ bars }: { bars: readonly number[] }) {
   const max = Math.max(...bars, 1);
+  const highlightStartIndex = Math.max(0, Math.floor(bars.length * 0.5));
 
   return (
-    <div className="flex h-10 items-end gap-1">
+    <div className="flex h-10 shrink-0 items-end gap-[3px]">
       {bars.map((bar, index) => (
         <OverviewSegmentedColumn
           key={`mini-bar-${index}`}
-          segments={Array.from({ length: bar }, () => ({ status: "secondary" as const }))}
+          segments={Array.from({ length: bar }, (_, segmentIndex) => ({
+            status:
+              index >= highlightStartIndex && segmentIndex < Math.max(2, Math.floor(bar * 0.45))
+                ? ("primary" as const)
+                : ("secondary" as const),
+          }))}
           height={`${(bar / max) * 100}%`}
-          widthClassName="w-1.5"
-          gapClassName="gap-1"
-          segmentClassName="h-1.5 rounded-[1px] bg-white/28"
+          widthClassName="w-[5px]"
+          gapClassName="gap-[2px]"
+          segmentClassName="h-[4px] rounded-[1px]"
         />
       ))}
     </div>
@@ -449,8 +455,8 @@ function SummaryCard({
         </div>
       </CardHeader>
       <CardContent className="flex items-end justify-between gap-4 px-4 py-4">
-        <div className="space-y-2">
-          <div className="text-[2rem] leading-none font-semibold tracking-tight text-foreground">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="text-[2rem] leading-none whitespace-nowrap font-semibold tracking-tight text-foreground">
             <AnimatedNumber value={value} format={format} />
           </div>
           <TrendLabel change={change} description={description} />
