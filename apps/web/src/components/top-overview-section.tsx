@@ -10,6 +10,7 @@ import {
   TrendingUpIcon,
   WalletIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 
 type SummaryCard = {
@@ -20,6 +21,44 @@ type SummaryCard = {
   icon: React.ReactNode;
   format: (value: number) => string;
   bars: readonly number[];
+};
+
+export type TopOverviewSummaryCard = SummaryCard;
+export type TopOverviewRangeOption = (typeof rangeOptions)[number];
+export type TopOverviewAxisLabel = {
+  label: string;
+  index: number;
+};
+export type TopOverviewMainFlowBar = {
+  essenciais: number;
+  naoEssenciais: number;
+};
+
+export type TopOverviewMainFlowRange = {
+  total: number;
+  description: string;
+  change: number;
+  bars: readonly TopOverviewMainFlowBar[];
+  labels: readonly TopOverviewAxisLabel[];
+  legend?: readonly [string, string];
+};
+
+export type TopOverviewSecondaryFlow = {
+  total: number;
+  description: string;
+  change: number;
+  bars: readonly number[];
+  labels: readonly TopOverviewAxisLabel[];
+  highlightedIndex?: number;
+  highlightedValueLabel?: string;
+};
+
+type TopOverviewSectionProps = {
+  title?: string;
+  summaryCards?: TopOverviewSummaryCard[];
+  mainFlowData?: Record<TopOverviewRangeOption, TopOverviewMainFlowRange>;
+  secondaryFlow?: TopOverviewSecondaryFlow;
+  initialRange?: TopOverviewRangeOption;
 };
 
 const summaryCards: SummaryCard[] = [
@@ -61,16 +100,181 @@ const summaryCards: SummaryCard[] = [
   },
 ];
 
-const dailyFlowBars = [
-  14, 19, 17, 25, 21, 29, 31, 18, 24, 28, 34, 30, 26, 33, 32, 22, 18, 41, 35,
-  27, 26, 37, 30, 38, 22, 44, 41, 35, 31, 37, 34, 22, 33,
-] as const;
-
 const monthlyCampaignBars = [
   18, 42, 27, 33, 21, 38, 25, 44, 31, 27, 39, 34,
 ] as const;
 
 const rangeOptions = ["14D", "1M", "3M", "6M"] as const;
+type RangeOption = TopOverviewRangeOption;
+
+const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
+  "14D": {
+    total: 198_400,
+    description: "Total movimentado nos últimos 14 dias",
+    change: 0.9,
+    legend: ["Essenciais", "Não essenciais"],
+    bars: [
+      { essenciais: 5, naoEssenciais: 8 },
+      { essenciais: 6, naoEssenciais: 9 },
+      { essenciais: 6, naoEssenciais: 7 },
+      { essenciais: 7, naoEssenciais: 10 },
+      { essenciais: 7, naoEssenciais: 12 },
+      { essenciais: 6, naoEssenciais: 9 },
+      { essenciais: 7, naoEssenciais: 10 },
+      { essenciais: 8, naoEssenciais: 11 },
+      { essenciais: 9, naoEssenciais: 12 },
+      { essenciais: 8, naoEssenciais: 11 },
+      { essenciais: 10, naoEssenciais: 13 },
+      { essenciais: 9, naoEssenciais: 12 },
+      { essenciais: 8, naoEssenciais: 11 },
+      { essenciais: 9, naoEssenciais: 12 },
+    ],
+    labels: [
+      { label: "05 Abr", index: 0 },
+      { label: "07 Abr", index: 2 },
+      { label: "09 Abr", index: 4 },
+      { label: "11 Abr", index: 6 },
+      { label: "13 Abr", index: 8 },
+      { label: "15 Abr", index: 10 },
+      { label: "19 Abr", index: 13 },
+    ],
+  },
+  "1M": {
+    total: 413_000,
+    description: "Total movimentado nos últimos 30 dias",
+    change: 1.5,
+    legend: ["Essenciais", "Não essenciais"],
+    bars: [
+      { essenciais: 6, naoEssenciais: 8 },
+      { essenciais: 7, naoEssenciais: 9 },
+      { essenciais: 6, naoEssenciais: 7 },
+      { essenciais: 5, naoEssenciais: 6 },
+      { essenciais: 6, naoEssenciais: 8 },
+      { essenciais: 7, naoEssenciais: 8 },
+      { essenciais: 4, naoEssenciais: 6 },
+      { essenciais: 3, naoEssenciais: 6 },
+      { essenciais: 6, naoEssenciais: 8 },
+      { essenciais: 6, naoEssenciais: 7 },
+      { essenciais: 5, naoEssenciais: 6 },
+      { essenciais: 7, naoEssenciais: 8 },
+      { essenciais: 7, naoEssenciais: 8 },
+      { essenciais: 5, naoEssenciais: 5 },
+      { essenciais: 4, naoEssenciais: 5 },
+      { essenciais: 8, naoEssenciais: 10 },
+      { essenciais: 7, naoEssenciais: 8 },
+      { essenciais: 6, naoEssenciais: 7 },
+      { essenciais: 6, naoEssenciais: 7 },
+      { essenciais: 7, naoEssenciais: 9 },
+      { essenciais: 6, naoEssenciais: 7 },
+      { essenciais: 4, naoEssenciais: 5 },
+      { essenciais: 8, naoEssenciais: 10 },
+      { essenciais: 8, naoEssenciais: 9 },
+      { essenciais: 7, naoEssenciais: 7 },
+      { essenciais: 6, naoEssenciais: 7 },
+      { essenciais: 7, naoEssenciais: 9 },
+      { essenciais: 6, naoEssenciais: 8 },
+      { essenciais: 5, naoEssenciais: 5 },
+      { essenciais: 6, naoEssenciais: 8 },
+    ],
+    labels: [
+      { label: "22 Mar", index: 0 },
+      { label: "26 Mar", index: 5 },
+      { label: "30 Mar", index: 9 },
+      { label: "03 Abr", index: 12 },
+      { label: "07 Abr", index: 16 },
+      { label: "11 Abr", index: 20 },
+      { label: "15 Abr", index: 24 },
+      { label: "19 Abr", index: 29 },
+    ],
+  },
+  "3M": {
+    total: 1_186_000,
+    description: "Total movimentado nos últimos 3 meses",
+    change: 3.8,
+    legend: ["Essenciais", "Não essenciais"],
+    bars: [
+      { essenciais: 4, naoEssenciais: 8 },
+      { essenciais: 5, naoEssenciais: 10 },
+      { essenciais: 6, naoEssenciais: 12 },
+      { essenciais: 7, naoEssenciais: 15 },
+      { essenciais: 7, naoEssenciais: 13 },
+      { essenciais: 8, naoEssenciais: 16 },
+      { essenciais: 9, naoEssenciais: 18 },
+      { essenciais: 8, naoEssenciais: 17 },
+      { essenciais: 9, naoEssenciais: 20 },
+      { essenciais: 8, naoEssenciais: 18 },
+      { essenciais: 10, naoEssenciais: 21 },
+      { essenciais: 11, naoEssenciais: 23 },
+      { essenciais: 10, naoEssenciais: 20 },
+      { essenciais: 9, naoEssenciais: 19 },
+      { essenciais: 10, naoEssenciais: 22 },
+      { essenciais: 11, naoEssenciais: 24 },
+      { essenciais: 11, naoEssenciais: 22 },
+      { essenciais: 12, naoEssenciais: 25 },
+      { essenciais: 13, naoEssenciais: 27 },
+      { essenciais: 12, naoEssenciais: 24 },
+      { essenciais: 12, naoEssenciais: 27 },
+      { essenciais: 13, naoEssenciais: 29 },
+      { essenciais: 12, naoEssenciais: 26 },
+      { essenciais: 11, naoEssenciais: 24 },
+    ],
+    labels: [
+      { label: "Jan", index: 0 },
+      { label: "Fev", index: 4 },
+      { label: "Mar", index: 8 },
+      { label: "Abr", index: 12 },
+      { label: "Mai", index: 16 },
+      { label: "Jun", index: 20 },
+      { label: "Jul", index: 23 },
+    ],
+  },
+  "6M": {
+    total: 2_447_000,
+    description: "Total movimentado nos últimos 6 meses",
+    change: 5.6,
+    legend: ["Essenciais", "Não essenciais"],
+    bars: [
+      { essenciais: 3, naoEssenciais: 7 },
+      { essenciais: 4, naoEssenciais: 9 },
+      { essenciais: 5, naoEssenciais: 10 },
+      { essenciais: 6, naoEssenciais: 12 },
+      { essenciais: 5, naoEssenciais: 11 },
+      { essenciais: 7, naoEssenciais: 13 },
+      { essenciais: 8, naoEssenciais: 15 },
+      { essenciais: 9, naoEssenciais: 17 },
+      { essenciais: 8, naoEssenciais: 16 },
+      { essenciais: 9, naoEssenciais: 18 },
+      { essenciais: 10, naoEssenciais: 20 },
+      { essenciais: 11, naoEssenciais: 23 },
+    ],
+    labels: [
+      { label: "Nov", index: 0 },
+      { label: "Dez", index: 2 },
+      { label: "Jan", index: 4 },
+      { label: "Fev", index: 6 },
+      { label: "Mar", index: 8 },
+      { label: "Abr", index: 10 },
+      { label: "Mai", index: 11 },
+    ],
+  },
+};
+
+const defaultSecondaryFlow: TopOverviewSecondaryFlow = {
+  total: 92_500,
+  description: "Reservado para metas em agosto",
+  change: 5.2,
+  bars: monthlyCampaignBars,
+  labels: [
+    { label: "Jan", index: 0 },
+    { label: "Mar", index: 2 },
+    { label: "Mai", index: 4 },
+    { label: "Jul", index: 6 },
+    { label: "Set", index: 8 },
+    { label: "Nov", index: 10 },
+  ],
+  highlightedIndex: 7,
+  highlightedValueLabel: "R$ 93K",
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
@@ -82,11 +286,20 @@ function formatCurrency(value: number) {
 }
 
 function formatCompactCurrency(value: number) {
+  const absoluteValue = Math.abs(value);
+
+  if (absoluteValue >= 1_000_000) {
+    return `R$ ${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  }
+
+  if (absoluteValue >= 1_000) {
+    return `R$ ${(value / 1_000).toFixed(0)}K`;
+  }
+
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
     maximumFractionDigits: 0,
-    notation: value >= 1000 ? "compact" : "standard",
   }).format(value);
 }
 
@@ -170,16 +383,23 @@ function SummaryCard({
   );
 }
 
-function SegmentedRanges() {
+function SegmentedRanges({
+  value,
+  onChange,
+}: {
+  value: RangeOption;
+  onChange: (next: RangeOption) => void;
+}) {
   return (
     <div className="inline-flex rounded-[0.9rem] border border-white/10 p-1">
-      {rangeOptions.map((option, index) => (
+      {rangeOptions.map((option) => (
         <button
           key={option}
           className={cn(
             "rounded-[0.7rem] px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors",
-            index === 0 && "bg-white/8 text-foreground",
+            value === option && "bg-white/8 text-foreground",
           )}
+          onClick={() => onChange(option)}
           type="button"
         >
           {option}
@@ -189,28 +409,78 @@ function SegmentedRanges() {
   );
 }
 
-function LargeBarChart() {
-  const max = Math.max(...dailyFlowBars, 1);
+function AxisLabels({
+  barCount,
+  labels,
+}: {
+  barCount: number;
+  labels: readonly TopOverviewAxisLabel[];
+}) {
+  return (
+    <div className="relative mt-3 h-5 text-sm text-muted-foreground">
+      {labels.map((item) => {
+        const left = barCount <= 1 ? 0 : (item.index / (barCount - 1)) * 100;
+        const alignClassName =
+          item.index === 0
+            ? "-translate-x-0 text-left"
+            : item.index === barCount - 1
+              ? "-translate-x-full text-right"
+              : "-translate-x-1/2 text-center";
+
+        return (
+          <span
+            key={`${item.label}-${item.index}`}
+            className={cn("absolute top-0 whitespace-nowrap", alignClassName)}
+            style={{ left: `${left}%` }}
+          >
+            {item.label}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function LargeBarChart({
+  bars,
+  labels,
+}: {
+  bars: readonly TopOverviewMainFlowBar[];
+  labels: readonly TopOverviewAxisLabel[];
+}) {
+  const max = Math.max(
+    ...bars.map((bar) => bar.essenciais + bar.naoEssenciais),
+    1,
+  );
 
   return (
-    <div className="mt-5">
-      <div className="grid h-[16rem] grid-cols-[repeat(33,minmax(0,1fr))] items-end gap-1 border-t border-white/8 pt-4">
-        {dailyFlowBars.map((bar, index) => (
+    <div className="mt-3">
+      <div
+        className="relative grid h-[17rem] items-end gap-1 border-t border-white/8 pt-4"
+        style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
+      >
+        <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:calc(100%/30)_100%,100%_25%]" />
+        {bars.map((bar, index) => (
           <div
             key={`daily-bar-${index}`}
-            className="flex h-full items-end justify-center"
+            className="relative z-10 flex h-full items-end justify-center"
           >
             <div
               className="flex w-full max-w-5 flex-col justify-end gap-0.5"
-              style={{ height: `${(bar / max) * 100}%` }}
+              style={{
+                height: `${((bar.essenciais + bar.naoEssenciais) / max) * 100}%`,
+              }}
             >
-              {Array.from({ length: bar }).map((_, segmentIndex) => (
+              {Array.from({ length: bar.naoEssenciais }).map((_, segmentIndex) => (
                 <div
-                  key={`daily-bar-${index}-segment-${segmentIndex}`}
-                  className={cn(
-                    "h-1.5 rounded-[1px]",
-                    segmentIndex > bar * 0.58 ? "bg-white/80" : "bg-white/24",
-                  )}
+                  key={`daily-bar-top-${index}-segment-${segmentIndex}`}
+                  className="h-1.5 rounded-[1px] bg-white/38"
+                />
+              ))}
+              {Array.from({ length: bar.essenciais }).map((_, segmentIndex) => (
+                <div
+                  key={`daily-bar-bottom-${index}-segment-${segmentIndex}`}
+                  className="h-1.5 rounded-[1px] bg-white/82"
                 />
               ))}
             </div>
@@ -218,43 +488,41 @@ function LargeBarChart() {
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-7 text-sm text-muted-foreground">
-        {[
-          "22 Mar",
-          "26 Mar",
-          "30 Mar",
-          "03 Abr",
-          "07 Abr",
-          "11 Abr",
-          "19 Abr",
-        ].map((label, index, labels) => (
-          <span
-            key={label}
-            className={cn(
-              index === 0 && "text-left",
-              index === labels.length - 1 && "text-right",
-              index > 0 && index < labels.length - 1 && "text-center",
-            )}
-          >
-            {label}
-          </span>
-        ))}
-      </div>
+      <AxisLabels barCount={bars.length} labels={labels} />
     </div>
   );
 }
 
-function MonthlyBarChart() {
-  const max = Math.max(...monthlyCampaignBars, 1);
+function MonthlyBarChart({
+  bars,
+  labels,
+  highlightedIndex = 0,
+  highlightedValueLabel,
+}: {
+  bars: readonly number[];
+  labels: readonly TopOverviewAxisLabel[];
+  highlightedIndex?: number;
+  highlightedValueLabel?: string;
+}) {
+  const max = Math.max(...bars, 1);
 
   return (
     <div className="mt-8">
-      <div className="grid h-[16rem] grid-cols-12 items-end gap-3 border-t border-white/8 pt-4">
-        {monthlyCampaignBars.map((bar, index) => (
+      <div
+        className="relative grid h-[16rem] items-end gap-3 border-t border-white/8 pt-4"
+        style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
+      >
+        <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:calc(100%/12)_100%,100%_25%]" />
+        {bars.map((bar, index) => (
           <div
             key={`month-bar-${index}`}
-            className="flex h-full items-end justify-center"
+            className="relative z-10 flex h-full items-end justify-center"
           >
+            {index === highlightedIndex && highlightedValueLabel ? (
+              <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium text-foreground">
+                {highlightedValueLabel}
+              </span>
+            ) : null}
             <div
               className="flex w-full max-w-4 flex-col justify-end gap-0.5"
               style={{ height: `${(bar / max) * 100}%` }}
@@ -264,7 +532,7 @@ function MonthlyBarChart() {
                   key={`month-bar-${index}-segment-${segmentIndex}`}
                   className={cn(
                     "h-1.5 rounded-[1px]",
-                    index === 7 ? "bg-white/82" : "bg-white/24",
+                    index === highlightedIndex ? "bg-white/82" : "bg-white/24",
                   )}
                 />
               ))}
@@ -273,27 +541,22 @@ function MonthlyBarChart() {
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-6 text-sm text-muted-foreground">
-        {["Jan", "Mar", "Mai", "Jul", "Set", "Nov"].map(
-          (label, index, labels) => (
-            <span
-              key={label}
-              className={cn(
-                index === 0 && "text-left",
-                index === labels.length - 1 && "text-right",
-                index > 0 && index < labels.length - 1 && "text-center",
-              )}
-            >
-              {label}
-            </span>
-          ),
-        )}
-      </div>
+      <AxisLabels barCount={bars.length} labels={labels} />
     </div>
   );
 }
 
-function MainFlowCard() {
+function MainFlowCard({
+  data,
+  initialRange = "1M",
+}: {
+  data: Record<RangeOption, TopOverviewMainFlowRange>;
+  initialRange?: RangeOption;
+}) {
+  const [selectedRange, setSelectedRange] = useState<RangeOption>(initialRange);
+  const currentRange = data[selectedRange];
+  const legend = currentRange.legend ?? ["Essenciais", "Não essenciais"];
+
   return (
     <Card className="financial-panel-border gap-0 p-0 ring-0">
       <CardContent className="px-5 py-5">
@@ -302,78 +565,95 @@ function MainFlowCard() {
             <div className="space-y-1">
               <div className="text-[2.25rem] leading-none font-semibold tracking-tight">
                 <AnimatedNumber
-                  value={413_000}
+                  value={currentRange.total}
                   format={formatCompactCurrency}
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Total movimentado nos últimos 30 dias
+                {currentRange.description}
               </p>
             </div>
             <div className="flex flex-col items-start gap-3 lg:items-end">
-              <SegmentedRanges />
-              <TrendLabel change={1.5} description="1.5% vs últimos 30 dias" />
+              <SegmentedRanges
+                value={selectedRange}
+                onChange={setSelectedRange}
+              />
+              <TrendLabel
+                change={currentRange.change}
+                description={`${currentRange.change.toFixed(1)}% vs período anterior`}
+              />
             </div>
           </div>
 
           <div className="flex items-center gap-5 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <span className="size-2 rounded-full bg-white/36" />
-              <span>Essenciais</span>
+              <span>{legend[0]}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="size-2 rounded-full bg-white/80" />
-              <span>Não essenciais</span>
+              <span>{legend[1]}</span>
             </div>
           </div>
 
-          <LargeBarChart />
+          <LargeBarChart bars={currentRange.bars} labels={currentRange.labels} />
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function SecondaryFlowCard() {
+function SecondaryFlowCard({ data }: { data: TopOverviewSecondaryFlow }) {
   return (
     <Card className="financial-panel-border gap-0 p-0 ring-0">
       <CardContent className="px-5 py-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="text-[2.25rem] leading-none font-semibold tracking-tight">
-              <AnimatedNumber value={92_500} format={formatCompactCurrency} />
+              <AnimatedNumber value={data.total} format={formatCompactCurrency} />
             </div>
             <p className="text-sm text-muted-foreground">
-              Reservado para metas em agosto
+              {data.description}
             </p>
           </div>
-          <TrendLabel change={5.2} description="5.2%" />
+          <TrendLabel change={data.change} description={`${data.change.toFixed(1)}%`} />
         </div>
 
-        <MonthlyBarChart />
+        <MonthlyBarChart
+          bars={data.bars}
+          labels={data.labels}
+          highlightedIndex={data.highlightedIndex}
+          highlightedValueLabel={data.highlightedValueLabel}
+        />
       </CardContent>
     </Card>
   );
 }
 
-export function TopOverviewSection() {
+export function TopOverviewSection({
+  title = "Bem-vindo de volta, Victor.",
+  summaryCards: cards = summaryCards,
+  mainFlowData: mainFlow = mainFlowData,
+  secondaryFlow = defaultSecondaryFlow,
+  initialRange = "1M",
+}: TopOverviewSectionProps) {
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-          Bem-vindo de volta, Victor.
+          {title}
         </h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
-        {summaryCards.map((card) => (
+        {cards.map((card) => (
           <SummaryCard key={card.title} {...card} />
         ))}
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <MainFlowCard />
-        <SecondaryFlowCard />
+        <MainFlowCard data={mainFlow} initialRange={initialRange} />
+        <SecondaryFlowCard data={secondaryFlow} />
       </div>
     </section>
   );
