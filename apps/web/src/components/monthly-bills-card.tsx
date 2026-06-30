@@ -74,7 +74,7 @@ export function MonthlyBillsCard({
 			</CardHeader>
 
 			<CardContent className="flex h-full flex-col">
-				<div className="mt-2 flex items-center justify-between gap-4 border-b border-white/10 pb-5">
+				<div className="mt-2 flex items-center justify-between gap-4 pb-5">
 					<div className="flex min-w-0 items-center gap-3">
 						<div className="flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold lowercase tracking-tight text-fuchsia-500 [background-image:linear-gradient(180deg,rgba(56,56,60,0.95),rgba(40,40,44,0.95))]">
 							{providerName}

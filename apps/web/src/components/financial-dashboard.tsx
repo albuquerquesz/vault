@@ -7,7 +7,7 @@ export function FinancialDashboard() {
         .financial-dashboard { background-color: #0000 !important; }
         .financial-dashboard [data-slot="card"] { background-color: #0000 !important; }
         .financial-dashboard {
-          font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+          font-family: "Space Grotesk", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
         }
         .financial-dashboard { --panel-border: #d4d4d8; }
         .dark .financial-dashboard { --panel-border: #2a2a2a; }

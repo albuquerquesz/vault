@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@vault/ui/lib/utils";
-import { BellIcon, SearchIcon, SlashIcon } from "lucide-react";
+import { SearchIcon, SlashIcon } from "lucide-react";
 
 function HeaderAction({
 	children,
@@ -24,7 +24,7 @@ function HeaderAction({
 
 export function AppTopHeader() {
 	return (
-		<header className="border-b border-border/70 bg-background">
+		<header className="border-b border-white/10 bg-background">
 			<div className="flex min-h-12 items-center justify-between gap-4 px-4 md:px-6">
 				<div />
 
@@ -35,13 +35,6 @@ export function AppTopHeader() {
 							<SlashIcon className="size-3" />
 						</div>
 					</HeaderAction>
-
-					<div className="relative">
-						<HeaderAction className="w-9 justify-center px-0">
-							<BellIcon className="size-4" />
-						</HeaderAction>
-						<span className="absolute top-1 right-1 size-2 rounded-full bg-white" />
-					</div>
 
 					<div className="flex size-9 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-900 text-xs font-semibold text-foreground">
 						VA

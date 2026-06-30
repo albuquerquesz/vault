@@ -436,7 +436,7 @@ function MiniBars({ bars }: { bars: readonly number[] }) {
           height={`${(bar / max) * 100}%`}
           widthClassName="w-[10px]"
           gapClassName="gap-[2px]"
-          segmentClassName="h-[6px] rounded-[1px]"
+          segmentClassName="h-[8px] rounded-none"
         />
       ))}
     </div>
@@ -832,8 +832,8 @@ export function TopOverviewSection({
   initialRange = "1M",
 }: TopOverviewSectionProps) {
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
+    <section className="space-y-8">
+      <div className="space-y-2">
         <h2 className="text-4xl font-semibold tracking-tight text-foreground">
           {title}
         </h2>

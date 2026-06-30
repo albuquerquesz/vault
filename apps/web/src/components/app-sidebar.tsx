@@ -18,8 +18,8 @@ export function AppSidebar() {
 				collapsible="offcanvas"
 				variant="floating"
 			>
-				<SidebarHeader>
-					<div className="flex items-center gap-2 px-1 py-1">
+				<SidebarHeader className="min-h-10 justify-center border-b border-white/10 py-0">
+					<div className="flex items-center gap-2 px-4 py-1">
 						<LogoIcon className="size-4 text-foreground" />
 						<span className="font-medium text-foreground text-sm">Vault</span>
 					</div>
