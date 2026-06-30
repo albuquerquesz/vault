@@ -43,6 +43,7 @@ lerna-debug.log*
 # Testing
 coverage
 .nyc_output
+.playwright-cli
 
 # Misc
 *.tgz
