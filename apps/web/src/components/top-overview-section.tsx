@@ -29,6 +29,10 @@ export type TopOverviewAxisLabel = {
   label: string;
   index: number;
 };
+export type TopOverviewYAxisTick = {
+  value: number;
+  label: string;
+};
 export type TopOverviewMainFlowBar = {
   essenciais: number;
   naoEssenciais: number;
@@ -39,7 +43,8 @@ export type TopOverviewMainFlowRange = {
   description: string;
   change: number;
   bars: readonly TopOverviewMainFlowBar[];
-  labels: readonly TopOverviewAxisLabel[];
+  xLabels: readonly TopOverviewAxisLabel[];
+  yTicks: readonly TopOverviewYAxisTick[];
   legend?: readonly [string, string];
 };
 
@@ -48,7 +53,7 @@ export type TopOverviewSecondaryFlow = {
   description: string;
   change: number;
   bars: readonly number[];
-  labels: readonly TopOverviewAxisLabel[];
+  xLabels: readonly TopOverviewAxisLabel[];
   highlightedIndex?: number;
   highlightedValueLabel?: string;
 };
@@ -106,6 +111,13 @@ const monthlyCampaignBars = [
 
 const rangeOptions = ["14D", "1M", "3M", "6M"] as const;
 type RangeOption = TopOverviewRangeOption;
+const defaultMainFlowYTicks: readonly TopOverviewYAxisTick[] = [
+  { value: 0, label: "0k" },
+  { value: 5, label: "5k" },
+  { value: 10, label: "10k" },
+  { value: 15, label: "15k" },
+  { value: 20, label: "20k" },
+];
 
 const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
   "14D": {
@@ -129,7 +141,7 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
       { essenciais: 8, naoEssenciais: 11 },
       { essenciais: 9, naoEssenciais: 12 },
     ],
-    labels: [
+    xLabels: [
       { label: "05 Abr", index: 0 },
       { label: "07 Abr", index: 2 },
       { label: "09 Abr", index: 4 },
@@ -138,6 +150,7 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
       { label: "15 Abr", index: 10 },
       { label: "19 Abr", index: 13 },
     ],
+    yTicks: defaultMainFlowYTicks,
   },
   "1M": {
     total: 413_000,
@@ -176,7 +189,7 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
       { essenciais: 5, naoEssenciais: 5 },
       { essenciais: 6, naoEssenciais: 8 },
     ],
-    labels: [
+    xLabels: [
       { label: "22 Mar", index: 0 },
       { label: "26 Mar", index: 5 },
       { label: "30 Mar", index: 9 },
@@ -186,6 +199,7 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
       { label: "15 Abr", index: 24 },
       { label: "19 Abr", index: 29 },
     ],
+    yTicks: defaultMainFlowYTicks,
   },
   "3M": {
     total: 1_186_000,
@@ -218,7 +232,7 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
       { essenciais: 12, naoEssenciais: 26 },
       { essenciais: 11, naoEssenciais: 24 },
     ],
-    labels: [
+    xLabels: [
       { label: "Jan", index: 0 },
       { label: "Fev", index: 4 },
       { label: "Mar", index: 8 },
@@ -227,6 +241,7 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
       { label: "Jun", index: 20 },
       { label: "Jul", index: 23 },
     ],
+    yTicks: defaultMainFlowYTicks,
   },
   "6M": {
     total: 2_447_000,
@@ -247,7 +262,7 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
       { essenciais: 10, naoEssenciais: 20 },
       { essenciais: 11, naoEssenciais: 23 },
     ],
-    labels: [
+    xLabels: [
       { label: "Nov", index: 0 },
       { label: "Dez", index: 2 },
       { label: "Jan", index: 4 },
@@ -256,6 +271,7 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
       { label: "Abr", index: 10 },
       { label: "Mai", index: 11 },
     ],
+    yTicks: defaultMainFlowYTicks,
   },
 };
 
@@ -264,7 +280,7 @@ const defaultSecondaryFlow: TopOverviewSecondaryFlow = {
   description: "Reservado para metas em agosto",
   change: 5.2,
   bars: monthlyCampaignBars,
-  labels: [
+  xLabels: [
     { label: "Jan", index: 0 },
     { label: "Mar", index: 2 },
     { label: "Mai", index: 4 },
@@ -412,14 +428,19 @@ function SegmentedRanges({
 function AxisLabels({
   barCount,
   labels,
+  offsetLeft = 0,
+  offsetRight = 0,
 }: {
   barCount: number;
   labels: readonly TopOverviewAxisLabel[];
+  offsetLeft?: number;
+  offsetRight?: number;
 }) {
   return (
     <div className="relative mt-3 h-5 text-sm text-muted-foreground">
       {labels.map((item) => {
-        const left = barCount <= 1 ? 0 : (item.index / (barCount - 1)) * 100;
+        const ratio = barCount <= 1 ? 0 : item.index / (barCount - 1);
+        const left = `calc(${offsetLeft}px + (${ratio} * (100% - ${offsetLeft + offsetRight}px)))`;
         const alignClassName =
           item.index === 0
             ? "-translate-x-0 text-left"
@@ -431,7 +452,7 @@ function AxisLabels({
           <span
             key={`${item.label}-${item.index}`}
             className={cn("absolute top-0 whitespace-nowrap", alignClassName)}
-            style={{ left: `${left}%` }}
+            style={{ left }}
           >
             {item.label}
           </span>
@@ -443,64 +464,101 @@ function AxisLabels({
 
 function LargeBarChart({
   bars,
-  labels,
+  xLabels,
+  yTicks,
 }: {
   bars: readonly TopOverviewMainFlowBar[];
-  labels: readonly TopOverviewAxisLabel[];
+  xLabels: readonly TopOverviewAxisLabel[];
+  yTicks: readonly TopOverviewYAxisTick[];
 }) {
-  const max = Math.max(
-    ...bars.map((bar) => bar.essenciais + bar.naoEssenciais),
-    1,
-  );
+  const maxBarValue = Math.max(...bars.map((bar) => bar.essenciais + bar.naoEssenciais), 1);
+  const maxTickValue = Math.max(...yTicks.map((tick) => tick.value), 1);
+  const chartMax = Math.max(maxBarValue, maxTickValue);
+  const axisWidth = 44;
 
   return (
     <div className="mt-3">
-      <div
-        className="relative grid h-[17rem] items-end gap-1 border-t border-white/8 pt-4"
-        style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
-      >
-        <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:calc(100%/30)_100%,100%_25%]" />
-        {bars.map((bar, index) => (
-          <div
-            key={`daily-bar-${index}`}
-            className="relative z-10 flex h-full items-end justify-center"
-          >
+      <div className="relative h-[18rem]">
+        <div className="pointer-events-none absolute inset-y-2 left-0 w-11">
+          {yTicks.map((tick) => {
+            const bottom = chartMax <= 0 ? 0 : (tick.value / chartMax) * 100;
+
+            return (
+              <span
+                key={tick.label}
+                className="absolute left-0 -translate-y-1/2 text-xs font-medium tracking-[0.02em] text-white/42"
+                style={{ bottom: `${bottom}%` }}
+              >
+                {tick.label}
+              </span>
+            );
+          })}
+        </div>
+
+        <div
+          className="absolute inset-y-0 right-0 left-11 grid items-end gap-2"
+          style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
+        >
+          <div className="pointer-events-none absolute inset-0 rounded-[0.45rem] border border-white/[0.04] bg-[linear-gradient(to_right,rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.014)_1px,transparent_1px)] bg-[size:calc(100%/30)_100%,100%_25%]" />
+          {yTicks.map((tick) => {
+            const bottom = chartMax <= 0 ? 0 : (tick.value / chartMax) * 100;
+
+            return (
+              <div
+                key={`main-grid-${tick.label}`}
+                className="pointer-events-none absolute inset-x-0 border-t border-white/[0.02]"
+                style={{ bottom: `${bottom}%` }}
+              />
+            );
+          })}
+
+          {bars.map((bar, index) => (
             <div
-              className="flex w-full max-w-5 flex-col justify-end gap-0.5"
-              style={{
-                height: `${((bar.essenciais + bar.naoEssenciais) / max) * 100}%`,
-              }}
+              key={`daily-bar-${index}`}
+              className="relative z-10 flex h-full items-end justify-center"
             >
-              {Array.from({ length: bar.naoEssenciais }).map((_, segmentIndex) => (
-                <div
-                  key={`daily-bar-top-${index}-segment-${segmentIndex}`}
-                  className="h-1.5 rounded-[1px] bg-white/38"
-                />
-              ))}
-              {Array.from({ length: bar.essenciais }).map((_, segmentIndex) => (
-                <div
-                  key={`daily-bar-bottom-${index}-segment-${segmentIndex}`}
-                  className="h-1.5 rounded-[1px] bg-white/82"
-                />
-              ))}
+              <div
+                className="flex w-full max-w-[0.95rem] flex-col justify-end gap-[3px]"
+                style={{
+                  height: `${((bar.essenciais + bar.naoEssenciais) / chartMax) * 100}%`,
+                }}
+              >
+                {Array.from({ length: bar.naoEssenciais }).map((_, segmentIndex) => (
+                  <div
+                    key={`daily-bar-top-${index}-segment-${segmentIndex}`}
+                    className="h-[7px] rounded-[2px] bg-white/32"
+                  />
+                ))}
+                {Array.from({ length: bar.essenciais }).map((_, segmentIndex) => (
+                  <div
+                    key={`daily-bar-bottom-${index}-segment-${segmentIndex}`}
+                    className="h-[7px] rounded-[2px] bg-white/88"
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <AxisLabels barCount={bars.length} labels={labels} />
+      <AxisLabels
+        barCount={bars.length}
+        labels={xLabels}
+        offsetLeft={axisWidth}
+        offsetRight={8}
+      />
     </div>
   );
 }
 
 function MonthlyBarChart({
   bars,
-  labels,
+  xLabels,
   highlightedIndex = 0,
   highlightedValueLabel,
 }: {
   bars: readonly number[];
-  labels: readonly TopOverviewAxisLabel[];
+  xLabels: readonly TopOverviewAxisLabel[];
   highlightedIndex?: number;
   highlightedValueLabel?: string;
 }) {
@@ -509,10 +567,10 @@ function MonthlyBarChart({
   return (
     <div className="mt-8">
       <div
-        className="relative grid h-[16rem] items-end gap-3 border-t border-white/8 pt-4"
+        className="relative grid h-[16rem] items-end gap-3"
         style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
       >
-        <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:calc(100%/12)_100%,100%_25%]" />
+        <div className="pointer-events-none absolute inset-0 rounded-[0.45rem] border border-white/[0.04] bg-[linear-gradient(to_right,rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.014)_1px,transparent_1px)] bg-[size:calc(100%/12)_100%,100%_25%]" />
         {bars.map((bar, index) => (
           <div
             key={`month-bar-${index}`}
@@ -524,15 +582,15 @@ function MonthlyBarChart({
               </span>
             ) : null}
             <div
-              className="flex w-full max-w-4 flex-col justify-end gap-0.5"
+              className="flex w-full max-w-[0.95rem] flex-col justify-end gap-[3px]"
               style={{ height: `${(bar / max) * 100}%` }}
             >
               {Array.from({ length: bar }).map((_, segmentIndex) => (
                 <div
                   key={`month-bar-${index}-segment-${segmentIndex}`}
                   className={cn(
-                    "h-1.5 rounded-[1px]",
-                    index === highlightedIndex ? "bg-white/82" : "bg-white/24",
+                    "h-[6px] rounded-[2px]",
+                    index === highlightedIndex ? "bg-white/88" : "bg-white/24",
                   )}
                 />
               ))}
@@ -541,7 +599,7 @@ function MonthlyBarChart({
         ))}
       </div>
 
-      <AxisLabels barCount={bars.length} labels={labels} />
+      <AxisLabels barCount={bars.length} labels={xLabels} offsetRight={4} />
     </div>
   );
 }
@@ -561,8 +619,8 @@ function MainFlowCard({
     <Card className="financial-panel-border gap-0 p-0 ring-0">
       <CardContent className="px-5 py-5">
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-1">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-3">
               <div className="text-[2.25rem] leading-none font-semibold tracking-tight">
                 <AnimatedNumber
                   value={currentRange.total}
@@ -572,7 +630,18 @@ function MainFlowCard({
               <p className="text-sm text-muted-foreground">
                 {currentRange.description}
               </p>
+              <div className="flex items-center gap-5 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-white/88" />
+                  <span>{legend[0]}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-white/32" />
+                  <span>{legend[1]}</span>
+                </div>
+              </div>
             </div>
+
             <div className="flex flex-col items-start gap-3 lg:items-end">
               <SegmentedRanges
                 value={selectedRange}
@@ -585,18 +654,11 @@ function MainFlowCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-5 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <span className="size-2 rounded-full bg-white/36" />
-              <span>{legend[0]}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="size-2 rounded-full bg-white/80" />
-              <span>{legend[1]}</span>
-            </div>
-          </div>
-
-          <LargeBarChart bars={currentRange.bars} labels={currentRange.labels} />
+          <LargeBarChart
+            bars={currentRange.bars}
+            xLabels={currentRange.xLabels}
+            yTicks={currentRange.yTicks}
+          />
         </div>
       </CardContent>
     </Card>
@@ -608,20 +670,23 @@ function SecondaryFlowCard({ data }: { data: TopOverviewSecondaryFlow }) {
     <Card className="financial-panel-border gap-0 p-0 ring-0">
       <CardContent className="px-5 py-5">
         <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
+          <div className="space-y-3">
             <div className="text-[2.25rem] leading-none font-semibold tracking-tight">
               <AnimatedNumber value={data.total} format={formatCompactCurrency} />
             </div>
+            <TrendLabel
+              change={data.change}
+              description={`${data.change.toFixed(1)}% vs período anterior`}
+            />
             <p className="text-sm text-muted-foreground">
               {data.description}
             </p>
           </div>
-          <TrendLabel change={data.change} description={`${data.change.toFixed(1)}%`} />
         </div>
 
         <MonthlyBarChart
           bars={data.bars}
-          labels={data.labels}
+          xLabels={data.xLabels}
           highlightedIndex={data.highlightedIndex}
           highlightedValueLabel={data.highlightedValueLabel}
         />

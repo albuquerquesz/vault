@@ -4,7 +4,8 @@ export function FinancialDashboard() {
   return (
     <main className="financial-dashboard h-full w-full text-foreground">
       <style>{`
-        .financial-dashboard, .financial-dashboard * { background-color: #0000 !important; }
+        .financial-dashboard { background-color: #0000 !important; }
+        .financial-dashboard [data-slot="card"] { background-color: #0000 !important; }
         .financial-dashboard {
           font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
         }
