@@ -26,6 +26,14 @@ const DEFAULT_DATA = [
 	{ label: "Email", value: 620 },
 ] as const satisfies readonly TrafficSourceDatum[];
 
+const SWATCH_CLASSES = [
+	"bg-foreground/92",
+	"bg-foreground/76",
+	"bg-foreground/58",
+	"bg-foreground/40",
+	"bg-foreground/24",
+] as const;
+
 function formatCompactNumber(value: number, locale = "en-US") {
 	return new Intl.NumberFormat(locale, {
 		notation: "compact",
@@ -38,8 +46,6 @@ export function TrafficSourcesCard({
 	periodLabel = "12 months",
 	data = DEFAULT_DATA,
 }: TrafficSourcesCardProps) {
-	const maxValue = Math.max(...data.map((item) => item.value), 1);
-
 	return (
 		<Card className="financial-panel-border h-full min-h-[32rem] ring-0">
 			<CardHeader className="gap-6">
@@ -50,31 +56,33 @@ export function TrafficSourcesCard({
 			</CardHeader>
 
 			<CardContent className="flex h-full flex-col">
-				<div className="space-y-6">
-					{data.map((item) => {
-						const width = `${(item.value / maxValue) * 100}%`;
-
-						return (
-							<div key={item.label} className="space-y-3">
-								<div className="flex items-center justify-between gap-4">
-									<span className="text-[1.65rem] font-medium tracking-tight text-foreground">
-										{item.label}
-									</span>
-									<span className="font-['Space_Grotesk'] text-[1.6rem] text-muted-foreground">
-										{formatCompactNumber(item.value)}
-									</span>
-								</div>
-
-								<div className="flex items-center gap-1.5">
-									<div
-										className="h-2 rounded-full bg-white/92"
-										style={{ width }}
-									/>
-									<div className="h-2 flex-1 rounded-full bg-white/14" />
-								</div>
+				<div className="flex h-full flex-col justify-between gap-8">
+					<div className="space-y-6">
+						{data.map((item) => (
+							<div
+								key={item.label}
+								className="flex items-center justify-between gap-4"
+							>
+								<span className="text-[1.15rem] font-medium tracking-tight text-foreground md:text-[1.3rem]">
+									{item.label}
+								</span>
+								<span className="font-['Space_Grotesk'] text-[1.1rem] text-muted-foreground md:text-[1.25rem]">
+									{formatCompactNumber(item.value)}
+								</span>
 							</div>
-						);
-					})}
+						))}
+					</div>
+
+					<div className="flex flex-wrap gap-2 pt-2">
+						{data.map((item, index) => (
+							<span
+								key={item.label}
+								aria-label={`Indicador visual de ${item.label}`}
+								className={`h-3 w-3 rounded-[2px] ${SWATCH_CLASSES[index % SWATCH_CLASSES.length]}`}
+								role="img"
+							/>
+						))}
+					</div>
 				</div>
 			</CardContent>
 		</Card>
