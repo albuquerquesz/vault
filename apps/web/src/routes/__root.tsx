@@ -1,13 +1,12 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
 	useRouterState,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@vault/ui/components/sonner";
+import { lazy, Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -19,6 +18,10 @@ export interface RouterAppContext {
 	trpc: typeof trpc;
 	queryClient: QueryClient;
 }
+
+const Devtools = import.meta.env.DEV
+	? lazy(() => import("@/components/devtools"))
+	: null;
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	component: RootComponent,
@@ -68,8 +71,11 @@ function RootComponent() {
 				)}
 				<Toaster richColors />
 			</ThemeProvider>
-			<TanStackRouterDevtools position="top-right" />
-			<ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
+			{Devtools ? (
+				<Suspense fallback={null}>
+					<Devtools />
+				</Suspense>
+			) : null}
 		</>
 	);
 }
