@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
+import {
+  MaskedMonetaryText,
+  MaskedMonetaryValue,
+} from "@/components/monetary-visibility";
 
 type SummaryCard = {
   title: string;
@@ -21,6 +25,7 @@ type SummaryCard = {
   icon: React.ReactNode;
   format: (value: number) => string;
   bars: readonly number[];
+  isMonetary?: boolean;
 };
 
 export type TopOverviewSummaryCard = SummaryCard;
@@ -82,6 +87,7 @@ const summaryCards: SummaryCard[] = [
     icon: <WalletIcon className="size-3.5" />,
     format: formatCompactCurrency,
     bars: [5, 8, 11, 14, 10, 12, 9],
+    isMonetary: true,
   },
   {
     title: "Lançamentos",
@@ -100,6 +106,7 @@ const summaryCards: SummaryCard[] = [
     icon: <CreditCardIcon className="size-3.5" />,
     format: formatCurrency,
     bars: [11, 12, 10, 9, 13, 8, 6],
+    isMonetary: true,
   },
   {
     title: "Taxa de economia",
@@ -450,6 +457,7 @@ function SummaryCard({
   icon,
   format,
   bars,
+  isMonetary = false,
 }: SummaryCard) {
   return (
     <Card className="financial-panel-border !pt-0 !pb-0 gap-0 p-0 ring-0">
@@ -464,7 +472,11 @@ function SummaryCard({
       <CardContent className="flex items-end justify-between gap-4 px-4 py-4">
         <div className="min-w-0 flex-1 space-y-2">
           <div className="text-[2rem] leading-none whitespace-nowrap font-semibold tracking-tight text-foreground">
-            <AnimatedNumber value={value} format={format} />
+            {isMonetary ? (
+              <MaskedMonetaryValue animated format={format} value={value} />
+            ) : (
+              <AnimatedNumber value={value} format={format} />
+            )}
           </div>
           <TrendLabel change={change} description={description} />
         </div>
@@ -674,7 +686,7 @@ function MonthlyBarChart({
   bars: readonly number[];
   xLabels: readonly TopOverviewAxisLabel[];
   highlightedIndex?: number;
-  highlightedValueLabel?: string;
+  highlightedValueLabel?: React.ReactNode;
 }) {
   const max = Math.max(...bars, 1);
   const chartMax = getChartMaxWithHeadroom(max, 1, 1.12, 2);
@@ -749,9 +761,10 @@ function MainFlowCard({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3">
               <div className="text-[2.25rem] leading-none font-semibold tracking-tight">
-                <AnimatedNumber
-                  value={currentRange.total}
+                <MaskedMonetaryValue
+                  animated
                   format={formatCompactCurrency}
+                  value={currentRange.total}
                 />
               </div>
               <p className="text-sm text-muted-foreground">
@@ -799,7 +812,11 @@ function SecondaryFlowCard({ data }: { data: TopOverviewSecondaryFlow }) {
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-3">
             <div className="text-[2.25rem] leading-none font-semibold tracking-tight">
-              <AnimatedNumber value={data.total} format={formatCompactCurrency} />
+              <MaskedMonetaryValue
+                animated
+                format={formatCompactCurrency}
+                value={data.total}
+              />
             </div>
             <TrendLabel
               change={data.change}
@@ -815,7 +832,11 @@ function SecondaryFlowCard({ data }: { data: TopOverviewSecondaryFlow }) {
           bars={data.bars}
           xLabels={data.xLabels}
           highlightedIndex={data.highlightedIndex}
-          highlightedValueLabel={data.highlightedValueLabel}
+          highlightedValueLabel={
+            data.highlightedValueLabel ? (
+              <MaskedMonetaryText>{data.highlightedValueLabel}</MaskedMonetaryText>
+            ) : undefined
+          }
         />
       </CardContent>
     </Card>

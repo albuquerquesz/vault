@@ -5,6 +5,7 @@ import {
 	SidebarContent,
 	SidebarHeader,
 } from "@vault/ui/components/sidebar";
+import { MonetaryVisibilityToggle } from "@/components/monetary-visibility";
 import { TooltipProvider } from "@vault/ui/components/tooltip";
 import { navGroups } from "@/components/app-shared";
 import { LogoIcon } from "@/components/logo";
@@ -19,9 +20,14 @@ export function AppSidebar() {
 				variant="sidebar"
 			>
 				<SidebarHeader className="h-14 justify-center border-b border-border py-0">
-					<div className="flex h-full items-center gap-2 px-4">
-						<LogoIcon className="size-4 text-foreground" />
-						<span className="font-medium text-foreground text-sm">Vault</span>
+					<div className="flex h-full items-center justify-between gap-3 px-4">
+						<div className="flex min-w-0 items-center gap-2">
+							<LogoIcon className="size-4 text-foreground" />
+							<span className="font-['Space_Grotesk'] text-[1.35rem] font-semibold tracking-tight text-foreground">
+								Vault
+							</span>
+						</div>
+						<MonetaryVisibilityToggle />
 					</div>
 				</SidebarHeader>
 				<SidebarContent className="px-2 pt-2">

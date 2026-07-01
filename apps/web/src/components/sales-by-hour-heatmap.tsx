@@ -11,6 +11,7 @@ import { cn } from "@vault/ui/lib/utils";
 import { Clock3Icon } from "lucide-react";
 import { useMemo } from "react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
+import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 
 export type SalesByHourDatum = {
 	day: string;
@@ -173,7 +174,10 @@ export function SalesByHourHeatmap({
 				<div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
 					<div className="space-y-1">
 						<CardTitle className="text-4xl">
-							{formatCurrency(metrics.total, locale, currency)}
+							<MaskedMonetaryValue
+								format={(value) => formatCurrency(value, locale, currency)}
+								value={metrics.total}
+							/>
 						</CardTitle>
 						<p className="text-muted-foreground text-sm">
 							Pico · {metrics.peakLabel}
@@ -181,7 +185,10 @@ export function SalesByHourHeatmap({
 					</div>
 					<div className="space-y-1 text-right">
 						<p className="text-xl font-semibold tracking-tight">
-							{formatCurrency(metrics.averagePerHour, locale, currency)}
+							<MaskedMonetaryValue
+								format={(value) => formatCurrency(value, locale, currency)}
+								value={metrics.averagePerHour}
+							/>
 						</p>
 						<p className="text-muted-foreground text-sm">Média / hora</p>
 					</div>

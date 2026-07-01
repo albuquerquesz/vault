@@ -8,8 +8,11 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
-import { AnimatedNumber } from "@/components/animated-number";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
+import {
+	MaskedMonetaryText,
+	MaskedMonetaryValue,
+} from "@/components/monetary-visibility";
 
 type MonthlyBillsCardProps = {
 	title?: string;
@@ -62,12 +65,20 @@ export function MonthlyBillsCard({
 
 					<div className="space-y-2">
 						<CardTitle className="text-5xl">
-							<AnimatedNumber value={total} format={formatCurrency} />
+							<MaskedMonetaryValue animated format={formatCurrency} value={total} />
 						</CardTitle>
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-base text-muted-foreground">
-							<span>{formatCurrency(installments)} em parcelas</span>
+							<span>
+								<MaskedMonetaryText>
+									{formatCurrency(installments)}
+								</MaskedMonetaryText>{" "}
+								em parcelas
+							</span>
 							<span className="text-white/24">·</span>
-							<span>{formatCurrency(oneOff)} avulsos</span>
+							<span>
+								<MaskedMonetaryText>{formatCurrency(oneOff)}</MaskedMonetaryText>{" "}
+								avulsos
+							</span>
 						</div>
 					</div>
 				</div>
@@ -86,9 +97,9 @@ export function MonthlyBillsCard({
 
 					<div className="flex items-center gap-3">
 						<div className="text-right font-['Space_Grotesk'] text-xl font-medium tracking-tight text-foreground">
-							<AnimatedNumber value={total} format={formatCurrency} />{" "}
+							<MaskedMonetaryValue animated format={formatCurrency} value={total} />{" "}
 							<span className="text-muted-foreground">
-								/ {formatCurrency(limit)}
+								/ <MaskedMonetaryText>{formatCurrency(limit)}</MaskedMonetaryText>
 							</span>
 						</div>
 						<div className="rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">

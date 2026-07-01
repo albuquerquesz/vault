@@ -16,6 +16,12 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Delta, DeltaIcon, DeltaValue } from "@/components/delta";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
+import {
+	MaskedMonetaryText,
+	MaskedMonetaryValue,
+	maskMonetaryText,
+	useMonetaryVisibility,
+} from "@/components/monetary-visibility";
 
 export type InvestmentChartDatum = {
 	month: string;
@@ -81,6 +87,8 @@ export function InvestmentsCard({
 		return <HomeCardSkeleton variant="investment" />;
 	}
 
+	const { isVisible } = useMonetaryVisibility();
+
 	return (
 		<Card className="financial-panel-border h-full min-h-[27rem] ring-0">
 			<CardHeader className="gap-5">
@@ -89,7 +97,7 @@ export function InvestmentsCard({
 						<CardDescription className="text-base">{title}</CardDescription>
 						<div className="flex flex-wrap items-end gap-x-3 gap-y-2">
 							<CardTitle className="text-4xl">
-								{formatCurrency(totalInvested)}
+								<MaskedMonetaryValue format={formatCurrency} value={totalInvested} />
 							</CardTitle>
 							<Delta
 								value={returnPct}
@@ -136,7 +144,12 @@ export function InvestmentsCard({
 						<YAxis
 							axisLine={false}
 							dataKey="investedTotal"
-							tickFormatter={(value) => formatCompactCurrency(Number(value))}
+							tickFormatter={(value) =>
+								maskMonetaryText(
+									formatCompactCurrency(Number(value)),
+									isVisible,
+								)
+							}
 							tickLine={false}
 							tickMargin={10}
 							width={54}
@@ -150,9 +163,9 @@ export function InvestmentsCard({
 										return (
 											<div className="flex w-full items-center justify-between gap-4">
 												<span className="text-muted-foreground">Total investido</span>
-												<span className="font-mono font-medium text-foreground tabular-nums">
+												<MaskedMonetaryText className="font-mono font-medium text-foreground tabular-nums">
 													{formatCurrency(Number(value))}
-												</span>
+												</MaskedMonetaryText>
 											</div>
 										);
 									}}

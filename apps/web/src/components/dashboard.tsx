@@ -120,6 +120,7 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     icon: <WalletIcon className="size-3.5" />,
     format: formatCompactCurrency,
     bars: [5, 8, 11, 14, 10, 12, 9],
+    isMonetary: true,
   },
   {
     title: "Lançamentos",
@@ -144,6 +145,7 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
         maximumFractionDigits: 2,
       }).format(value),
     bars: [11, 12, 10, 9, 13, 8, 6],
+    isMonetary: true,
   },
   {
     title: "Taxa de economia",

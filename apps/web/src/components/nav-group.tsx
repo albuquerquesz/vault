@@ -46,6 +46,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 								<CollapsibleTrigger
 									render={
 										<SidebarMenuButton
+											className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight"
 											isActive={item.isActive}
 											tooltip={item.title}
 											onMouseEnter={(e) => triggerIconHover(e, "mouseover")}
@@ -54,7 +55,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 									}
 								>
 									{item.icon}
-									<span className="text-[16px]">{item.title}</span>
+									<span className="text-[21px] font-semibold">{item.title}</span>
 									<ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 								</CollapsibleTrigger>
 								<CollapsibleContent>
@@ -62,11 +63,14 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 										{item.subItems?.map((subItem) => (
 											<SidebarMenuSubItem key={subItem.title}>
 												<SidebarMenuSubButton
+													className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight"
 													isActive={subItem.isActive}
 													render={<a href={subItem.path} />}
 												>
 													{subItem.icon}
-													<span className="text-[16px]">{subItem.title}</span>
+													<span className="text-[21px] font-semibold">
+														{subItem.title}
+													</span>
 												</SidebarMenuSubButton>
 											</SidebarMenuSubItem>
 										))}
@@ -75,6 +79,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 							</>
 						) : (
 							<SidebarMenuButton
+								className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight"
 								isActive={item.isActive}
 								tooltip={item.title}
 								onMouseEnter={(e) => triggerIconHover(e, "mouseover")}
@@ -82,7 +87,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 								render={<a href={item.path} />}
 							>
 								{item.icon}
-								<span className="text-[16px]">{item.title}</span>
+								<span className="text-[21px] font-semibold">{item.title}</span>
 							</SidebarMenuButton>
 						)}
 					</Collapsible>

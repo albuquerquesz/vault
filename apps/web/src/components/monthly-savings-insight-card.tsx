@@ -15,6 +15,10 @@ import {
 } from "@vault/ui/components/tooltip";
 import { useMemo } from "react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
+import {
+	MaskedMonetaryText,
+	MaskedMonetaryValue,
+} from "@/components/monetary-visibility";
 
 type MonthlySavingsInsightCardProps = {
 	title?: string;
@@ -130,7 +134,7 @@ export function MonthlySavingsInsightCard({
 					<CardDescription className="text-[1.05rem]">{title}</CardDescription>
 					<div className="flex flex-wrap items-end gap-x-3 gap-y-2">
 						<CardTitle className="text-4xl">
-							{formatCurrency(amountSaved)}
+							<MaskedMonetaryValue format={formatCurrency} value={amountSaved} />
 						</CardTitle>
 						<p className="pb-0.5 text-2xl text-muted-foreground">
 							{amountSuffix}
@@ -201,10 +205,16 @@ export function MonthlySavingsInsightCard({
 										</div>
 										<div className="space-y-1">
 											<div className="text-sm font-medium text-black">
-												Voce gastou {formatCurrency(point.actualAmount)}
+												Voce gastou{" "}
+												<MaskedMonetaryText>
+													{formatCurrency(point.actualAmount)}
+												</MaskedMonetaryText>
 											</div>
 											<div className="text-sm text-black/68">
-												Mes passado: {formatCurrency(point.baselineAmount)}
+												Mes passado:{" "}
+												<MaskedMonetaryText>
+													{formatCurrency(point.baselineAmount)}
+												</MaskedMonetaryText>
 											</div>
 										</div>
 									</TooltipContent>
