@@ -1,3 +1,4 @@
+import { db } from "@vault/db";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { auth } from "@vault/auth";
 import { fromNodeHeaders } from "better-auth/node";
@@ -7,7 +8,8 @@ export async function createContext({ req }: CreateFastifyContextOptions) {
 		headers: fromNodeHeaders(req.headers),
 	});
 	return {
-		auth: null,
+		auth,
+		db,
 		session,
 	};
 }

@@ -5,6 +5,12 @@
 		".": {
 			"default": "./src/index.ts"
 		},
+		"./env": {
+			"default": "./src/env.ts"
+		},
+		"./schema": {
+			"default": "./src/schema/index.ts"
+		},
 		"./*": {
 			"default": "./src/*.ts"
 		}
