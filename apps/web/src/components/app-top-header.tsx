@@ -24,8 +24,8 @@ function HeaderAction({
 
 export function AppTopHeader() {
 	return (
-		<header className="border-b border-white/10 bg-background">
-			<div className="flex min-h-14 items-center justify-between gap-4 px-4 md:px-6">
+		<header className="h-14 border-b border-border bg-background">
+			<div className="flex h-full items-center justify-between gap-4 px-4 md:px-6">
 				<div />
 
 				<div className="flex items-center gap-3">

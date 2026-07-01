@@ -14,17 +14,17 @@ export function AppSidebar() {
 	return (
 		<TooltipProvider delay={1000}>
 			<Sidebar
-				className="border-r border-border [&_[data-slot=sidebar-inner]]:ring-0 [&_[data-slot=sidebar-inner]]:border-0 [&_[data-slot=sidebar-inner]]:shadow-none"
+				className="[&_[data-slot=sidebar-inner]]:ring-0 [&_[data-slot=sidebar-inner]]:border-0 [&_[data-slot=sidebar-inner]]:shadow-none"
 				collapsible="offcanvas"
 				variant="sidebar"
 			>
-				<SidebarHeader className="min-h-14 justify-center border-b border-white/10 py-0">
-					<div className="flex items-center gap-2 px-4 py-1">
+				<SidebarHeader className="h-14 justify-center border-b border-border py-0">
+					<div className="flex h-full items-center gap-2 px-4">
 						<LogoIcon className="size-4 text-foreground" />
 						<span className="font-medium text-foreground text-sm">Vault</span>
 					</div>
 				</SidebarHeader>
-				<SidebarContent className="pt-2">
+				<SidebarContent className="px-2 pt-2">
 					{navGroups.map((group, index) => (
 						<NavGroup key={`sidebar-group-${index}`} {...group} />
 					))}
