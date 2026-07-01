@@ -13,7 +13,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@vault/ui/components/chart";
-import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Delta, DeltaIcon, DeltaValue } from "@/components/delta";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
@@ -45,10 +45,6 @@ const chartConfig = {
 	investedTotal: {
 		label: "Total investido",
 		color: "rgba(255,255,255,0.16)",
-	},
-	returnPct: {
-		label: "Rendimento %",
-		color: "#f6f7fb",
 	},
 } satisfies ChartConfig;
 
@@ -120,7 +116,7 @@ export function InvestmentsCard({
 					className="aspect-auto h-[15.5rem] w-full overflow-hidden"
 					config={chartConfig}
 				>
-					<ComposedChart
+					<BarChart
 						accessibilityLayer
 						data={[...data]}
 						margin={{ left: 0, right: 4, top: 8, bottom: 0 }}
@@ -145,33 +141,17 @@ export function InvestmentsCard({
 							tickMargin={10}
 							width={54}
 						/>
-						<YAxis
-							axisLine={false}
-							dataKey="returnPct"
-							domain={["dataMin - 0.6", "dataMax + 0.6"]}
-							orientation="right"
-							tickFormatter={(value) => `${Number(value).toFixed(0)}%`}
-							tickLine={false}
-							tickMargin={10}
-							width={40}
-							yAxisId="return"
-						/>
 						<ChartTooltip
 							content={
 								<ChartTooltipContent
-									indicator="line"
+									indicator="dot"
 									labelFormatter={(label) => `${label}`}
-									formatter={(value, name) => {
-										const isCurrency = name === "investedTotal";
+									formatter={(value) => {
 										return (
 											<div className="flex w-full items-center justify-between gap-4">
-												<span className="text-muted-foreground">
-													{isCurrency ? "Total investido" : "Rendimento %"}
-												</span>
+												<span className="text-muted-foreground">Total investido</span>
 												<span className="font-mono font-medium text-foreground tabular-nums">
-													{isCurrency
-														? formatCurrency(Number(value))
-														: formatPercent(Number(value))}
+													{formatCurrency(Number(value))}
 												</span>
 											</div>
 										);
@@ -185,20 +165,7 @@ export function InvestmentsCard({
 							fill="var(--color-investedTotal)"
 							radius={[10, 10, 4, 4]}
 						/>
-						<Line
-							dataKey="returnPct"
-							dot={{
-								fill: "var(--color-returnPct)",
-								r: 3,
-								stroke: "#101114",
-								strokeWidth: 2,
-							}}
-							stroke="var(--color-returnPct)"
-							strokeWidth={2.25}
-							type="monotone"
-							yAxisId="return"
-						/>
-					</ComposedChart>
+					</BarChart>
 				</ChartContainer>
 			</CardContent>
 		</Card>
