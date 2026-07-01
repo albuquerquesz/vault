@@ -309,6 +309,7 @@ export function Dashboard() {
         rightContent={<MonthlyBillsCard className="min-h-0" />}
         extraRightContent={<OrderSourceMixChart totalNetWorth={1842} />}
         initialRange="1M"
+        showMainFlow={false}
       />
       <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
         <div className="h-full">

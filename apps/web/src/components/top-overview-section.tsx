@@ -70,6 +70,7 @@ type TopOverviewSectionProps = {
   rightContent?: React.ReactNode;
   extraRightContent?: React.ReactNode;
   initialRange?: TopOverviewRangeOption;
+  showMainFlow?: boolean;
 };
 
 const summaryCards: SummaryCard[] = [
@@ -829,6 +830,7 @@ export function TopOverviewSection({
   rightContent,
   extraRightContent,
   initialRange = "1M",
+  showMainFlow = true,
 }: TopOverviewSectionProps) {
   const hasCustomSidePanels = rightContent || extraRightContent;
   const hasTwoTopCards = rightContent && extraRightContent;
@@ -855,13 +857,17 @@ export function TopOverviewSection({
                 <div className="h-full">{extraRightContent}</div>
                 <div className="h-full">{rightContent}</div>
               </div>
-              <MainFlowCard data={mainFlow} initialRange={initialRange} />
+              {showMainFlow ? (
+                <MainFlowCard data={mainFlow} initialRange={initialRange} />
+              ) : null}
             </>
           ) : (
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-4">
-              <div className="xl:col-span-2">
-                <MainFlowCard data={mainFlow} initialRange={initialRange} />
-              </div>
+              {showMainFlow ? (
+                <div className="xl:col-span-2">
+                  <MainFlowCard data={mainFlow} initialRange={initialRange} />
+                </div>
+              ) : null}
               {rightContent ? <div className="h-full">{rightContent}</div> : null}
               {extraRightContent ? <div className="h-full">{extraRightContent}</div> : null}
             </div>
@@ -870,10 +876,16 @@ export function TopOverviewSection({
           {secondaryFlow ? <SecondaryFlowCard data={secondaryFlow} /> : null}
         </>
       ) : (
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <MainFlowCard data={mainFlow} initialRange={initialRange} />
-          <SecondaryFlowCard data={secondaryFlow ?? defaultSecondaryFlow} />
-        </div>
+        <>
+          {showMainFlow ? (
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+              <MainFlowCard data={mainFlow} initialRange={initialRange} />
+              <SecondaryFlowCard data={secondaryFlow ?? defaultSecondaryFlow} />
+            </div>
+          ) : secondaryFlow ? (
+            <SecondaryFlowCard data={secondaryFlow} />
+          ) : null}
+        </>
       )}
     </section>
   );
