@@ -305,15 +305,10 @@ export function Dashboard() {
         title="Bem-vindo de volta, Victor! 👋"
         summaryCards={topSummaryCards}
         mainFlowData={topMainFlowData}
-        secondaryFlow={topSecondaryFlow}
         rightContent={<MonthlyBillsCard className="min-h-0" />}
+        extraRightContent={<OrderSourceMixChart totalNetWorth={1842} />}
         initialRange="1M"
       />
-      <div className="grid grid-cols-1 items-stretch gap-6">
-        <div className="h-full">
-          <OrderSourceMixChart totalNetWorth={1842} />
-        </div>
-      </div>
       <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
         <div className="h-full">
           <TrafficSourcesCard />

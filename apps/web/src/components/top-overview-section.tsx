@@ -68,6 +68,7 @@ type TopOverviewSectionProps = {
   mainFlowData?: Record<TopOverviewRangeOption, TopOverviewMainFlowRange>;
   secondaryFlow?: TopOverviewSecondaryFlow;
   rightContent?: React.ReactNode;
+  extraRightContent?: React.ReactNode;
   initialRange?: TopOverviewRangeOption;
 };
 
@@ -420,7 +421,7 @@ function MiniBars({ bars }: { bars: readonly number[] }) {
     return Math.max(...slice, 1);
   });
   const max = Math.max(...groupedBars, 1);
-  const highlightedColumnIndex = groupedBars.length - 1;
+  const highlightedColumnIndex = groupedBars.indexOf(max);
 
   return (
     <div className="flex h-[5.5rem] shrink-0 items-end gap-[4px]">
@@ -824,10 +825,14 @@ export function TopOverviewSection({
   title = "Bem-vindo de volta, Victor.",
   summaryCards: cards = summaryCards,
   mainFlowData: mainFlow = mainFlowData,
-  secondaryFlow = defaultSecondaryFlow,
+  secondaryFlow,
   rightContent,
+  extraRightContent,
   initialRange = "1M",
 }: TopOverviewSectionProps) {
+  const hasCustomSidePanels = rightContent || extraRightContent;
+  const hasTwoTopCards = rightContent && extraRightContent;
+
   return (
     <section className="space-y-8">
       <div className="space-y-2">
@@ -842,10 +847,34 @@ export function TopOverviewSection({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <MainFlowCard data={mainFlow} initialRange={initialRange} />
-        {rightContent ?? <SecondaryFlowCard data={secondaryFlow} />}
-      </div>
+      {hasCustomSidePanels ? (
+        <>
+          {hasTwoTopCards ? (
+            <>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
+                <div className="h-full">{extraRightContent}</div>
+                <div className="h-full">{rightContent}</div>
+              </div>
+              <MainFlowCard data={mainFlow} initialRange={initialRange} />
+            </>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-4">
+              <div className="xl:col-span-2">
+                <MainFlowCard data={mainFlow} initialRange={initialRange} />
+              </div>
+              {rightContent ? <div className="h-full">{rightContent}</div> : null}
+              {extraRightContent ? <div className="h-full">{extraRightContent}</div> : null}
+            </div>
+          )}
+
+          {secondaryFlow ? <SecondaryFlowCard data={secondaryFlow} /> : null}
+        </>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <MainFlowCard data={mainFlow} initialRange={initialRange} />
+          <SecondaryFlowCard data={secondaryFlow ?? defaultSecondaryFlow} />
+        </div>
+      )}
     </section>
   );
 }
