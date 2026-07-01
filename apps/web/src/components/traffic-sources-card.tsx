@@ -25,7 +25,6 @@ const DEFAULT_DATA = [
 	{ label: "Direct", value: 2900 },
 	{ label: "Referral", value: 1600 },
 	{ label: "Paid social", value: 980 },
-	{ label: "Email", value: 620 },
 ] as const satisfies readonly TrafficSourceDatum[];
 
 const FILLED_SEGMENT_CLASSES = [
@@ -78,7 +77,7 @@ export function TrafficSourcesCard({
 	const maxValue = Math.max(...data.map((item) => item.value), 1);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[32rem] ring-0">
+		<Card className="financial-panel-border h-full min-h-[27rem] ring-0">
 			<CardHeader className="gap-6">
 				<div className="flex items-start justify-between gap-4">
 					<CardDescription className="flex items-center gap-2 text-base">

@@ -16,9 +16,9 @@ export function AppSidebar() {
 			<Sidebar
 				className="border-r border-border [&_[data-slot=sidebar-inner]]:ring-0 [&_[data-slot=sidebar-inner]]:border-0 [&_[data-slot=sidebar-inner]]:shadow-none"
 				collapsible="offcanvas"
-				variant="floating"
+				variant="sidebar"
 			>
-				<SidebarHeader className="min-h-10 justify-center border-b border-white/10 py-0">
+				<SidebarHeader className="min-h-14 justify-center border-b border-white/10 py-0">
 					<div className="flex items-center gap-2 px-4 py-1">
 						<LogoIcon className="size-4 text-foreground" />
 						<span className="font-medium text-foreground text-sm">Vault</span>

@@ -82,7 +82,7 @@ export function InvestmentsCard({
 	}
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[32rem] ring-0">
+		<Card className="financial-panel-border h-full min-h-[27rem] ring-0">
 			<CardHeader className="gap-5">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-3">
@@ -113,7 +113,7 @@ export function InvestmentsCard({
 				</div>
 
 				<ChartContainer
-					className="aspect-auto h-[15.5rem] w-full overflow-hidden"
+					className="aspect-auto h-[13.5rem] w-full overflow-hidden"
 					config={chartConfig}
 				>
 					<BarChart
