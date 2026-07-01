@@ -14,8 +14,14 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@vault/ui/components/sheet";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Loader from "@/components/loader";
 import { formatFullCurrency } from "@/components/formater";
+import {
+	getMonthValue,
+	useCreateExpense,
+	useFinanceExpenses,
+} from "@/features/finance/sdk";
 
 const categories = [
 	"Moradia",
@@ -26,47 +32,10 @@ const categories = [
 	"Outros",
 ];
 
-type Expense = {
-	id: string;
-	date: string;
-	amount: number;
-	category: string;
-	note?: string;
-};
-
-const initialExpenses: Expense[] = [
-	{
-		id: "1",
-		date: "2026-05-02",
-		amount: 1200,
-		category: "Moradia",
-		note: "Aluguel",
-	},
-	{
-		id: "2",
-		date: "2026-05-06",
-		amount: 220,
-		category: "Alimentação",
-		note: "Mercado",
-	},
-	{
-		id: "3",
-		date: "2026-05-12",
-		amount: 90,
-		category: "Transporte",
-		note: "Combustível",
-	},
-	{
-		id: "4",
-		date: "2026-05-18",
-		amount: 180,
-		category: "Lazer",
-		note: "Fim de semana",
-	},
-];
-
 export function ExpensesPage() {
-	const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+	const currentMonth = useMemo(() => getMonthValue(), []);
+	const expensesQuery = useFinanceExpenses(currentMonth);
+	const createExpense = useCreateExpense(currentMonth);
 	const [isOpen, setIsOpen] = useState(false);
 	const [form, setForm] = useState({
 		date: new Date().toISOString().slice(0, 10),
@@ -75,25 +44,45 @@ export function ExpensesPage() {
 		note: "",
 	});
 
-	function onAddExpense(event: React.FormEvent<HTMLFormElement>) {
+	async function onAddExpense(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const amount = Number(form.amount);
 		if (!form.date || Number.isNaN(amount) || amount <= 0) return;
 
-		setExpenses((prev) => [
-			{
-				id: crypto.randomUUID(),
-				date: form.date,
-				amount,
-				category: form.category,
-				note: form.note.trim() || undefined,
-			},
-			...prev,
-		]);
+		await createExpense.mutateAsync({
+			date: form.date,
+			amount,
+			category: form.category,
+			note: form.note.trim() || undefined,
+		});
 
-		setForm((prev) => ({ ...prev, amount: "", note: "" }));
+		setForm((prev) => ({
+			...prev,
+			date: new Date().toISOString().slice(0, 10),
+			amount: "",
+			note: "",
+		}));
 		setIsOpen(false);
 	}
+
+	if (expensesQuery.isPending) {
+		return <Loader />;
+	}
+
+	if (expensesQuery.isError) {
+		return (
+			<Card className="border-0">
+				<CardHeader>
+					<CardTitle>Lista de despesas</CardTitle>
+				</CardHeader>
+				<CardContent className="text-sm text-muted-foreground">
+					Não foi possível carregar as despesas.
+				</CardContent>
+			</Card>
+		);
+	}
+
+	const expenses = expensesQuery.data ?? [];
 
 	return (
 		<div className="grid gap-4">
@@ -110,23 +99,31 @@ export function ExpensesPage() {
 					</Button>
 				</CardHeader>
 				<CardContent className="grid gap-2">
-					{expenses.map((expense) => (
-						<div
-							key={expense.id}
-							className="flex flex-wrap items-center justify-between gap-2 border border-border p-3"
-						>
-							<div>
-								<p className="font-medium">{expense.note ?? "Despesa"}</p>
-								<p className="text-sm text-muted-foreground">{expense.date}</p>
-							</div>
-							<div className="flex items-center gap-3">
-								<Badge variant="outline">{expense.category}</Badge>
-								<p className="font-semibold">
-									{formatFullCurrency(expense.amount)}
-								</p>
-							</div>
+					{expenses.length === 0 ? (
+						<div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+							Nenhuma despesa cadastrada neste mes.
 						</div>
-					))}
+					) : (
+						expenses.map((expense) => (
+							<div
+								key={expense.id}
+								className="flex flex-wrap items-center justify-between gap-2 border border-border p-3"
+							>
+								<div>
+									<p className="font-medium">{expense.note ?? "Despesa"}</p>
+									<p className="text-sm text-muted-foreground">
+										{expense.expenseDate}
+									</p>
+								</div>
+								<div className="flex items-center gap-3">
+									<Badge variant="outline">{expense.category}</Badge>
+									<p className="font-semibold">
+										{formatFullCurrency(expense.amount)}
+									</p>
+								</div>
+							</div>
+						))
+					)}
 				</CardContent>
 			</Card>
 
@@ -189,7 +186,9 @@ export function ExpensesPage() {
 								}
 							/>
 						</div>
-						<Button type="submit">Salvar despesa</Button>
+						<Button type="submit" disabled={createExpense.isPending}>
+							{createExpense.isPending ? "Salvando..." : "Salvar despesa"}
+						</Button>
 					</form>
 				</SheetContent>
 			</Sheet>

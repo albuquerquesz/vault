@@ -24,6 +24,20 @@ function getMonthBounds(month: string) {
 	};
 }
 
+function serializeExpense(record: typeof expense.$inferSelect) {
+	return {
+		...record,
+		amount: Number(record.amount),
+	};
+}
+
+function serializeMonthlyBudget(record: typeof monthlyBudget.$inferSelect) {
+	return {
+		...record,
+		income: Number(record.income),
+	};
+}
+
 export const financeRouter = router({
 	listExpenses: protectedProcedure
 		.input(
@@ -34,7 +48,7 @@ export const financeRouter = router({
 		.query(async ({ ctx, input }) => {
 			const { start, end } = getMonthBounds(input.month);
 
-			return ctx.db.query.expense.findMany({
+			const expenses = await ctx.db.query.expense.findMany({
 				where: and(
 					eq(expense.userId, ctx.session.user.id),
 					gte(expense.expenseDate, start),
@@ -45,6 +59,8 @@ export const financeRouter = router({
 					operators.desc(fields.createdAt),
 				],
 			});
+
+			return expenses.map(serializeExpense);
 		}),
 	createExpense: protectedProcedure
 		.input(expenseInput)
@@ -60,7 +76,7 @@ export const financeRouter = router({
 				})
 				.returning();
 
-			return createdExpense;
+			return serializeExpense(createdExpense);
 		}),
 	upsertMonthlyBudget: protectedProcedure
 		.input(
@@ -86,7 +102,7 @@ export const financeRouter = router({
 				})
 				.returning();
 
-			return budget;
+			return serializeMonthlyBudget(budget);
 		}),
 	getMonthlyOverview: protectedProcedure
 		.input(

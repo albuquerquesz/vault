@@ -4,6 +4,7 @@ import {
   ScaleIcon,
   WalletIcon,
 } from "lucide-react";
+import { InvestmentsCard } from "@/components/investments-card";
 import { MonthlyBillsCard } from "@/components/monthly-bills-card";
 import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
 import { SalesByHourHeatmap } from "@/components/sales-by-hour-heatmap";
@@ -309,12 +310,15 @@ export function Dashboard() {
         extraRightContent={<OrderSourceMixChart totalNetWorth={1842} />}
         initialRange="1M"
       />
-      <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="h-full">
           <TrafficSourcesCard />
         </div>
         <div className="h-full">
           <SalesByHourHeatmap />
+        </div>
+        <div className="h-full">
+          <InvestmentsCard />
         </div>
       </div>
     </div>

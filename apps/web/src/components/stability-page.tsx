@@ -4,28 +4,69 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
+import { Button } from "@vault/ui/components/button";
 import { Input } from "@vault/ui/components/input";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatFullCurrency, formatPercent } from "@/components/formater";
-
-const monthDays = new Date(
-	new Date().getFullYear(),
-	new Date().getMonth() + 1,
-	0,
-).getDate();
+import Loader from "@/components/loader";
+import {
+	getMonthValue,
+	getTodayValue,
+	useFinanceMonthlyOverview,
+	useUpsertMonthlyBudget,
+} from "@/features/finance/sdk";
 
 export function StabilityPage() {
-	const [salary, setSalary] = useState(5000);
-	const [spent, setSpent] = useState(1690);
-	const today = new Date().getDate();
+	const month = useMemo(() => getMonthValue(), []);
+	const today = useMemo(() => getTodayValue(), []);
+	const overviewQuery = useFinanceMonthlyOverview(month, today);
+	const saveBudget = useUpsertMonthlyBudget(month, today);
+	const [salary, setSalary] = useState(0);
 
-	const metrics = useMemo(() => {
-		const remainingBudget = salary - spent;
-		const remainingDays = Math.max(1, monthDays - today + 1);
-		const dailyCap = remainingBudget > 0 ? remainingBudget / remainingDays : 0;
-		const spentPct = salary > 0 ? (spent / salary) * 100 : 0;
-		return { remainingBudget, remainingDays, dailyCap, spentPct };
-	}, [salary, spent, today]);
+	useEffect(() => {
+		if (overviewQuery.data) {
+			setSalary(overviewQuery.data.income);
+		}
+	}, [overviewQuery.data]);
+
+	const metrics = useMemo(
+		() =>
+			overviewQuery.data ?? {
+				month,
+				income: salary,
+				spent: 0,
+				spentPercentage: 0,
+				remainingBudget: salary,
+				remainingDays: 0,
+				dailyCap: 0,
+			},
+		[month, overviewQuery.data, salary],
+	);
+
+	async function onSaveBudget() {
+		if (salary <= 0) return;
+		await saveBudget.mutateAsync({
+			month,
+			income: salary,
+		});
+	}
+
+	if (overviewQuery.isPending) {
+		return <Loader />;
+	}
+
+	if (overviewQuery.isError) {
+		return (
+			<Card className="financial-panel-border">
+				<CardHeader>
+					<CardTitle>Planejador de estabilidade</CardTitle>
+				</CardHeader>
+				<CardContent className="text-sm text-muted-foreground">
+					Não foi possível carregar os indicadores financeiros.
+				</CardContent>
+			</Card>
+		);
+	}
 
 	return (
 		<div className="grid gap-4 md:grid-cols-2">
@@ -50,15 +91,14 @@ export function StabilityPage() {
 						<p className="text-sm text-muted-foreground">
 							Total gasto neste mês
 						</p>
-						<Input
-							className="mt-2"
-							type="number"
-							min={0}
-							value={spent}
-							onChange={(e) =>
-								setSpent(Math.max(0, Number(e.target.value || 0)))
-							}
-						/>
+						<div className="mt-2 flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm text-foreground">
+							{formatFullCurrency(metrics.spent)}
+						</div>
+					</div>
+					<div className="md:col-span-2">
+						<Button onClick={onSaveBudget} disabled={saveBudget.isPending || salary <= 0}>
+							{saveBudget.isPending ? "Salvando..." : "Salvar salário do mês"}
+						</Button>
 					</div>
 				</CardContent>
 			</Card>
@@ -69,7 +109,7 @@ export function StabilityPage() {
 				</CardHeader>
 				<CardContent>
 					<p className="text-3xl font-semibold">
-						{formatPercent(metrics.spentPct, 1)}
+						{formatPercent(metrics.spentPercentage, 1)}
 					</p>
 				</CardContent>
 			</Card>

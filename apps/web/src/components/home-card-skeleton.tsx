@@ -8,7 +8,8 @@ type HomeCardSkeletonVariant =
 	| "mix"
 	| "heatmap"
 	| "bills"
-	| "category";
+	| "category"
+	| "investment";
 
 type HomeCardSkeletonProps = {
 	variant: HomeCardSkeletonVariant;
@@ -237,6 +238,42 @@ function CategorySkeleton() {
 	);
 }
 
+function InvestmentSkeleton() {
+	return (
+		<>
+			<HeaderBlock
+				left={
+					<div className="space-y-3">
+						<Skeleton className="h-5 w-28" />
+						<div className="flex flex-wrap items-end gap-3">
+							<Skeleton className="h-10 w-40" />
+							<Skeleton className="h-7 w-20" />
+						</div>
+					</div>
+				}
+				right={<Skeleton className="h-5 w-24" />}
+			/>
+			<CardContent className="flex h-full flex-col">
+				<div className="mb-4 flex items-center justify-between gap-3">
+					<Skeleton className="h-4 w-28" />
+					<Skeleton className="h-4 w-32" />
+				</div>
+				<div className="relative h-[15.5rem]">
+					<Skeleton className="absolute inset-0" />
+					<div className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-2">
+						{Array.from({ length: 6 }).map((_, index) => (
+							<Skeleton
+								key={`investment-bar-${index}`}
+								className="h-16 w-full rounded-t-xl"
+							/>
+						))}
+					</div>
+				</div>
+			</CardContent>
+		</>
+	);
+}
+
 const skeletonByVariant: Record<
 	HomeCardSkeletonVariant,
 	() => React.ReactNode
@@ -246,6 +283,7 @@ const skeletonByVariant: Record<
 	heatmap: HeatmapSkeleton,
 	bills: BillsSkeleton,
 	category: CategorySkeleton,
+	investment: InvestmentSkeleton,
 };
 
 export function HomeCardSkeleton({
