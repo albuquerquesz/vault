@@ -310,7 +310,7 @@ export function Dashboard() {
         extraRightContent={<OrderSourceMixChart totalNetWorth={1842} />}
         initialRange="1M"
       />
-      <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
         <div className="h-full">
           <TrafficSourcesCard />
         </div>
