@@ -1,8 +1,8 @@
-import { createDb } from "@vault/db";
-import { env } from "@vault/db/env";
-import * as schema from "@vault/db/schema/auth";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { createDb } from "./db";
+import { env } from "./db/env";
+import * as schema from "./db/schema/auth";
 
 export function createAuth() {
 	const db = createDb();
@@ -10,8 +10,7 @@ export function createAuth() {
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: "pg",
-
-			schema: schema,
+			schema,
 		}),
 		trustedOrigins: [env.CORS_ORIGIN],
 		emailAndPassword: {

@@ -8,7 +8,7 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const envCandidates = [
 	path.resolve(process.cwd(), ".env"),
 	path.resolve(process.cwd(), "apps/api/.env"),
-	path.resolve(currentDir, "../../../apps/api/.env"),
+	path.resolve(currentDir, "../../../../apps/api/.env"),
 ];
 
 for (const envPath of envCandidates) {

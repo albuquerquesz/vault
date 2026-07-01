@@ -1,1 +1,1 @@
-export { env } from "@vault/db/env";
+export { env } from "../db/env";

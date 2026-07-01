@@ -3,10 +3,10 @@ import {
 	type FastifyTRPCPluginOptions,
 	fastifyTRPCPlugin,
 } from "@trpc/server/adapters/fastify";
+import { auth } from "@vault/api/auth";
 import { env } from "@vault/api/common/env";
 import { createContext } from "@vault/api/context";
 import { type AppRouter, appRouter } from "@vault/api/routers/index";
-import { auth } from "@vault/auth";
 import Fastify from "fastify";
 
 const baseCorsConfig = {

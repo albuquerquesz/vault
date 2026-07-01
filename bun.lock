@@ -22,8 +22,6 @@
         "@hono/trpc-server": "^0.4.0",
         "@trpc/server": "catalog:",
         "@vault/api": "workspace:*",
-        "@vault/auth": "workspace:*",
-        "@vault/db": "workspace:*",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
         "fastify": "^5.3.3",
@@ -81,41 +79,10 @@
     "packages/api": {
       "name": "@vault/api",
       "dependencies": {
+        "@t3-oss/env-core": "^0.13.1",
         "@trpc/client": "catalog:",
         "@trpc/server": "catalog:",
-        "@vault/auth": "workspace:*",
-        "@vault/db": "workspace:*",
         "better-auth": "catalog:",
-        "dotenv": "catalog:",
-        "drizzle-orm": "^0.45.1",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@vault/config": "workspace:*",
-        "typescript": "catalog:",
-      },
-    },
-    "packages/auth": {
-      "name": "@vault/auth",
-      "dependencies": {
-        "@vault/db": "workspace:*",
-        "better-auth": "catalog:",
-        "dotenv": "catalog:",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@vault/config": "workspace:*",
-        "typescript": "catalog:",
-      },
-    },
-    "packages/config": {
-      "name": "@vault/config",
-      "version": "0.0.0",
-    },
-    "packages/db": {
-      "name": "@vault/db",
-      "dependencies": {
-        "@t3-oss/env-core": "^0.13.1",
         "dotenv": "catalog:",
         "drizzle-orm": "^0.45.1",
         "pg": "^8.17.1",
@@ -127,6 +94,10 @@
         "drizzle-kit": "^0.31.8",
         "typescript": "catalog:",
       },
+    },
+    "packages/config": {
+      "name": "@vault/config",
+      "version": "0.0.0",
     },
     "packages/ui": {
       "name": "@vault/ui",
@@ -577,11 +548,7 @@
 
     "@vault/api": ["@vault/api@workspace:packages/api"],
 
-    "@vault/auth": ["@vault/auth@workspace:packages/auth"],
-
     "@vault/config": ["@vault/config@workspace:packages/config"],
-
-    "@vault/db": ["@vault/db@workspace:packages/db"],
 
     "@vault/ui": ["@vault/ui@workspace:packages/ui"],
 

@@ -1,6 +1,6 @@
 import { and, eq, gte, lte, sum } from "drizzle-orm";
-import { expense, monthlyBudget } from "@vault/db/schema";
 import { z } from "zod";
+import { expense, monthlyBudget } from "../db/schema";
 import { protectedProcedure, router } from "../index";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;

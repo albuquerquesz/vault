@@ -55,11 +55,11 @@ const defaultData: OrderSourceDatum[] = [
 ];
 
 const slicePalette = [
-	"oklch(0.74 0.10 190)",
-	"oklch(0.76 0.09 85)",
-	"oklch(0.70 0.09 245)",
-	"oklch(0.68 0.08 320)",
-	"oklch(0.58 0.03 255)",
+	"color-mix(in oklab, var(--foreground) 35%, transparent)",
+	"color-mix(in oklab, var(--foreground) 28%, transparent)",
+	"color-mix(in oklab, var(--foreground) 22%, transparent)",
+	"color-mix(in oklab, var(--foreground) 16%, transparent)",
+	"color-mix(in oklab, var(--foreground) 10%, transparent)",
 ] as const;
 
 const chartConfig = {

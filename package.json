@@ -28,14 +28,14 @@
 		"check-types": "turbo --ui=stream check-types",
 		"dev:web": "turbo --ui=stream -F web dev",
 		"dev:api": "turbo --ui=stream -F api dev",
-		"db:push": "turbo --ui=stream -F @vault/db db:push",
-		"db:studio": "turbo --ui=stream -F @vault/db db:studio",
-		"db:generate": "turbo --ui=stream -F @vault/db db:generate",
-		"db:migrate": "turbo --ui=stream -F @vault/db db:migrate",
-		"db:up": "turbo --ui=stream -F @vault/db db:start",
-		"db:watch": "turbo --ui=stream -F @vault/db db:watch",
-		"db:stop": "turbo --ui=stream -F @vault/db db:stop",
-		"db:down": "turbo --ui=stream -F @vault/db db:down"
+		"db:push": "turbo --ui=stream -F @vault/api db:push",
+		"db:studio": "turbo --ui=stream -F @vault/api db:studio",
+		"db:generate": "turbo --ui=stream -F @vault/api db:generate",
+		"db:migrate": "turbo --ui=stream -F @vault/api db:migrate",
+		"db:up": "turbo --ui=stream -F @vault/api db:start",
+		"db:watch": "turbo --ui=stream -F @vault/api db:watch",
+		"db:stop": "turbo --ui=stream -F @vault/api db:stop",
+		"db:down": "turbo --ui=stream -F @vault/api db:down"
 	},
 	"dependencies": {
 		"dotenv": "catalog:",

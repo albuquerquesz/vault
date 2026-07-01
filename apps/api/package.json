@@ -14,8 +14,6 @@
 		"@hono/trpc-server": "^0.4.0",
 		"@trpc/server": "catalog:",
 		"@vault/api": "workspace:*",
-		"@vault/auth": "workspace:*",
-		"@vault/db": "workspace:*",
 		"better-auth": "catalog:",
 		"dotenv": "catalog:",
 		"fastify": "^5.3.3",
