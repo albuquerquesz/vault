@@ -8,6 +8,7 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
+import { CreditCardIcon } from "lucide-react";
 import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 import { PercentageBadge } from "@/components/percentage-badge";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
@@ -66,7 +67,10 @@ export function MonthlyBillsCard({
 			<CardHeader className="gap-4">
 				<div className="space-y-4">
 					<div className="flex items-start justify-between gap-3">
-						<CardDescription className="text-base">{title}</CardDescription>
+						<div className="flex items-center gap-2">
+							<CreditCardIcon className="size-4 text-muted-foreground" />
+							<CardDescription className="text-base">{title}</CardDescription>
+						</div>
 						{detailHref ? (
 							<DashboardCardLinkButton
 								label={`Abrir ${title}`}

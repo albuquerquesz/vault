@@ -72,6 +72,7 @@ export type TopOverviewSecondaryFlow = {
 type TopOverviewSectionProps = {
   title?: string;
   summaryCards?: TopOverviewSummaryCard[];
+  summaryDescriptions?: string[];
   mainFlowData?: Record<TopOverviewRangeOption, TopOverviewMainFlowRange>;
   secondaryFlow?: TopOverviewSecondaryFlow;
   rightContent?: React.ReactNode;
@@ -855,6 +856,7 @@ function SecondaryFlowCard({ data }: { data: TopOverviewSecondaryFlow }) {
 export function TopOverviewSection({
   title = "Bem-vindo de volta, Victor.",
   summaryCards: cards = summaryCards,
+  summaryDescriptions,
   mainFlowData: mainFlow = mainFlowData,
   secondaryFlow,
   rightContent,
@@ -867,15 +869,17 @@ export function TopOverviewSection({
 
   return (
     <section className="space-y-4">
-      <div className="space-y-2 mb-2">
-        <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-          {title}
-        </h2>
-      </div>
+      <h2 className="text-4xl font-semibold tracking-tight text-foreground">
+        {title}
+      </h2>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
-        {cards.map((card) => (
-          <SummaryCard key={card.title} {...card} />
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4 mt-2">
+        {cards.map((card, index) => (
+          <SummaryCard
+            key={card.title}
+            {...card}
+            description={summaryDescriptions?.[index] ?? card.description}
+          />
         ))}
       </div>
 

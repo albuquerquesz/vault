@@ -8,7 +8,7 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { type ChartConfig, ChartContainer } from "@vault/ui/components/chart";
-import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight, PieChartIcon } from "lucide-react";
 import { useMemo } from "react";
 import { Cell, Pie, PieChart } from "recharts";
 import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
@@ -128,7 +128,10 @@ export function OrderSourceMixChart({
 		<Card className="financial-panel-border h-full min-h-[32rem] ring-0 md:col-span-2">
 			<CardHeader className="gap-4">
 				<div className="flex items-start justify-between gap-4">
-					<CardDescription className="text-base">{title}</CardDescription>
+					<div className="flex items-center gap-2">
+						<PieChartIcon className="size-4 text-muted-foreground" />
+						<CardDescription className="text-base">{title}</CardDescription>
+					</div>
 					{detailHref ? (
 						<DashboardCardLinkButton
 							label={`Abrir ${title}`}

@@ -83,7 +83,7 @@ export function TrafficSourcesCard({
 			<CardHeader className="gap-4">
 				<div className="flex items-start justify-between gap-4">
 					<CardDescription className="flex items-center gap-2 text-base">
-						<Clock3Icon className="size-3.5 text-muted-foreground" />
+						<Clock3Icon className="size-4 text-muted-foreground" />
 						<span>{title}</span>
 					</CardDescription>
 					{detailHref ? (
