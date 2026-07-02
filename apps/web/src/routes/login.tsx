@@ -1,8 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@vault/ui/components/button";
-import { Input } from "@vault/ui/components/input";
-import { Separator } from "@vault/ui/components/separator";
-import { AtSign } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
 	component: RouteComponent,
@@ -55,7 +52,7 @@ function RouteComponent() {
 						</figure>
 					</section>
 
-					<section className="flex items-center justify-center px-6 py-12 lg:col-span-2 lg:px-8">
+					<section className="flex items-center justify-center bg-white px-6 py-12 text-black lg:col-span-2 lg:px-8">
 						<div className="w-full max-w-sm space-y-6">
 							<div className="space-y-3 text-center">
 								<h2
@@ -64,7 +61,7 @@ function RouteComponent() {
 								>
 									Entrar ou Criar Conta
 								</h2>
-								<p className="text-xs font-normal text-muted-foreground">
+								<p className="text-xs font-normal text-black/60">
 									Entre ou crie sua conta Vault para começar.
 								</p>
 							</div>
@@ -73,7 +70,7 @@ function RouteComponent() {
 								<Button
 									type="button"
 									variant="outline"
-									className="h-12 w-full justify-center gap-3 !rounded-lg text-base"
+									className="h-12 w-full justify-center gap-3 !rounded-lg border-black/12 bg-white text-black hover:bg-black/[0.03]"
 								>
 									<svg
 										viewBox="0 0 24 24"
@@ -87,40 +84,6 @@ function RouteComponent() {
 										/>
 									</svg>
 									Continuar com Google
-								</Button>
-
-								<div className="relative py-2">
-									<Separator />
-									<span className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
-										<span className="px-3">OU</span>
-									</span>
-								</div>
-
-								<div className="space-y-2">
-									<label htmlFor="email" className="sr-only">
-										Endereço de e-mail
-									</label>
-									<div className="relative">
-										<AtSign
-											className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-											aria-hidden="true"
-										/>
-										<Input
-											id="email"
-											type="email"
-											autoComplete="email"
-											placeholder="Digite seu endereço de e-mail"
-											className="h-11 !rounded-lg pl-9"
-										/>
-									</div>
-									<p
-										className="min-h-4 text-xs text-destructive"
-										aria-live="polite"
-									/>
-								</div>
-
-								<Button type="submit" className="h-11 w-full !rounded-lg">
-									Continuar com e-mail
 								</Button>
 							</form>
 						</div>

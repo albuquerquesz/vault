@@ -163,8 +163,8 @@ export function SalesByHourHeatmap({
 	}, [safeData]);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[27rem] ring-0">
-			<CardHeader className="gap-5">
+		<Card className="financial-panel-border h-full min-h-[22rem] ring-0">
+			<CardHeader className="gap-4">
 				<div className="flex items-start justify-between gap-4">
 					<div className="flex items-center gap-2 text-muted-foreground">
 						<Clock3Icon className="size-4" aria-hidden="true" />
@@ -204,9 +204,9 @@ export function SalesByHourHeatmap({
 				</div>
 			</CardHeader>
 
-			<CardContent className="space-y-4">
-				<div className="space-y-3">
-					<div className="space-y-3">
+			<CardContent className="space-y-3">
+				<div className="space-y-2.5">
+					<div className="space-y-2.5">
 						<div className="grid grid-cols-[1.8rem_minmax(0,1fr)] items-start gap-3">
 							<div className="grid gap-2 pt-0.5 text-right text-[11px] text-muted-foreground">
 								{safeData.map((row) => (

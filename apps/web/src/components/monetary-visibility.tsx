@@ -2,8 +2,11 @@
 
 import { Button } from "@vault/ui/components/button";
 import { cn } from "@vault/ui/lib/utils";
-import { EyeClosedIcon, EyeIcon } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
+import {
+	AnimatedSidebarEyeIcon,
+	AnimatedSidebarEyeOffIcon,
+} from "@/components/animated-sidebar-icons";
 import { AnimatedNumber } from "@/components/animated-number";
 
 const STORAGE_KEY = "vault-monetary-visibility";
@@ -182,9 +185,9 @@ export function MonetaryVisibilityToggle() {
 			variant="ghost"
 		>
 			{isVisible ? (
-				<EyeIcon className="size-6" strokeWidth={1.9} />
+				<AnimatedSidebarEyeIcon className="size-6" size={24} />
 			) : (
-				<EyeClosedIcon className="size-6" strokeWidth={1.9} />
+				<AnimatedSidebarEyeOffIcon className="size-6" size={24} />
 			)}
 		</Button>
 	);

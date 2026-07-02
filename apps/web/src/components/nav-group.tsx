@@ -26,7 +26,7 @@ function triggerIconHover(
 	icon.dispatchEvent(new MouseEvent(type, { bubbles: true }));
 }
 
-function isItemActive(pathname: string, item: SidebarNavItem) {
+function isItemActive(pathname: string, item: SidebarNavItem): boolean {
 	if (item.path) {
 		return (
 			pathname === item.path ||

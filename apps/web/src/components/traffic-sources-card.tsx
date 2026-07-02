@@ -79,8 +79,8 @@ export function TrafficSourcesCard({
 	const maxValue = Math.max(...data.map((item) => item.value), 1);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[27rem] ring-0">
-			<CardHeader className="gap-6">
+		<Card className="financial-panel-border h-full min-h-[22rem] ring-0">
+			<CardHeader className="gap-5">
 				<div className="flex items-start justify-between gap-4">
 					<CardDescription className="flex items-center gap-2 text-base">
 						<Clock3Icon className="size-3.5 text-muted-foreground" />
@@ -96,7 +96,7 @@ export function TrafficSourcesCard({
 			</CardHeader>
 
 			<CardContent className="flex h-full flex-col">
-				<div className="flex h-full flex-col gap-7">
+				<div className="flex h-full flex-col gap-5">
 					{data.map((item, index) => {
 						const filledSegments = Math.max(
 							2,

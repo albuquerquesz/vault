@@ -30,8 +30,8 @@ export function FinancialDashboard() {
           --tw-ring-shadow: 0 0 #0000 !important;
           --tw-ring-offset-shadow: 0 0 #0000 !important;
           --tw-shadow: 0 0 #0000 !important;
-          padding-top: 2rem !important;
-          padding-bottom: 2rem !important;
+          padding-top: 1.5rem !important;
+          padding-bottom: 1.5rem !important;
         }
         .financial-panel-border.top-overview-card[data-slot="card"] {
           padding-top: 1rem !important;
@@ -55,7 +55,7 @@ export function FinancialDashboard() {
         .financial-panel-border [data-slot="card-header"] {
           padding-left: 2rem !important;
           padding-right: 2rem !important;
-          padding-bottom: 1rem !important;
+          padding-bottom: 0.75rem !important;
         }
         .financial-panel-border [data-slot="card-content"] {
           padding-left: 2rem !important;
