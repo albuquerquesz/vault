@@ -25,7 +25,11 @@ const mainFlowYTicks = [
   { value: 20, label: "20k" },
 ] as const;
 
-function buildSequentialDateLabels(count: number, startDate: string, stepDays = 1) {
+function buildSequentialDateLabels(
+  count: number,
+  startDate: string,
+  stepDays = 1,
+) {
   const formatter = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "short",
@@ -124,7 +128,7 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     isMonetary: true,
   },
   {
-    title: "Lançamentos",
+    title: "Entradas do mês",
     value: 1_842,
     description: "4.1% vs últimos 30 dias",
     change: 4.1,
@@ -217,7 +221,10 @@ const topMainFlowData: Record<
       { essenciais: 5, naoEssenciais: 5 },
       { essenciais: 6, naoEssenciais: 6 },
     ],
-    xLabels: buildIndexedDateLabels("2026-03-22", [0, 4, 8, 12, 16, 20, 24, 29]),
+    xLabels: buildIndexedDateLabels(
+      "2026-03-22",
+      [0, 4, 8, 12, 16, 20, 24, 29],
+    ),
     yTicks: mainFlowYTicks,
   },
   "3M": {
