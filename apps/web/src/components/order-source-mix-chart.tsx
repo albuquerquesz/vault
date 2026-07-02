@@ -11,6 +11,7 @@ import { type ChartConfig, ChartContainer } from "@vault/ui/components/chart";
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import { useMemo } from "react";
 import { Cell, Pie, PieChart } from "recharts";
+import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 
 type MonthOverMonthTrend = "up" | "down" | "neutral";
@@ -29,6 +30,8 @@ type OrderSourceMixChartProps = {
 	periodLabel?: string;
 	deltaPct?: number;
 	loading?: boolean;
+	title?: string;
+	detailHref?: string;
 };
 
 const defaultData: OrderSourceDatum[] = [
@@ -105,9 +108,11 @@ export function OrderSourceMixChart({
 	data = defaultData,
 	totalOrders,
 	totalNetWorth,
+	title = "Distribuição dos gastos",
 	periodLabel = "últimos 30 dias",
 	deltaPct = 0.5,
 	loading = false,
+	detailHref,
 }: OrderSourceMixChartProps) {
 	if (loading) {
 		return <HomeCardSkeleton variant="mix" />;
@@ -121,22 +126,34 @@ export function OrderSourceMixChart({
 
 	return (
 		<Card className="financial-panel-border h-full min-h-[32rem] ring-0 md:col-span-2">
-			<CardHeader className="flex flex-row items-start justify-between gap-4">
-				<div className="space-y-1">
-					<CardTitle className="text-4xl">
-						{resolvedTotalOrders.toLocaleString()}
-					</CardTitle>
-					<CardDescription className="text-lg">
-						Total de despesas em {periodLabel}
-					</CardDescription>
+			<CardHeader className="gap-5">
+				<div className="flex items-start justify-between gap-4">
+					<CardDescription className="text-base">{title}</CardDescription>
+					{detailHref ? (
+						<DashboardCardLinkButton
+							label={`Abrir ${title}`}
+							to={detailHref}
+						/>
+					) : null}
 				</div>
-				<div className="space-y-1 text-right">
-					<CardTitle className="text-3xl">
-						{formatSignedPercent(deltaPct)}
-					</CardTitle>
-					<CardDescription className="text-lg">
-						vs 30 dias anteriores
-					</CardDescription>
+
+				<div className="flex flex-row items-start justify-between gap-4">
+					<div className="space-y-1">
+						<CardTitle className="text-4xl">
+							{resolvedTotalOrders.toLocaleString()}
+						</CardTitle>
+						<CardDescription className="text-lg">
+							Total de despesas em {periodLabel}
+						</CardDescription>
+					</div>
+					<div className="space-y-1 text-right">
+						<CardTitle className="text-3xl">
+							{formatSignedPercent(deltaPct)}
+						</CardTitle>
+						<CardDescription className="text-lg">
+							vs 30 dias anteriores
+						</CardDescription>
+					</div>
 				</div>
 			</CardHeader>
 			<CardContent>

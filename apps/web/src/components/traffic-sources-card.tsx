@@ -8,6 +8,7 @@ import {
 } from "@vault/ui/components/card";
 import { Clock3Icon } from "lucide-react";
 import { cn } from "@vault/ui/lib/utils";
+import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 
 type TrafficSourceDatum = {
 	label: string;
@@ -18,6 +19,7 @@ type TrafficSourcesCardProps = {
 	title?: string;
 	periodLabel?: string;
 	data?: readonly TrafficSourceDatum[];
+	detailHref?: string;
 };
 
 const DEFAULT_DATA = [
@@ -73,6 +75,7 @@ export function TrafficSourcesCard({
 	title = "Traffic sources",
 	periodLabel = "12 months",
 	data = DEFAULT_DATA,
+	detailHref,
 }: TrafficSourcesCardProps) {
 	const maxValue = Math.max(...data.map((item) => item.value), 1);
 
@@ -84,7 +87,15 @@ export function TrafficSourcesCard({
 						<Clock3Icon className="size-3.5 text-muted-foreground" />
 						<span>{title}</span>
 					</CardDescription>
-					<span className="text-sm text-muted-foreground">{periodLabel}</span>
+					<div className="flex items-center gap-3">
+						<span className="text-sm text-muted-foreground">{periodLabel}</span>
+						{detailHref ? (
+							<DashboardCardLinkButton
+								label={`Abrir ${title}`}
+								to={detailHref}
+							/>
+						) : null}
+					</div>
 				</div>
 			</CardHeader>
 

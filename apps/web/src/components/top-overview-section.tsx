@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
+import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 import {
   MaskedMonetaryText,
   MaskedMonetaryValue,
@@ -26,6 +27,7 @@ type SummaryCard = {
   format: (value: number) => string;
   bars: readonly number[];
   isMonetary?: boolean;
+  detailHref?: string;
 };
 
 export type TopOverviewSummaryCard = SummaryCard;
@@ -458,6 +460,7 @@ function SummaryCard({
   format,
   bars,
   isMonetary = false,
+  detailHref,
 }: SummaryCard) {
   return (
     <Card className="financial-panel-border !pt-0 !pb-0 gap-0 p-0 ring-0">
@@ -467,6 +470,13 @@ function SummaryCard({
             <span className="opacity-80">{icon}</span>
             <span>{title}</span>
           </div>
+          {detailHref ? (
+            <DashboardCardLinkButton
+              className="size-7 text-muted-foreground/80"
+              label={`Abrir ${title}`}
+              to={detailHref}
+            />
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="flex items-end justify-between gap-4 px-4 py-4">

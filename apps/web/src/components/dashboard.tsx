@@ -14,6 +14,7 @@ import {
   type TopOverviewSummaryCard,
   TopOverviewSection,
 } from "@/components/top-overview-section";
+import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
 import { TrafficSourcesCard } from "@/components/traffic-sources-card";
 
 const mainFlowYTicks = [
@@ -121,6 +122,7 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     format: formatCompactCurrency,
     bars: [5, 8, 11, 14, 10, 12, 9],
     isMonetary: true,
+    detailHref: dashboardDetailDefinitions.monthlyOutflow.path,
   },
   {
     title: "Lançamentos",
@@ -130,6 +132,7 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     icon: <ReceiptTextIcon className="size-3.5" />,
     format: (value) => new Intl.NumberFormat("pt-BR").format(value),
     bars: [7, 10, 13, 11, 12, 14, 10],
+    detailHref: dashboardDetailDefinitions.entries.path,
   },
   {
     title: "Ticket médio",
@@ -143,9 +146,10 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
         currency: "BRL",
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(value),
+    }).format(value),
     bars: [11, 12, 10, 9, 13, 8, 6],
     isMonetary: true,
+    detailHref: dashboardDetailDefinitions.averageTicket.path,
   },
   {
     title: "Taxa de economia",
@@ -155,6 +159,7 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     icon: <ScaleIcon className="size-3.5" />,
     format: (value) => `${value.toFixed(2)}%`,
     bars: [6, 7, 9, 8, 10, 11, 9],
+    detailHref: dashboardDetailDefinitions.savingsRate.path,
   },
 ];
 
@@ -308,20 +313,36 @@ export function Dashboard() {
         title="Bem-vindo de volta, Victor! 👋"
         summaryCards={topSummaryCards}
         mainFlowData={topMainFlowData}
-        rightContent={<MonthlyBillsCard className="min-h-0" />}
-        extraRightContent={<OrderSourceMixChart totalNetWorth={1842} />}
+        rightContent={
+          <MonthlyBillsCard
+            className="min-h-0"
+            detailHref={dashboardDetailDefinitions.monthlyBills.path}
+          />
+        }
+        extraRightContent={
+          <OrderSourceMixChart
+            detailHref={dashboardDetailDefinitions.expenseDistribution.path}
+            totalNetWorth={1842}
+          />
+        }
         initialRange="1M"
         showMainFlow={false}
       />
       <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
         <div className="h-full">
-          <TrafficSourcesCard />
+          <TrafficSourcesCard
+            detailHref={dashboardDetailDefinitions.trafficSources.path}
+          />
         </div>
         <div className="h-full">
-          <SalesByHourHeatmap />
+          <SalesByHourHeatmap
+            detailHref={dashboardDetailDefinitions.dailyExpenses.path}
+          />
         </div>
         <div className="h-full">
-          <InvestmentsCard />
+          <InvestmentsCard
+            detailHref={dashboardDetailDefinitions.investments.path}
+          />
         </div>
       </div>
     </div>

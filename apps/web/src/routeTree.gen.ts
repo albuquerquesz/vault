@@ -13,6 +13,15 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FinanceStabilityRouteImport } from './routes/finance.stability'
 import { Route as FinanceExpensesRouteImport } from './routes/finance.expenses'
+import { Route as DashboardTrafficSourcesRouteImport } from './routes/dashboard.traffic-sources'
+import { Route as DashboardSavingsRateRouteImport } from './routes/dashboard.savings-rate'
+import { Route as DashboardMonthlyOutflowRouteImport } from './routes/dashboard.monthly-outflow'
+import { Route as DashboardMonthlyBillsRouteImport } from './routes/dashboard.monthly-bills'
+import { Route as DashboardInvestmentsRouteImport } from './routes/dashboard.investments'
+import { Route as DashboardExpenseDistributionRouteImport } from './routes/dashboard.expense-distribution'
+import { Route as DashboardEntriesRouteImport } from './routes/dashboard.entries'
+import { Route as DashboardDailyExpensesRouteImport } from './routes/dashboard.daily-expenses'
+import { Route as DashboardAverageTicketRouteImport } from './routes/dashboard.average-ticket'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -34,16 +43,80 @@ const FinanceExpensesRoute = FinanceExpensesRouteImport.update({
   path: '/finance/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardTrafficSourcesRoute = DashboardTrafficSourcesRouteImport.update({
+  id: '/dashboard/traffic-sources',
+  path: '/dashboard/traffic-sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardSavingsRateRoute = DashboardSavingsRateRouteImport.update({
+  id: '/dashboard/savings-rate',
+  path: '/dashboard/savings-rate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardMonthlyOutflowRoute = DashboardMonthlyOutflowRouteImport.update({
+  id: '/dashboard/monthly-outflow',
+  path: '/dashboard/monthly-outflow',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardMonthlyBillsRoute = DashboardMonthlyBillsRouteImport.update({
+  id: '/dashboard/monthly-bills',
+  path: '/dashboard/monthly-bills',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardInvestmentsRoute = DashboardInvestmentsRouteImport.update({
+  id: '/dashboard/investments',
+  path: '/dashboard/investments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardExpenseDistributionRoute =
+  DashboardExpenseDistributionRouteImport.update({
+    id: '/dashboard/expense-distribution',
+    path: '/dashboard/expense-distribution',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DashboardEntriesRoute = DashboardEntriesRouteImport.update({
+  id: '/dashboard/entries',
+  path: '/dashboard/entries',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardDailyExpensesRoute = DashboardDailyExpensesRouteImport.update({
+  id: '/dashboard/daily-expenses',
+  path: '/dashboard/daily-expenses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAverageTicketRoute = DashboardAverageTicketRouteImport.update({
+  id: '/dashboard/average-ticket',
+  path: '/dashboard/average-ticket',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/dashboard/average-ticket': typeof DashboardAverageTicketRoute
+  '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/dashboard/entries': typeof DashboardEntriesRoute
+  '/dashboard/expense-distribution': typeof DashboardExpenseDistributionRoute
+  '/dashboard/investments': typeof DashboardInvestmentsRoute
+  '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
+  '/dashboard/monthly-outflow': typeof DashboardMonthlyOutflowRoute
+  '/dashboard/savings-rate': typeof DashboardSavingsRateRoute
+  '/dashboard/traffic-sources': typeof DashboardTrafficSourcesRoute
   '/finance/expenses': typeof FinanceExpensesRoute
   '/finance/stability': typeof FinanceStabilityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/dashboard/average-ticket': typeof DashboardAverageTicketRoute
+  '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/dashboard/entries': typeof DashboardEntriesRoute
+  '/dashboard/expense-distribution': typeof DashboardExpenseDistributionRoute
+  '/dashboard/investments': typeof DashboardInvestmentsRoute
+  '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
+  '/dashboard/monthly-outflow': typeof DashboardMonthlyOutflowRoute
+  '/dashboard/savings-rate': typeof DashboardSavingsRateRoute
+  '/dashboard/traffic-sources': typeof DashboardTrafficSourcesRoute
   '/finance/expenses': typeof FinanceExpensesRoute
   '/finance/stability': typeof FinanceStabilityRoute
 }
@@ -51,20 +124,78 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/dashboard/average-ticket': typeof DashboardAverageTicketRoute
+  '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/dashboard/entries': typeof DashboardEntriesRoute
+  '/dashboard/expense-distribution': typeof DashboardExpenseDistributionRoute
+  '/dashboard/investments': typeof DashboardInvestmentsRoute
+  '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
+  '/dashboard/monthly-outflow': typeof DashboardMonthlyOutflowRoute
+  '/dashboard/savings-rate': typeof DashboardSavingsRateRoute
+  '/dashboard/traffic-sources': typeof DashboardTrafficSourcesRoute
   '/finance/expenses': typeof FinanceExpensesRoute
   '/finance/stability': typeof FinanceStabilityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/finance/expenses' | '/finance/stability'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/dashboard/average-ticket'
+    | '/dashboard/daily-expenses'
+    | '/dashboard/entries'
+    | '/dashboard/expense-distribution'
+    | '/dashboard/investments'
+    | '/dashboard/monthly-bills'
+    | '/dashboard/monthly-outflow'
+    | '/dashboard/savings-rate'
+    | '/dashboard/traffic-sources'
+    | '/finance/expenses'
+    | '/finance/stability'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/finance/expenses' | '/finance/stability'
-  id: '__root__' | '/' | '/login' | '/finance/expenses' | '/finance/stability'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard/average-ticket'
+    | '/dashboard/daily-expenses'
+    | '/dashboard/entries'
+    | '/dashboard/expense-distribution'
+    | '/dashboard/investments'
+    | '/dashboard/monthly-bills'
+    | '/dashboard/monthly-outflow'
+    | '/dashboard/savings-rate'
+    | '/dashboard/traffic-sources'
+    | '/finance/expenses'
+    | '/finance/stability'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/dashboard/average-ticket'
+    | '/dashboard/daily-expenses'
+    | '/dashboard/entries'
+    | '/dashboard/expense-distribution'
+    | '/dashboard/investments'
+    | '/dashboard/monthly-bills'
+    | '/dashboard/monthly-outflow'
+    | '/dashboard/savings-rate'
+    | '/dashboard/traffic-sources'
+    | '/finance/expenses'
+    | '/finance/stability'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  DashboardAverageTicketRoute: typeof DashboardAverageTicketRoute
+  DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
+  DashboardEntriesRoute: typeof DashboardEntriesRoute
+  DashboardExpenseDistributionRoute: typeof DashboardExpenseDistributionRoute
+  DashboardInvestmentsRoute: typeof DashboardInvestmentsRoute
+  DashboardMonthlyBillsRoute: typeof DashboardMonthlyBillsRoute
+  DashboardMonthlyOutflowRoute: typeof DashboardMonthlyOutflowRoute
+  DashboardSavingsRateRoute: typeof DashboardSavingsRateRoute
+  DashboardTrafficSourcesRoute: typeof DashboardTrafficSourcesRoute
   FinanceExpensesRoute: typeof FinanceExpensesRoute
   FinanceStabilityRoute: typeof FinanceStabilityRoute
 }
@@ -99,12 +230,84 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/traffic-sources': {
+      id: '/dashboard/traffic-sources'
+      path: '/dashboard/traffic-sources'
+      fullPath: '/dashboard/traffic-sources'
+      preLoaderRoute: typeof DashboardTrafficSourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/savings-rate': {
+      id: '/dashboard/savings-rate'
+      path: '/dashboard/savings-rate'
+      fullPath: '/dashboard/savings-rate'
+      preLoaderRoute: typeof DashboardSavingsRateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/monthly-outflow': {
+      id: '/dashboard/monthly-outflow'
+      path: '/dashboard/monthly-outflow'
+      fullPath: '/dashboard/monthly-outflow'
+      preLoaderRoute: typeof DashboardMonthlyOutflowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/monthly-bills': {
+      id: '/dashboard/monthly-bills'
+      path: '/dashboard/monthly-bills'
+      fullPath: '/dashboard/monthly-bills'
+      preLoaderRoute: typeof DashboardMonthlyBillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/investments': {
+      id: '/dashboard/investments'
+      path: '/dashboard/investments'
+      fullPath: '/dashboard/investments'
+      preLoaderRoute: typeof DashboardInvestmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/expense-distribution': {
+      id: '/dashboard/expense-distribution'
+      path: '/dashboard/expense-distribution'
+      fullPath: '/dashboard/expense-distribution'
+      preLoaderRoute: typeof DashboardExpenseDistributionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/entries': {
+      id: '/dashboard/entries'
+      path: '/dashboard/entries'
+      fullPath: '/dashboard/entries'
+      preLoaderRoute: typeof DashboardEntriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/daily-expenses': {
+      id: '/dashboard/daily-expenses'
+      path: '/dashboard/daily-expenses'
+      fullPath: '/dashboard/daily-expenses'
+      preLoaderRoute: typeof DashboardDailyExpensesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/average-ticket': {
+      id: '/dashboard/average-ticket'
+      path: '/dashboard/average-ticket'
+      fullPath: '/dashboard/average-ticket'
+      preLoaderRoute: typeof DashboardAverageTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  DashboardAverageTicketRoute: DashboardAverageTicketRoute,
+  DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,
+  DashboardEntriesRoute: DashboardEntriesRoute,
+  DashboardExpenseDistributionRoute: DashboardExpenseDistributionRoute,
+  DashboardInvestmentsRoute: DashboardInvestmentsRoute,
+  DashboardMonthlyBillsRoute: DashboardMonthlyBillsRoute,
+  DashboardMonthlyOutflowRoute: DashboardMonthlyOutflowRoute,
+  DashboardSavingsRateRoute: DashboardSavingsRateRoute,
+  DashboardTrafficSourcesRoute: DashboardTrafficSourcesRoute,
   FinanceExpensesRoute: FinanceExpensesRoute,
   FinanceStabilityRoute: FinanceStabilityRoute,
 }

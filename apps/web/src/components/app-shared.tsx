@@ -2,7 +2,16 @@ import { ActivityIcon } from "@vault/ui/components/activity";
 import { CircleHelpIcon } from "@vault/ui/components/circle-help";
 import { LayoutGridIcon } from "@vault/ui/components/layout-grid";
 import { WalletIcon } from "@vault/ui/components/wallet";
+import {
+	CreditCardIcon,
+	GlobeIcon,
+	PieChartIcon,
+	ReceiptTextIcon,
+	ScaleIcon,
+	TrendingUpIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
+import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
 
 export type SidebarNavItem = {
 	title: string;
@@ -24,24 +33,70 @@ export const navGroups: SidebarNavGroup[] = [
 			{
 				title: "Visão Geral",
 				path: "/",
-				icon: <LayoutGridIcon size={16} />,
+				icon: <LayoutGridIcon size={18} />,
 				isActive: true,
 			},
 			{
 				title: "Despesas",
 				path: "/finance/expenses",
-				icon: <WalletIcon size={16} />,
+				icon: <WalletIcon size={18} />,
 			},
 			{
 				title: "Estabilidade",
 				path: "/finance/stability",
-				icon: <ActivityIcon size={16} />,
+				icon: <ActivityIcon size={18} />,
 			},
 		],
 	},
 	{
-		label: "Configurações",
-		items: [],
+		label: "Dashboard",
+		items: [
+			{
+				title: "Saídas do mês",
+				path: dashboardDetailDefinitions.monthlyOutflow.path,
+				icon: <WalletIcon size={18} />,
+			},
+			{
+				title: "Lançamentos",
+				path: dashboardDetailDefinitions.entries.path,
+				icon: <ReceiptTextIcon size={18} />,
+			},
+			{
+				title: "Ticket médio",
+				path: dashboardDetailDefinitions.averageTicket.path,
+				icon: <CreditCardIcon size={18} />,
+			},
+			{
+				title: "Taxa de economia",
+				path: dashboardDetailDefinitions.savingsRate.path,
+				icon: <ScaleIcon size={18} />,
+			},
+			{
+				title: "Faturas do mês",
+				path: dashboardDetailDefinitions.monthlyBills.path,
+				icon: <CreditCardIcon size={18} />,
+			},
+			{
+				title: "Distribuição dos gastos",
+				path: dashboardDetailDefinitions.expenseDistribution.path,
+				icon: <PieChartIcon size={18} />,
+			},
+			{
+				title: "Traffic sources",
+				path: dashboardDetailDefinitions.trafficSources.path,
+				icon: <GlobeIcon size={18} />,
+			},
+			{
+				title: "Despesas diárias",
+				path: dashboardDetailDefinitions.dailyExpenses.path,
+				icon: <ActivityIcon size={18} />,
+			},
+			{
+				title: "Investimentos",
+				path: dashboardDetailDefinitions.investments.path,
+				icon: <TrendingUpIcon size={18} />,
+			},
+		],
 	},
 ];
 
@@ -49,12 +104,12 @@ export const footerNavLinks: SidebarNavItem[] = [
 	{
 		title: "Ajuda do vendedor",
 		path: "#/seller-help",
-		icon: <CircleHelpIcon size={16} />,
+		icon: <CircleHelpIcon size={18} />,
 	},
 	{
 		title: "Status da plataforma",
 		path: "#/status",
-		icon: <ActivityIcon size={16} />,
+		icon: <ActivityIcon size={18} />,
 	},
 ];
 

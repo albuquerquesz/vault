@@ -10,6 +10,7 @@ import {
 import { cn } from "@vault/ui/lib/utils";
 import { Clock3Icon } from "lucide-react";
 import { useMemo } from "react";
+import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 
@@ -25,6 +26,7 @@ type SalesByHourHeatmapProps = {
 	locale?: string;
 	data?: readonly SalesByHourDatum[];
 	loading?: boolean;
+	detailHref?: string;
 };
 
 const HOUR_LABELS = ["0h", "6h", "12h", "18h", "24h"] as const;
@@ -124,6 +126,7 @@ export function SalesByHourHeatmap({
 	locale = "pt-BR",
 	data = DEFAULT_DATA,
 	loading = false,
+	detailHref,
 }: SalesByHourHeatmapProps) {
 	if (loading) {
 		return <HomeCardSkeleton variant="heatmap" />;
@@ -169,6 +172,12 @@ export function SalesByHourHeatmap({
 							{title}
 						</CardDescription>
 					</div>
+					{detailHref ? (
+						<DashboardCardLinkButton
+							label={`Abrir ${title}`}
+							to={detailHref}
+						/>
+					) : null}
 				</div>
 
 				<div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">

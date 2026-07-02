@@ -8,6 +8,7 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
+import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import {
 	MaskedMonetaryText,
@@ -24,6 +25,7 @@ type MonthlyBillsCardProps = {
 	planName?: string;
 	loading?: boolean;
 	className?: string;
+	detailHref?: string;
 };
 
 function formatCurrency(value: number, locale = "pt-BR", currency = "BRL") {
@@ -45,6 +47,7 @@ export function MonthlyBillsCard({
 	planName = "gold",
 	loading = false,
 	className,
+	detailHref,
 }: MonthlyBillsCardProps) {
 	if (loading) {
 		return <HomeCardSkeleton variant="bills" />;
@@ -61,11 +64,23 @@ export function MonthlyBillsCard({
 		>
 			<CardHeader className="gap-4">
 				<div className="space-y-4">
-					<CardDescription className="text-base">{title}</CardDescription>
+					<div className="flex items-start justify-between gap-3">
+						<CardDescription className="text-base">{title}</CardDescription>
+						{detailHref ? (
+							<DashboardCardLinkButton
+								label={`Abrir ${title}`}
+								to={detailHref}
+							/>
+						) : null}
+					</div>
 
 					<div className="space-y-2">
 						<CardTitle className="text-5xl">
-							<MaskedMonetaryValue animated format={formatCurrency} value={total} />
+							<MaskedMonetaryValue
+								animated
+								format={formatCurrency}
+								value={total}
+							/>
 						</CardTitle>
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-base text-muted-foreground">
 							<span>
@@ -97,7 +112,11 @@ export function MonthlyBillsCard({
 
 					<div className="flex items-center gap-3">
 						<div className="text-right font-['Space_Grotesk'] text-xl font-medium tracking-tight text-foreground">
-							<MaskedMonetaryValue animated format={formatCurrency} value={total} />{" "}
+							<MaskedMonetaryValue
+								animated
+								format={formatCurrency}
+								value={total}
+							/>{" "}
 							<span className="text-muted-foreground">
 								/ <MaskedMonetaryText>{formatCurrency(limit)}</MaskedMonetaryText>
 							</span>

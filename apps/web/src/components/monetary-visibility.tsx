@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@vault/ui/components/button";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { cn } from "@vault/ui/lib/utils";
+import { EyeClosedIcon, EyeIcon } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 
@@ -70,23 +71,56 @@ export function maskMonetaryText(
 	value: string,
 	isVisible: boolean,
 	mask = MASKED_VALUE,
+	prefix = "R$",
 ) {
-	return isVisible ? value : mask;
+	return isVisible ? value : `${prefix} ${mask}`;
+}
+
+export function MonetaryMask({
+	className,
+	prefix = "R$",
+}: {
+	className?: string;
+	prefix?: React.ReactNode;
+}) {
+	return (
+		<span
+			className={cn(
+				"inline-flex items-center gap-1.5 align-middle leading-none",
+				className,
+			)}
+		>
+			{prefix ? (
+				<span className="shrink-0 font-inherit leading-none text-current">
+					{prefix}
+				</span>
+			) : null}
+			<span className="inline-flex translate-y-px items-center gap-1">
+				<span className="size-[0.34em] rounded-full bg-current" />
+				<span className="size-[0.34em] rounded-full bg-current" />
+				<span className="size-[0.34em] rounded-full bg-current" />
+			</span>
+		</span>
+	);
 }
 
 export function MaskedMonetaryText({
 	children,
 	className,
 	mask = MASKED_VALUE,
+	prefix = "R$",
 }: {
 	children: React.ReactNode;
 	className?: string;
 	mask?: string;
+	prefix?: React.ReactNode;
 }) {
 	const { isVisible } = useMonetaryVisibility();
 
 	return (
-		<span className={className}>{isVisible ? children : mask}</span>
+		<span className={className}>
+			{isVisible ? children : <MonetaryMask prefix={prefix ?? mask} />}
+		</span>
 	);
 }
 
@@ -98,6 +132,7 @@ export function MaskedMonetaryValue({
 	duration = 0.9,
 	className,
 	mask = MASKED_VALUE,
+	prefix = "R$",
 }: {
 	value: number;
 	format: (value: number) => string;
@@ -106,11 +141,16 @@ export function MaskedMonetaryValue({
 	duration?: number;
 	className?: string;
 	mask?: string;
+	prefix?: React.ReactNode;
 }) {
 	const { isVisible } = useMonetaryVisibility();
 
 	if (!isVisible) {
-		return <span className={className}>{mask}</span>;
+		return (
+			<span className={className}>
+				<MonetaryMask prefix={prefix ?? mask} />
+			</span>
+		);
 	}
 
 	if (animated) {
@@ -141,7 +181,11 @@ export function MonetaryVisibilityToggle() {
 			type="button"
 			variant="ghost"
 		>
-			{isVisible ? <EyeIcon className="size-5.5" /> : <EyeOffIcon className="size-5.5" />}
+			{isVisible ? (
+				<EyeIcon className="size-6" strokeWidth={1.9} />
+			) : (
+				<EyeClosedIcon className="size-6" strokeWidth={1.9} />
+			)}
 		</Button>
 	);
 }
