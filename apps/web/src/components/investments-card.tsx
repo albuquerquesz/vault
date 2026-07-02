@@ -128,7 +128,7 @@ function InvestmentsSegmentedChart({
 
 	return (
 		<div className="mt-2">
-			<div className="relative h-[11.5rem]">
+			<div className="relative h-[15rem]">
 				<div className="pointer-events-none absolute inset-y-2 left-0 w-12">
 					{yTicks.map((tick) => {
 						const bottom = chartMax <= 0 ? 0 : (tick / chartMax) * 100;
@@ -249,9 +249,8 @@ export function InvestmentsCard({
 			</CardHeader>
 
 			<CardContent className="flex h-full flex-col">
-				<div className="mb-3 grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+				<div className="mb-3 text-sm text-muted-foreground">
 					<span className="text-left">Total investido hoje</span>
-					<span className="text-right">Rendimento consolidado</span>
 				</div>
 				<InvestmentsSegmentedChart data={data} isVisible={isVisible} />
 			</CardContent>

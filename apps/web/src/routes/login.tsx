@@ -52,7 +52,7 @@ function RouteComponent() {
 						</figure>
 					</section>
 
-					<section className="flex items-center justify-center bg-white px-6 py-12 text-black lg:col-span-2 lg:px-8">
+					<section className="flex items-center justify-center px-6 py-12 lg:col-span-2 lg:px-8">
 						<div className="w-full max-w-sm space-y-6">
 							<div className="space-y-3 text-center">
 								<h2
@@ -61,7 +61,7 @@ function RouteComponent() {
 								>
 									Entrar ou Criar Conta
 								</h2>
-								<p className="text-xs font-normal text-black/60">
+								<p className="text-xs font-normal text-muted-foreground">
 									Entre ou crie sua conta Vault para começar.
 								</p>
 							</div>
@@ -70,7 +70,7 @@ function RouteComponent() {
 								<Button
 									type="button"
 									variant="outline"
-									className="h-12 w-full justify-center gap-3 !rounded-lg border-black/12 bg-white text-black hover:bg-black/[0.03]"
+									className="h-12 w-full justify-center gap-3 !rounded-lg text-base"
 								>
 									<svg
 										viewBox="0 0 24 24"
