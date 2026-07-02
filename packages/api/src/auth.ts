@@ -1,5 +1,4 @@
 import { betterAuth } from "better-auth";
-import { google } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createDb } from "./db";
 import { env } from "./db/env";
