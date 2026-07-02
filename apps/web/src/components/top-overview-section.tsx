@@ -873,7 +873,7 @@ export function TopOverviewSection({
         {title}
       </h2>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4 mt-2">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4 mt-6">
         {cards.map((card, index) => (
           <SummaryCard
             key={card.title}
