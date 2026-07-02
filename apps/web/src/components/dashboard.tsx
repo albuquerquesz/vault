@@ -133,20 +133,13 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     bars: [7, 10, 13, 11, 12, 14, 10],
   },
   {
-    title: "Ticket médio",
-    value: 154.6,
-    description: "1.3% vs últimos 30 dias",
-    change: -1.3,
+    title: "% do salário gasto",
+    value: 68.4,
+    description: "2.1% vs últimos 30 dias",
+    change: -2.1,
     icon: <CreditCardIcon className="size-3.5" />,
-    format: (value) =>
-      new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(value),
+    format: (value) => `${value.toFixed(1)}%`,
     bars: [11, 12, 10, 9, 13, 8, 6],
-    isMonetary: true,
   },
   {
     title: "Taxa de economia",
