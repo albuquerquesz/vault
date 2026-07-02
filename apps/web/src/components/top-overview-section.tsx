@@ -867,7 +867,7 @@ export function TopOverviewSection({
 
   return (
     <section className="space-y-4">
-      <div className="space-y-2">
+      <div className="space-y-2 mb-2">
         <h2 className="text-4xl font-semibold tracking-tight text-foreground">
           {title}
         </h2>
