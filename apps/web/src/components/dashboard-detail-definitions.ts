@@ -1,8 +1,4 @@
 export type DashboardDetailKey =
-	| "monthlyOutflow"
-	| "entries"
-	| "averageTicket"
-	| "savingsRate"
 	| "monthlyBills"
 	| "expenseDistribution"
 	| "trafficSources"
@@ -19,42 +15,6 @@ export type DashboardDetailDefinition = {
 };
 
 export const dashboardDetailDefinitions = {
-	monthlyOutflow: {
-		key: "monthlyOutflow",
-		path: "/dashboard/monthly-outflow",
-		title: "Saídas do mês",
-		description: "Acompanhe a leitura consolidada das saídas registradas no período atual.",
-		scaffoldTitle: "Análise mensal de saídas",
-		scaffoldDescription:
-			"Esta aba vai concentrar o detalhamento das saídas do mês, tendências recentes e recortes por período.",
-	},
-	entries: {
-		key: "entries",
-		path: "/dashboard/entries",
-		title: "Lançamentos",
-		description: "Veja o volume de lançamentos e a evolução da atividade financeira recente.",
-		scaffoldTitle: "Detalhamento de lançamentos",
-		scaffoldDescription:
-			"Esta aba vai expandir os lançamentos com cortes por período, origem e variações de atividade.",
-	},
-	averageTicket: {
-		key: "averageTicket",
-		path: "/dashboard/average-ticket",
-		title: "Ticket médio",
-		description: "Analise a média financeira por lançamento e sua variação ao longo do tempo.",
-		scaffoldTitle: "Visão detalhada do ticket médio",
-		scaffoldDescription:
-			"Esta aba vai aprofundar o ticket médio com comparativos, recortes temporais e distribuição de valores.",
-	},
-	savingsRate: {
-		key: "savingsRate",
-		path: "/dashboard/savings-rate",
-		title: "Taxa de economia",
-		description: "Entenda o ritmo de economia atual e como ele se compara aos ciclos anteriores.",
-		scaffoldTitle: "Leitura da taxa de economia",
-		scaffoldDescription:
-			"Esta aba vai reunir a taxa de economia com histórico, metas e indicadores de estabilidade financeira.",
-	},
 	monthlyBills: {
 		key: "monthlyBills",
 		path: "/dashboard/monthly-bills",
@@ -103,10 +63,6 @@ export const dashboardDetailDefinitions = {
 } satisfies Record<DashboardDetailKey, DashboardDetailDefinition>;
 
 export const dashboardDetailList = [
-	dashboardDetailDefinitions.monthlyOutflow,
-	dashboardDetailDefinitions.entries,
-	dashboardDetailDefinitions.averageTicket,
-	dashboardDetailDefinitions.savingsRate,
 	dashboardDetailDefinitions.monthlyBills,
 	dashboardDetailDefinitions.expenseDistribution,
 	dashboardDetailDefinitions.trafficSources,

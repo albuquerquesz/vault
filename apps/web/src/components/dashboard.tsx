@@ -122,7 +122,6 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     format: formatCompactCurrency,
     bars: [5, 8, 11, 14, 10, 12, 9],
     isMonetary: true,
-    detailHref: dashboardDetailDefinitions.monthlyOutflow.path,
   },
   {
     title: "Lançamentos",
@@ -132,7 +131,6 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     icon: <ReceiptTextIcon className="size-3.5" />,
     format: (value) => new Intl.NumberFormat("pt-BR").format(value),
     bars: [7, 10, 13, 11, 12, 14, 10],
-    detailHref: dashboardDetailDefinitions.entries.path,
   },
   {
     title: "Ticket médio",
@@ -149,7 +147,6 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     }).format(value),
     bars: [11, 12, 10, 9, 13, 8, 6],
     isMonetary: true,
-    detailHref: dashboardDetailDefinitions.averageTicket.path,
   },
   {
     title: "Taxa de economia",
@@ -159,7 +156,6 @@ const topSummaryCards: TopOverviewSummaryCard[] = [
     icon: <ScaleIcon className="size-3.5" />,
     format: (value) => `${value.toFixed(2)}%`,
     bars: [6, 7, 9, 8, 10, 11, 9],
-    detailHref: dashboardDetailDefinitions.savingsRate.path,
   },
 ];
 

@@ -44,10 +44,8 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 
 	return (
 		<SidebarGroup className="py-0">
-			{label ? (
-				<SidebarGroupLabel className="sr-only">{label}</SidebarGroupLabel>
-			) : null}
-			<SidebarMenu className="space-y-1">
+			{label ? <SidebarGroupLabel className="sr-only">{label}</SidebarGroupLabel> : null}
+			<SidebarMenu className="space-y-2">
 				{items.map((item) => {
 					const itemIsActive = isItemActive(pathname, item);
 
@@ -61,11 +59,11 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 							{item.subItems?.length ? (
 								<>
 									<CollapsibleTrigger
-										render={
-											<SidebarMenuButton
-												className="font-['Space_Grotesk'] text-[1.28rem] font-medium tracking-tight"
-												isActive={itemIsActive}
-												size="lg"
+									render={
+										<SidebarMenuButton
+											className="font-['Space_Grotesk'] text-[1.12rem] font-medium tracking-tight"
+											isActive={itemIsActive}
+											size="lg"
 												tooltip={item.title}
 												onMouseEnter={(e) => triggerIconHover(e, "mouseover")}
 												onMouseLeave={(e) => triggerIconHover(e, "mouseout")}
@@ -73,10 +71,10 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 										}
 									>
 										{item.icon}
-										<span className="font-['Space_Grotesk'] text-[1.28rem] font-medium tracking-tight">
+										<span className="font-['Space_Grotesk'] text-[1.12rem] font-medium tracking-tight">
 											{item.title}
 										</span>
-										<ChevronRightIcon className="ml-auto size-5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+										<ChevronRightIcon className="ml-auto size-5.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 									</CollapsibleTrigger>
 									<CollapsibleContent>
 										<SidebarMenuSub>
@@ -89,7 +87,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 												return (
 													<SidebarMenuSubItem key={subItem.title}>
 														<SidebarMenuSubButton
-															className="font-['Space_Grotesk'] text-[1.12rem] font-medium tracking-tight"
+															className="font-['Space_Grotesk'] text-[1rem] font-medium tracking-tight"
 															isActive={subItemIsActive}
 															render={
 																subItem.path ? (
@@ -98,7 +96,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 															}
 														>
 															{subItem.icon}
-															<span className="font-['Space_Grotesk'] text-[1.12rem] font-medium tracking-tight">
+															<span className="font-['Space_Grotesk'] text-[1rem] font-medium tracking-tight">
 																{subItem.title}
 															</span>
 														</SidebarMenuSubButton>
@@ -110,7 +108,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 								</>
 							) : (
 								<SidebarMenuButton
-									className="font-['Space_Grotesk'] text-[1.28rem] font-medium tracking-tight"
+									className="font-['Space_Grotesk'] text-[1.12rem] font-medium tracking-tight"
 									isActive={itemIsActive}
 									size="lg"
 									tooltip={item.title}
@@ -119,7 +117,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 									render={item.path ? <Link to={item.path} /> : undefined}
 								>
 									{item.icon}
-									<span className="font-['Space_Grotesk'] text-[1.28rem] font-medium tracking-tight">
+									<span className="font-['Space_Grotesk'] text-[1.12rem] font-medium tracking-tight">
 										{item.title}
 									</span>
 								</SidebarMenuButton>

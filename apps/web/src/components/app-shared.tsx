@@ -28,88 +28,70 @@ export type SidebarNavGroup = {
 
 export const navGroups: SidebarNavGroup[] = [
 	{
-		label: "Finanças",
+		label: "Operação",
 		items: [
 			{
 				title: "Visão Geral",
 				path: "/",
-				icon: <LayoutGridIcon size={18} />,
+				icon: <LayoutGridIcon size={20} />,
 				isActive: true,
 			},
 			{
 				title: "Despesas",
 				path: "/finance/expenses",
-				icon: <WalletIcon size={18} />,
+				icon: <WalletIcon size={20} />,
 			},
 			{
 				title: "Estabilidade",
 				path: "/finance/stability",
-				icon: <ActivityIcon size={18} />,
+				icon: <ActivityIcon size={20} />,
 			},
 		],
 	},
 	{
-		label: "Dashboard",
+		label: "Análises",
 		items: [
-			{
-				title: "Saídas do mês",
-				path: dashboardDetailDefinitions.monthlyOutflow.path,
-				icon: <WalletIcon size={18} />,
-			},
-			{
-				title: "Lançamentos",
-				path: dashboardDetailDefinitions.entries.path,
-				icon: <ReceiptTextIcon size={18} />,
-			},
-			{
-				title: "Ticket médio",
-				path: dashboardDetailDefinitions.averageTicket.path,
-				icon: <CreditCardIcon size={18} />,
-			},
-			{
-				title: "Taxa de economia",
-				path: dashboardDetailDefinitions.savingsRate.path,
-				icon: <ScaleIcon size={18} />,
-			},
 			{
 				title: "Faturas do mês",
 				path: dashboardDetailDefinitions.monthlyBills.path,
-				icon: <CreditCardIcon size={18} />,
+				icon: <CreditCardIcon size={20} />,
 			},
 			{
 				title: "Distribuição dos gastos",
 				path: dashboardDetailDefinitions.expenseDistribution.path,
-				icon: <PieChartIcon size={18} />,
+				icon: <PieChartIcon size={20} />,
 			},
 			{
 				title: "Traffic sources",
 				path: dashboardDetailDefinitions.trafficSources.path,
-				icon: <GlobeIcon size={18} />,
+				icon: <GlobeIcon size={20} />,
 			},
 			{
 				title: "Despesas diárias",
 				path: dashboardDetailDefinitions.dailyExpenses.path,
-				icon: <ActivityIcon size={18} />,
+				icon: <ActivityIcon size={20} />,
 			},
 			{
 				title: "Investimentos",
 				path: dashboardDetailDefinitions.investments.path,
-				icon: <TrendingUpIcon size={18} />,
+				icon: <TrendingUpIcon size={20} />,
 			},
 		],
 	},
-];
-
-export const footerNavLinks: SidebarNavItem[] = [
 	{
-		title: "Ajuda do vendedor",
-		path: "#/seller-help",
-		icon: <CircleHelpIcon size={18} />,
-	},
-	{
-		title: "Status da plataforma",
-		path: "#/status",
-		icon: <ActivityIcon size={18} />,
+		label: "Suporte",
+		items: [
+			{
+				title: "Ajuda do vendedor",
+				path: "#/seller-help",
+				icon: <CircleHelpIcon size={20} />,
+			},
+			{
+				title: "Status da plataforma",
+				path: "#/status",
+				icon: <ActivityIcon size={20} />,
+			},
+		],
 	},
 ];
 
@@ -119,5 +101,4 @@ export const navLinks: SidebarNavItem[] = [
 			item.subItems?.length ? [item, ...item.subItems] : [item],
 		),
 	),
-	...footerNavLinks,
 ];
