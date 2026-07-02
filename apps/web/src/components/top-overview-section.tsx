@@ -101,7 +101,7 @@ const summaryCards: SummaryCard[] = [
     bars: [7, 10, 13, 11, 12, 14, 10],
   },
   {
-    title: "% do salário gasto",
+    title: "Porcentagem gasta",
     value: 68.4,
     description: "2.1% vs últimos 30 dias",
     change: -2.1,
