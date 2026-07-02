@@ -16,7 +16,7 @@ export function FinancialDashboard() {
           border: 1px solid var(--panel-border) !important;
           outline: 1px solid var(--panel-border) !important;
           outline-offset: -1px !important;
-          border-radius: 16px !important;
+          border-radius: 0 !important;
           box-shadow:
             inset 0 1px 0 color-mix(in oklab, var(--foreground) 6%, transparent),
             inset 1px 0 0 color-mix(in oklab, var(--foreground) 6%, transparent),
@@ -30,7 +30,6 @@ export function FinancialDashboard() {
           --tw-ring-shadow: 0 0 #0000 !important;
           --tw-ring-offset-shadow: 0 0 #0000 !important;
           --tw-shadow: 0 0 #0000 !important;
-          overflow: hidden !important;
           padding-top: 2rem !important;
           padding-bottom: 2rem !important;
         }
