@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { google } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createDb } from "./db";
 import { env } from "./db/env";
@@ -18,6 +19,12 @@ export function createAuth() {
 		},
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: env.BETTER_AUTH_URL,
+		socialProviders: {
+			google: {
+				clientId: env.GOOGLE_CLIENT_ID,
+				clientSecret: env.GOOGLE_CLIENT_SECRET,
+			},
+		},
 		advanced: {
 			defaultCookieAttributes: {
 				sameSite: "none",
