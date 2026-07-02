@@ -72,8 +72,7 @@ function SegmentedBar({
 }
 
 export function TrafficSourcesCard({
-	title = "Traffic sources",
-	periodLabel = "12 months",
+	title = "Canais de origem",
 	data = DEFAULT_DATA,
 	detailHref,
 }: TrafficSourcesCardProps) {
@@ -87,15 +86,12 @@ export function TrafficSourcesCard({
 						<Clock3Icon className="size-3.5 text-muted-foreground" />
 						<span>{title}</span>
 					</CardDescription>
-					<div className="flex items-center gap-3">
-						<span className="text-sm text-muted-foreground">{periodLabel}</span>
-						{detailHref ? (
-							<DashboardCardLinkButton
-								label={`Abrir ${title}`}
-								to={detailHref}
-							/>
-						) : null}
-					</div>
+					{detailHref ? (
+						<DashboardCardLinkButton
+							label={`Abrir ${title}`}
+							to={detailHref}
+						/>
+					) : null}
 				</div>
 			</CardHeader>
 

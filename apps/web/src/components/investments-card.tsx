@@ -207,7 +207,6 @@ function InvestmentsSegmentedChart({
 
 export function InvestmentsCard({
 	title = "Investimentos",
-	periodLabel = "últimos 6 meses",
 	totalInvested = 149_400,
 	returnPct = 3.2,
 	data = DEFAULT_DATA,
@@ -239,17 +238,12 @@ export function InvestmentsCard({
 							</Delta>
 						</div>
 					</div>
-					<div className="flex items-center gap-3">
-						<span className="pt-1 text-right text-sm text-muted-foreground">
-							{periodLabel}
-						</span>
-						{detailHref ? (
-							<DashboardCardLinkButton
-								label={`Abrir ${title}`}
-								to={detailHref}
-							/>
-						) : null}
-					</div>
+					{detailHref ? (
+						<DashboardCardLinkButton
+							label={`Abrir ${title}`}
+							to={detailHref}
+						/>
+					) : null}
 				</div>
 			</CardHeader>
 

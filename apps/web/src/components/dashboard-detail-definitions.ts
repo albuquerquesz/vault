@@ -36,11 +36,11 @@ export const dashboardDetailDefinitions = {
 	trafficSources: {
 		key: "trafficSources",
 		path: "/dashboard/traffic-sources",
-		title: "Traffic sources",
+		title: "Canais de origem",
 		description: "Visualize os principais canais de origem e a relevância de cada fonte no período.",
-		scaffoldTitle: "Leitura de traffic sources",
+		scaffoldTitle: "Leitura dos canais de origem",
 		scaffoldDescription:
-			"Esta aba vai expandir as origens de tráfego com evolução histórica, ranking e cortes por canal.",
+			"Esta aba vai expandir os canais de origem com evolução histórica, ranking e cortes por canal.",
 	},
 	dailyExpenses: {
 		key: "dailyExpenses",

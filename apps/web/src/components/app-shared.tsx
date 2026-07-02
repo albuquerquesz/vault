@@ -62,7 +62,7 @@ export const navGroups: SidebarNavGroup[] = [
 				icon: <PieChartIcon size={20} />,
 			},
 			{
-				title: "Traffic sources",
+				title: "Canais de origem",
 				path: dashboardDetailDefinitions.trafficSources.path,
 				icon: <GlobeIcon size={20} />,
 			},
