@@ -17,7 +17,7 @@ export function PercentageBadge({
 		<Badge
 			variant="secondary"
 			className={cn(
-				"rounded-full px-2 py-0.5 text-sm font-medium tabular-nums bg-white/10 text-white/60",
+				"rounded-full px-1.5 py-0.5 text-sm font-medium tabular-nums bg-white/10 text-white/60",
 				className,
 			)}
 		>

@@ -7,12 +7,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
-import { type ChartConfig, ChartContainer } from "@vault/ui/components/chart";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, PieChartIcon } from "lucide-react";
 import { useMemo } from "react";
-import { Cell, Pie, PieChart } from "recharts";
 import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
+import { PieChart, slicePalette } from "@/components/pie-chart";
 
 type MonthOverMonthTrend = "up" | "down" | "neutral";
 
@@ -56,21 +55,6 @@ const defaultData: OrderSourceDatum[] = [
 	},
 	{ source: "Outros", amount: 131, orders: 131, monthOverMonthTrend: "down" },
 ];
-
-const slicePalette = [
-	"color-mix(in oklab, var(--foreground) 35%, transparent)",
-	"color-mix(in oklab, var(--foreground) 28%, transparent)",
-	"color-mix(in oklab, var(--foreground) 22%, transparent)",
-	"color-mix(in oklab, var(--foreground) 16%, transparent)",
-	"color-mix(in oklab, var(--foreground) 10%, transparent)",
-] as const;
-
-const chartConfig = {
-	orders: {
-		label: "Pedidos",
-		color: "var(--chart-1)",
-	},
-} satisfies ChartConfig;
 
 function formatSignedPercent(value: number): string {
 	const sign = value > 0 ? "+" : "";
@@ -161,29 +145,7 @@ export function OrderSourceMixChart({
 			</CardHeader>
 			<CardContent>
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-					<ChartContainer className="h-80 w-full lg:h-72" config={chartConfig}>
-						<PieChart accessibilityLayer>
-							<Pie
-								cx="50%"
-								cy="50%"
-								data={safeData}
-								dataKey="orders"
-								innerRadius={0}
-								nameKey="source"
-								outerRadius="90%"
-								paddingAngle={0}
-								stroke="var(--background)"
-								strokeWidth={1}
-							>
-								{safeData.map((entry, index) => (
-									<Cell
-										key={entry.source}
-										fill={slicePalette[index % slicePalette.length]}
-									/>
-								))}
-							</Pie>
-						</PieChart>
-					</ChartContainer>
+					<PieChart data={safeData} />
 
 					<ul
 						className="w-full"
