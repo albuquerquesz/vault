@@ -126,7 +126,7 @@ export function OrderSourceMixChart({
 
 	return (
 		<Card className="financial-panel-border h-full min-h-[32rem] ring-0 md:col-span-2">
-			<CardHeader className="gap-5">
+			<CardHeader className="gap-4">
 				<div className="flex items-start justify-between gap-4">
 					<CardDescription className="text-base">{title}</CardDescription>
 					{detailHref ? (

@@ -87,7 +87,7 @@ export function ExpensesPage() {
 	return (
 		<div className="grid gap-4">
 			<Card className="border-0">
-				<CardHeader className="flex flex-row items-center justify-between gap-2">
+				<CardHeader className="flex flex-row items-center justify-between gap-4">
 					<CardTitle
 						className="text-2xl"
 						style={{ fontFamily: '"Space Grotesk", sans-serif' }}

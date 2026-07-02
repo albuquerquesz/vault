@@ -8,8 +8,8 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
-import { Delta, DeltaIcon, DeltaValue } from "@/components/delta";
 import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
+import { PercentageBadge } from "@/components/percentage-badge";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import {
 	MaskedMonetaryValue,
@@ -229,14 +229,7 @@ export function InvestmentsCard({
 							<CardTitle className="text-4xl">
 								<MaskedMonetaryValue format={formatCurrency} value={totalInvested} />
 							</CardTitle>
-							<Delta
-								value={returnPct}
-								variant="badge"
-								className="mb-1 rounded-full px-3 py-1 text-sm font-medium tracking-tight"
-							>
-								<DeltaIcon />
-								<DeltaValue absolute={false} />
-							</Delta>
+							<PercentageBadge value={returnPct} className="mb-1" />
 						</div>
 					</div>
 					{detailHref ? (

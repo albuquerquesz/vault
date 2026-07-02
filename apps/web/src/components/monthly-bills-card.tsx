@@ -9,6 +9,7 @@ import {
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
 import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
+import { PercentageBadge } from "@/components/percentage-badge";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import {
 	MaskedMonetaryText,
@@ -121,9 +122,7 @@ export function MonthlyBillsCard({
 								/ <MaskedMonetaryText>{formatCurrency(limit)}</MaskedMonetaryText>
 							</span>
 						</div>
-						<div className="rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
-							{usagePct}%
-						</div>
+						<PercentageBadge value={usagePct} />
 					</div>
 				</div>
 			</CardContent>

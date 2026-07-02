@@ -297,7 +297,7 @@ const topSecondaryFlow: TopOverviewSecondaryFlow = {
 
 export function Dashboard() {
   return (
-    <div className="grid grid-cols-1 gap-6">
+    <div className="grid grid-cols-1 gap-4">
       <TopOverviewSection
         title="Bem-vindo de volta, Victor! 👋"
         summaryCards={topSummaryCards}
@@ -317,7 +317,7 @@ export function Dashboard() {
         initialRange="1M"
         showMainFlow={false}
       />
-      <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className="h-full">
           <TrafficSourcesCard
             detailHref={dashboardDetailDefinitions.trafficSources.path}

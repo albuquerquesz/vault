@@ -85,7 +85,7 @@ export function RevenueChart() {
 
 	return (
 		<Card className="financial-panel-border ring-0 md:col-span-2 lg:col-span-4">
-			<CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<CardTitle className="text-balance">Receita</CardTitle>
 				<Select
 					onValueChange={(v) => {

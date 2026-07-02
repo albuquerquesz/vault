@@ -48,9 +48,7 @@ function Delta({
 				<Badge
 					className={cn(
 						"gap-1 border-none tabular-nums [&_svg]:size-4 [&_svg]:shrink-0",
-						value > 0
-							? "bg-foreground/10 text-foreground"
-							: "bg-muted text-muted-foreground",
+						"bg-muted text-muted-foreground",
 						className,
 					)}
 					data-slot="delta"

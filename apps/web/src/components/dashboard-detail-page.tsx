@@ -35,7 +35,7 @@ export function DashboardDetailPage({
 			</div>
 
 			<Card className="financial-panel-border min-h-[24rem] ring-0">
-				<CardHeader className="gap-3">
+				<CardHeader className="gap-4">
 					<CardTitle className="text-3xl">{detail.scaffoldTitle}</CardTitle>
 					<CardDescription className="max-w-3xl text-base">
 						{detail.scaffoldDescription}

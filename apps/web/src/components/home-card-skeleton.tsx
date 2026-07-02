@@ -26,7 +26,7 @@ function HeaderBlock({
 	className?: string;
 }) {
 	return (
-		<CardHeader className={cn("gap-5", className)}>
+		<CardHeader className={cn("gap-4", className)}>
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0 flex-1">{left}</div>
 				{right ? <div className="shrink-0">{right}</div> : null}
@@ -83,7 +83,7 @@ function MixSkeleton() {
 				}
 			/>
 			<CardContent>
-				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
 					<Skeleton className="mx-auto h-72 w-full max-w-72 rounded-full" />
 					<div className="space-y-4">
 						{Array.from({ length: 5 }).map((_, index) => (
@@ -216,7 +216,6 @@ function CategorySkeleton() {
 	return (
 		<>
 			<HeaderBlock
-				className="gap-2"
 				left={
 					<div className="space-y-2">
 						<Skeleton className="h-7 w-56" />

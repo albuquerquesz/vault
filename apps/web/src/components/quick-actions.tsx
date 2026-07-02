@@ -43,7 +43,7 @@ const actions = [
 export function QuickActions() {
 	return (
 		<Card className="financial-panel-border ring-0">
-			<CardHeader className="gap-0 pb-4">
+			<CardHeader className="gap-4 pb-4">
 				<CardTitle>Quick actions</CardTitle>
 			</CardHeader>
 			<CardContent>

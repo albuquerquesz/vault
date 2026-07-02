@@ -129,7 +129,7 @@ export function MonthlySavingsInsightCard({
 
 	return (
 		<Card className="financial-panel-border h-full min-h-[32rem] ring-0">
-			<CardHeader className="gap-5">
+			<CardHeader className="gap-4">
 				<div className="space-y-3">
 					<CardDescription className="text-[1.05rem]">{title}</CardDescription>
 					<div className="flex flex-wrap items-end gap-x-3 gap-y-2">

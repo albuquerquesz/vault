@@ -866,7 +866,7 @@ export function TopOverviewSection({
   const hasTwoTopCards = rightContent && extraRightContent;
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-4">
       <div className="space-y-2">
         <h2 className="text-4xl font-semibold tracking-tight text-foreground">
           {title}
@@ -883,7 +883,7 @@ export function TopOverviewSection({
         <>
           {hasTwoTopCards ? (
             <>
-              <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
                 <div className="h-full">{extraRightContent}</div>
                 <div className="h-full">{rightContent}</div>
               </div>
@@ -892,7 +892,7 @@ export function TopOverviewSection({
               ) : null}
             </>
           ) : (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
               {showMainFlow ? (
                 <div className="xl:col-span-2">
                   <MainFlowCard data={mainFlow} initialRange={initialRange} />
@@ -908,7 +908,7 @@ export function TopOverviewSection({
       ) : (
         <>
           {showMainFlow ? (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
               <MainFlowCard data={mainFlow} initialRange={initialRange} />
               <SecondaryFlowCard data={secondaryFlow ?? defaultSecondaryFlow} />
             </div>
