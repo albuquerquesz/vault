@@ -42,20 +42,23 @@ export function SidebarUserMenu() {
 						className="h-12 px-2"
 						size="lg"
 						tooltip={user.name}
-					/>
+					>
+						<div className="flex size-10 items-center justify-center rounded-md bg-primary/15 text-primary text-sm font-medium">
+							{user.initials}
+						</div>
+						<span
+							className="text-foreground text-sm font-medium"
+							title={user.name}
+						>
+							{displayName}
+						</span>
+						<div className="ml-auto flex flex-col text-muted-foreground">
+							<ChevronUpIcon className="size-3" />
+							<ChevronDownIcon className="size-3" />
+						</div>
+					</SidebarMenuButton>
 				}
-			>
-				<div className="flex size-10 items-center justify-center rounded-md bg-primary/15 text-primary text-sm font-medium">
-					{user.initials}
-				</div>
-				<span className="text-foreground text-sm font-medium" title={user.name}>
-					{displayName}
-				</span>
-				<div className="ml-auto flex flex-col text-muted-foreground">
-					<ChevronUpIcon className="size-3" />
-					<ChevronDownIcon className="size-3" />
-				</div>
-			</DropdownMenuTrigger>
+			/>
 			<DropdownMenuContent align="end" className="mb-2 mr-2 w-56 bg-card p-2">
 				<div className="px-1 py-1.5">
 					<SidebarThemeSwitcher />

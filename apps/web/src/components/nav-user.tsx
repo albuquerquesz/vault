@@ -10,11 +10,10 @@ import {
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@vault/ui/components/dropdown-menu";
-import { UserIcon, SettingsIcon, CreditCardIcon, LogOutIcon } from "lucide-react";
+import { CreditCardIcon, LogOutIcon, SettingsIcon } from "lucide-react";
 
 const user = {
 	name: "Shaban Haider",
@@ -25,10 +24,19 @@ const user = {
 export function NavUser() {
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger render={<Avatar className="size-8" />}><AvatarImage src={user.avatar} /><AvatarFallback>{user.name.charAt(0)}</AvatarFallback></DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				render={
+					<button type="button" className="focus-visible:outline-none">
+						<Avatar className="size-8">
+							<AvatarImage src={user.avatar} />
+							<AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+						</Avatar>
+					</button>
+				}
+			/>
 			<DropdownMenuContent align="end" className="w-60">
-				<DropdownMenuItem className="flex items-center justify-start gap-2">
-					<DropdownMenuLabel className="flex items-center gap-3">
+				<DropdownMenuGroup>
+					<div className="flex items-center gap-3 p-2">
 						<Avatar className="size-10">
 							<AvatarImage src={user.avatar} />
 							<AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
@@ -40,26 +48,19 @@ export function NavUser() {
 								{user.email}
 							</div>
 						</div>
-					</DropdownMenuLabel>
-				</DropdownMenuItem>
+					</div>
+				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
-						<UserIcon
-						/>
-						Account
-					</DropdownMenuItem>
-					<DropdownMenuItem>
-						<SettingsIcon
-						/>
+						<SettingsIcon />
 						Settings
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
-						<CreditCardIcon
-						/>
+						<CreditCardIcon />
 						Plan & Billing
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
@@ -69,8 +70,7 @@ export function NavUser() {
 						className="w-full cursor-pointer"
 						variant="destructive"
 					>
-						<LogOutIcon
-						/>
+						<LogOutIcon />
 						Log out
 					</DropdownMenuItem>
 				</DropdownMenuGroup>

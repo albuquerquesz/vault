@@ -19,7 +19,8 @@ export const dashboardDetailDefinitions = {
 		key: "monthlyBills",
 		path: "/dashboard/monthly-bills",
 		title: "Faturas do mês",
-		description: "Acompanhe a composição das faturas atuais, parcelas e consumo do limite.",
+		description:
+			"Acompanhe a composição das faturas atuais, parcelas e consumo do limite.",
 		scaffoldTitle: "Central de faturas",
 		scaffoldDescription:
 			"Esta aba vai detalhar as faturas do mês com histórico, parcelas, gastos avulsos e uso do limite.",
@@ -28,7 +29,8 @@ export const dashboardDetailDefinitions = {
 		key: "dailyExpenses",
 		path: "/dashboard/daily-expenses",
 		title: "Despesas diárias",
-		description: "Veja quando os gastos se concentram ao longo dos dias e das faixas horárias.",
+		description:
+			"Veja quando os gastos se concentram ao longo dos dias e das faixas horárias.",
 		scaffoldTitle: "Mapa diário de despesas",
 		scaffoldDescription:
 			"Esta aba vai reunir a distribuição diária dos gastos com detalhes por dia e hora.",
@@ -37,7 +39,8 @@ export const dashboardDetailDefinitions = {
 		key: "expenseDistribution",
 		path: "/dashboard/expense-distribution",
 		title: "Distribuição dos gastos",
-		description: "Veja como os gastos se distribuem entre categorias e setores.",
+		description:
+			"Veja como os gastos se distribuem entre categorias e setores.",
 		scaffoldTitle: "Distribuição dos gastos",
 		scaffoldDescription:
 			"Esta aba vai detalhar a distribuição dos gastos por categoria e setor.",

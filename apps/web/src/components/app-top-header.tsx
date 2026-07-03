@@ -48,9 +48,7 @@ export function AppTopHeader() {
 						</div>
 					</HeaderAction>
 
-					<div
-						className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-900 text-sm font-semibold text-foreground"
-					>
+					<div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-900 text-sm font-semibold text-foreground">
 						{initials}
 					</div>
 				</div>

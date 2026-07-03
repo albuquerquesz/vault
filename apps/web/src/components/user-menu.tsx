@@ -5,7 +5,6 @@ import {
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@vault/ui/components/dropdown-menu";
@@ -31,12 +30,18 @@ export default function UserMenu() {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger render={<Button variant="outline" />}>
-				{session.user.name}
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				render={
+					<button type="button" className="focus-visible:outline-none">
+						<Button variant="outline">{session.user.name}</Button>
+					</button>
+				}
+			/>
 			<DropdownMenuContent className="bg-card">
 				<DropdownMenuGroup>
-					<DropdownMenuLabel>Minha conta</DropdownMenuLabel>
+					<div className="px-2 py-1.5 text-sm font-semibold text-foreground">
+						Minha conta
+					</div>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem>{session.user.email}</DropdownMenuItem>
 					<DropdownMenuItem
