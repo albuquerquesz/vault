@@ -307,14 +307,12 @@ export function Dashboard() {
 				title="Bem-vindo de volta, Victor! 👋"
 				summaryCards={topSummaryCards}
 				mainFlowData={topMainFlowData}
-				extraRightContent={
-					<OrderSourceMixChart
-						detailHref={dashboardDetailDefinitions.expenseDistribution.path}
-						totalNetWorth={1842}
-					/>
-				}
 				initialRange="1M"
 				showMainFlow={false}
+			/>
+			<OrderSourceMixChart
+				detailHref={dashboardDetailDefinitions.expenseDistribution.path}
+				totalNetWorth={1842}
 			/>
 			<div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2">
 				<div className="h-full">
