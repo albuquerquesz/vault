@@ -1,9 +1,11 @@
+import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 import { Dashboard } from "@/components/dashboard";
 
 export function FinancialDashboard() {
-  return (
-    <main className="financial-dashboard h-full w-full text-foreground">
-      <style>{`
+	return (
+		<MonetaryVisibilityProvider>
+			<main className="financial-dashboard h-full w-full text-foreground">
+			<style>{`
         .financial-dashboard { background-color: #0000 !important; }
         .financial-dashboard [data-slot="card"] { background-color: #0000 !important; }
         .financial-dashboard {
@@ -82,9 +84,10 @@ export function FinancialDashboard() {
           padding-right: 1rem !important;
         }
       `}</style>
-      <Dashboard />
-    </main>
-  );
+			<Dashboard />
+			</main>
+		</MonetaryVisibilityProvider>
+	);
 }
 
 export default FinancialDashboard;

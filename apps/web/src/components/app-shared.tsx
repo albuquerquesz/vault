@@ -1,12 +1,12 @@
-import {
-	HelpCircleIcon,
-	KeyRoundIcon,
-	LayoutGridIcon,
-	PlugIcon,
-	SettingsIcon,
-	UsersIcon,
-} from "lucide-react";
 import type { ReactNode } from "react";
+import {
+	AnimatedSidebarChartColumnIncreasingIcon,
+	AnimatedSidebarChartNoAxesColumnIncreasingIcon,
+	AnimatedSidebarChartPieIcon,
+	AnimatedSidebarCircleHelpIcon,
+	AnimatedSidebarWalletIcon,
+} from "@/components/animated-sidebar-icons";
+import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
 
 export type SidebarNavItem = {
 	title: string;
@@ -17,59 +17,51 @@ export type SidebarNavItem = {
 };
 
 export type SidebarNavGroup = {
-	label?: string;
+	label: string;
 	items: SidebarNavItem[];
 };
 
 export const navGroups: SidebarNavGroup[] = [
 	{
-		label: "Product",
+		label: "Produto",
 		items: [
 			{
-				title: "Dashboard",
-				path: "/dashboard",
-				icon: <LayoutGridIcon />,
+				title: "Painel",
+				path: "/",
+				icon: <AnimatedSidebarChartNoAxesColumnIncreasingIcon size={20} />,
 				isActive: true,
 			},
 		],
 	},
 	{
-		label: "Workspace",
+		label: "Finanças",
 		items: [
 			{
-				title: "Team",
-				path: "/team",
-				icon: <UsersIcon />,
+				title: "Despesas diárias",
+				path: dashboardDetailDefinitions.dailyExpenses.path,
+				icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
 			},
 			{
-				title: "Integrations",
-				path: "/integrations",
-				icon: <PlugIcon />,
+				title: "Faturas do mês",
+				path: dashboardDetailDefinitions.monthlyBills.path,
+				icon: <AnimatedSidebarWalletIcon size={20} />,
 			},
 			{
-				title: "API Keys",
-				path: "/api-keys",
-				icon: <KeyRoundIcon />,
+				title: "Resumo pessoal",
+				path: "/dashboard-v2",
+				icon: <AnimatedSidebarChartPieIcon size={20} />,
 			},
 		],
 	},
 	{
-		label: "Administration",
+		label: "Administração",
 		items: [
 			{
-				title: "Settings",
+				title: "Configurações",
 				path: "/settings",
-				icon: <SettingsIcon />,
+				icon: <AnimatedSidebarCircleHelpIcon size={20} />,
 			},
 		],
-	},
-];
-
-export const footerNavLinks: SidebarNavItem[] = [
-	{
-		title: "Support",
-		path: "#/support",
-		icon: <HelpCircleIcon />,
 	},
 ];
 
@@ -79,5 +71,6 @@ export const navLinks: SidebarNavItem[] = [
 			item.subItems?.length ? [item, ...item.subItems] : [item],
 		),
 	),
-	...footerNavLinks,
 ];
+
+export const footerNavLinks: SidebarNavItem[] = [];
