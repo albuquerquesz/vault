@@ -5,6 +5,7 @@ import {
 	WalletIcon,
 } from "lucide-react";
 import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
+import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
 import { SalesByHourHeatmap } from "@/components/sales-by-hour-heatmap";
 import {
 	type TopOverviewMainFlowRange,
@@ -306,12 +307,6 @@ export function Dashboard() {
 				title="Bem-vindo de volta, Victor! 👋"
 				summaryCards={topSummaryCards}
 				mainFlowData={topMainFlowData}
-				rightContent={
-					<MonthlyBillsCard
-						className="min-h-0"
-						detailHref={dashboardDetailDefinitions.monthlyBills.path}
-					/>
-				}
 				extraRightContent={
 					<OrderSourceMixChart
 						detailHref={dashboardDetailDefinitions.expenseDistribution.path}
