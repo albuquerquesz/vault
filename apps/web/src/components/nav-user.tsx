@@ -1,5 +1,6 @@
 "use client";
 
+import { useNavigate } from "@tanstack/react-router";
 import {
 	Avatar,
 	AvatarFallback,
@@ -22,6 +23,8 @@ const user = {
 };
 
 export function NavUser() {
+	const navigate = useNavigate();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -52,7 +55,7 @@ export function NavUser() {
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
-					<DropdownMenuItem>
+					<DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
 						<SettingsIcon />
 						Settings
 					</DropdownMenuItem>

@@ -21,7 +21,9 @@
 				"useFocusableInteractive": "off",
 				"useAnchorContent": "off",
 				"useSemanticElements": "off",
-				"useValidAnchor": "off"
+				"useValidAnchor": "off",
+				"noStaticElementInteractions": "off",
+				"noSvgWithoutTitle": "off"
 			},
 			"suspicious": {
 				"noDocumentCookie": "off",
