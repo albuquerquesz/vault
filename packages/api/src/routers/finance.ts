@@ -145,7 +145,8 @@ export const financeRouter = router({
 					: Math.max(
 							1,
 							Math.floor(
-								(monthEnd.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24),
+								(monthEnd.getTime() - todayDate.getTime()) /
+									(1000 * 60 * 60 * 24),
 							) + 1,
 						);
 

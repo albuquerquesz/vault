@@ -19,7 +19,7 @@ const DecorIconVariants = cva(
 		defaultVariants: {
 			position: "top-left",
 		},
-	}
+	},
 );
 
 type DecorIconProps = React.ComponentProps<"svg"> &

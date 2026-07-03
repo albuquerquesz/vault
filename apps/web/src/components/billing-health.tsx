@@ -13,8 +13,8 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@vault/ui/components/empty";
+import { ArrowRightIcon, CircleCheckIcon } from "lucide-react";
 import { DashboardCard } from "@/components/dashboard-card";
-import { CircleCheckIcon, ArrowRightIcon } from "lucide-react";
 
 export function BillingHealth() {
 	return (
@@ -37,8 +37,14 @@ export function BillingHealth() {
 						</EmptyDescription>
 					</EmptyHeader>
 					<EmptyContent>
-						<Button variant="ghost" render={<a href="/#" />} nativeButton={false}>Review open invoices
-                        								<ArrowRightIcon aria-hidden="true" /></Button>
+						<Button
+							variant="ghost"
+							render={<a href="/#" />}
+							nativeButton={false}
+						>
+							Review open invoices
+							<ArrowRightIcon aria-hidden="true" />
+						</Button>
 					</EmptyContent>
 				</Empty>
 			</CardContent>

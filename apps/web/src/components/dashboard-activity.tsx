@@ -4,41 +4,34 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
+import {
+	CreditCardIcon,
+	FileTextIcon,
+	RocketIcon,
+	UserPlusIcon,
+} from "lucide-react";
 import { DashboardCard } from "@/components/dashboard-card";
-import { CreditCardIcon, UserPlusIcon, FileTextIcon, RocketIcon } from "lucide-react";
 
 const items = [
 	{
 		title: "Invoice #1045 marked paid",
 		time: "About 2 hours ago",
-		icon: (
-			<CreditCardIcon
-			/>
-		),
+		icon: <CreditCardIcon />,
 	},
 	{
 		title: "Jordan joined the team",
 		time: "This morning",
-		icon: (
-			<UserPlusIcon
-			/>
-		),
+		icon: <UserPlusIcon />,
 	},
 	{
 		title: "Weekly summary exported",
 		time: "Yesterday",
-		icon: (
-			<FileTextIcon
-			/>
-		),
+		icon: <FileTextIcon />,
 	},
 	{
 		title: "Dashboard v2 shipped to prod",
 		time: "2 days ago",
-		icon: (
-			<RocketIcon
-			/>
-		),
+		icon: <RocketIcon />,
 	},
 ] as const;
 

@@ -25,6 +25,7 @@
 	"scripts": {
 		"dev": "turbo --ui=stream dev",
 		"build": "turbo --ui=stream build",
+		"lint": "turbo --ui=stream lint",
 		"check-types": "turbo --ui=stream check-types",
 		"dev:web": "turbo --ui=stream -F web dev",
 		"dev:api": "turbo --ui=stream -F api dev",

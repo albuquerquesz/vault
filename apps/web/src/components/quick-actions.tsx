@@ -4,6 +4,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
+import { cn } from "@vault/ui/lib/utils";
 import {
 	ChevronRightIcon,
 	DownloadIcon,
@@ -11,7 +12,6 @@ import {
 	SettingsIcon,
 	TruckIcon,
 } from "lucide-react";
-import { cn } from "@vault/ui/lib/utils";
 
 const actions = [
 	{

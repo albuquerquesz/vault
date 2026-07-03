@@ -1,10 +1,10 @@
-import type { ReactNode } from "react";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
 	BreadcrumbList,
 	BreadcrumbPage,
 } from "@vault/ui/components/breadcrumb";
+import type { ReactNode } from "react";
 
 /** Current page segment shown in the header — pass a nav item or `{ title, icon? }`. */
 export type AppBreadcrumbPage = {

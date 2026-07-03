@@ -134,7 +134,10 @@ export function MonthlySavingsInsightCard({
 					<CardDescription className="text-[1.05rem]">{title}</CardDescription>
 					<div className="flex flex-wrap items-end gap-x-3 gap-y-2">
 						<CardTitle className="text-4xl">
-							<MaskedMonetaryValue format={formatCurrency} value={amountSaved} />
+							<MaskedMonetaryValue
+								format={formatCurrency}
+								value={amountSaved}
+							/>
 						</CardTitle>
 						<p className="pb-0.5 text-2xl text-muted-foreground">
 							{amountSuffix}

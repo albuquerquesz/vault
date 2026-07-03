@@ -1,5 +1,5 @@
-import { financeRouter } from "./finance";
 import { protectedProcedure, publicProcedure, router } from "../index";
+import { financeRouter } from "./finance";
 
 export const appRouter = router({
 	healthCheck: publicProcedure.query(() => {

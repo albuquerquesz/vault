@@ -9,13 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardV2RouteImport } from './routes/dashboard-v2'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardMonthlyBillsRouteImport } from './routes/dashboard.monthly-bills'
 import { Route as DashboardDailyExpensesRouteImport } from './routes/dashboard.daily-expenses'
 
+const TransactionsRoute = TransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -36,11 +41,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardMonthlyBillsRoute = DashboardMonthlyBillsRouteImport.update({
-  id: '/dashboard/monthly-bills',
-  path: '/dashboard/monthly-bills',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DashboardDailyExpensesRoute = DashboardDailyExpensesRouteImport.update({
   id: '/dashboard/daily-expenses',
   path: '/dashboard/daily-expenses',
@@ -52,16 +52,16 @@ export interface FileRoutesByFullPath {
   '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
-  '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
-  '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +69,8 @@ export interface FileRoutesById {
   '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
-  '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +79,24 @@ export interface FileRouteTypes {
     | '/dashboard-v2'
     | '/login'
     | '/settings'
+    | '/transactions'
     | '/dashboard/daily-expenses'
-    | '/dashboard/monthly-bills'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard-v2'
     | '/login'
     | '/settings'
+    | '/transactions'
     | '/dashboard/daily-expenses'
-    | '/dashboard/monthly-bills'
   id:
     | '__root__'
     | '/'
     | '/dashboard-v2'
     | '/login'
     | '/settings'
+    | '/transactions'
     | '/dashboard/daily-expenses'
-    | '/dashboard/monthly-bills'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,12 +104,19 @@ export interface RootRouteChildren {
   DashboardV2Route: typeof DashboardV2Route
   LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
+  TransactionsRoute: typeof TransactionsRoute
   DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
-  DashboardMonthlyBillsRoute: typeof DashboardMonthlyBillsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/transactions': {
+      id: '/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -138,13 +145,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/monthly-bills': {
-      id: '/dashboard/monthly-bills'
-      path: '/dashboard/monthly-bills'
-      fullPath: '/dashboard/monthly-bills'
-      preLoaderRoute: typeof DashboardMonthlyBillsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dashboard/daily-expenses': {
       id: '/dashboard/daily-expenses'
       path: '/dashboard/daily-expenses'
@@ -160,8 +160,8 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardV2Route: DashboardV2Route,
   LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
+  TransactionsRoute: TransactionsRoute,
   DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,
-  DashboardMonthlyBillsRoute: DashboardMonthlyBillsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

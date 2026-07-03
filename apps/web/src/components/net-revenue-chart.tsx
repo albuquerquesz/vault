@@ -1,7 +1,5 @@
 "use client";
 
-import type * as React from "react";
-import { Bar, BarChart, XAxis } from "recharts";
 import {
 	CardContent,
 	CardDescription,
@@ -14,8 +12,10 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@vault/ui/components/chart";
-import { Delta, DeltaIcon, DeltaValue } from "@/components/delta";
+import type * as React from "react";
+import { Bar, BarChart, XAxis } from "recharts";
 import { DashboardCard } from "@/components/dashboard-card";
+import { Delta, DeltaIcon, DeltaValue } from "@/components/delta";
 
 /** Demo: last 7 days. */
 const salesDaily7 = [
@@ -45,7 +45,7 @@ function CustomGradientBar(
 	props: React.SVGProps<SVGRectElement> & {
 		index?: number;
 		dataKey?: string | number;
-	}
+	},
 ) {
 	const {
 		fill,

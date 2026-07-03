@@ -168,15 +168,10 @@ export function SalesByHourHeatmap({
 				<div className="flex items-start justify-between gap-4">
 					<div className="flex items-center gap-2 text-muted-foreground">
 						<Clock3Icon className="size-4" aria-hidden="true" />
-						<CardDescription className="text-base">
-							{title}
-						</CardDescription>
+						<CardDescription className="text-base">{title}</CardDescription>
 					</div>
 					{detailHref ? (
-						<DashboardCardLinkButton
-							label={`Abrir ${title}`}
-							to={detailHref}
-						/>
+						<DashboardCardLinkButton label={`Abrir ${title}`} to={detailHref} />
 					) : null}
 				</div>
 

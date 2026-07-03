@@ -1,10 +1,10 @@
+import { Button } from "@vault/ui/components/button";
 import {
 	Card,
 	CardContent,
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
-import { Button } from "@vault/ui/components/button";
 import { Input } from "@vault/ui/components/input";
 import { useEffect, useMemo, useState } from "react";
 import { formatFullCurrency, formatPercent } from "@/components/formater";
@@ -96,7 +96,10 @@ export function StabilityPage() {
 						</div>
 					</div>
 					<div className="md:col-span-2">
-						<Button onClick={onSaveBudget} disabled={saveBudget.isPending || salary <= 0}>
+						<Button
+							onClick={onSaveBudget}
+							disabled={saveBudget.isPending || salary <= 0}
+						>
 							{saveBudget.isPending ? "Salvando..." : "Salvar salário do mês"}
 						</Button>
 					</div>

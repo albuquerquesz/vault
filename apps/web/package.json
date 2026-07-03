@@ -8,7 +8,8 @@
 		"build": "vite build",
 		"serve": "vite preview",
 		"start": "vite",
-		"check-types": "vite build && tsc --noEmit"
+		"check-types": "vite build && tsc --noEmit",
+		"lint": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",

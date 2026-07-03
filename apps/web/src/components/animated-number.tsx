@@ -51,9 +51,5 @@ export function AnimatedNumber({
 		};
 	}, [duration, motionValue, prefersReducedMotion, start, value]);
 
-	return (
-		<span className={className}>
-			{format(displayValue)}
-		</span>
-	);
+	return <span className={className}>{format(displayValue)}</span>;
 }

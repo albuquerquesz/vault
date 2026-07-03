@@ -5,7 +5,7 @@ export function DashboardSkeleton() {
 		<div
 			className={cn(
 				"grid grid-cols-2 gap-px bg-border p-px lg:grid-cols-4",
-				"*:min-h-48 *:w-full *:bg-background/90"
+				"*:min-h-48 *:w-full *:bg-background/90",
 			)}
 		>
 			<div />

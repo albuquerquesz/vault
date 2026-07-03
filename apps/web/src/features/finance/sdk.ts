@@ -1,8 +1,4 @@
-import {
-	useMutation,
-	useQuery,
-	type QueryClient,
-} from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@vault/api/routers/index";
 import { queryClient, trpc } from "@/utils/trpc";
@@ -11,7 +7,8 @@ type RouterInputs = inferRouterInputs<AppRouter>;
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 export type FinanceListExpensesInput = RouterInputs["finance"]["listExpenses"];
-export type FinanceCreateExpenseInput = RouterInputs["finance"]["createExpense"];
+export type FinanceCreateExpenseInput =
+	RouterInputs["finance"]["createExpense"];
 export type FinanceUpsertMonthlyBudgetInput =
 	RouterInputs["finance"]["upsertMonthlyBudget"];
 export type FinanceMonthlyOverviewInput =
@@ -87,7 +84,9 @@ export function useCreateExpense(
 	month = getMonthValue(),
 	today = getTodayValue(),
 ) {
-	return useMutation(financeSdk.createExpenseMutationOptions(month, queryClient, today));
+	return useMutation(
+		financeSdk.createExpenseMutationOptions(month, queryClient, today),
+	);
 }
 
 export function useUpsertMonthlyBudget(

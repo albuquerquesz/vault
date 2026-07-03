@@ -6,8 +6,8 @@ import {
 	CardDescription,
 	CardHeader,
 } from "@vault/ui/components/card";
-import { Clock3Icon } from "lucide-react";
 import { cn } from "@vault/ui/lib/utils";
+import { Clock3Icon } from "lucide-react";
 import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 
 type TrafficSourceDatum = {
@@ -56,7 +56,9 @@ function SegmentedBar({
 	return (
 		<div
 			className="grid gap-1"
-			style={{ gridTemplateColumns: `repeat(${SEGMENT_COUNT}, minmax(0, 1fr))` }}
+			style={{
+				gridTemplateColumns: `repeat(${SEGMENT_COUNT}, minmax(0, 1fr))`,
+			}}
 		>
 			{Array.from({ length: SEGMENT_COUNT }, (_, index) => (
 				<span
@@ -87,10 +89,7 @@ export function TrafficSourcesCard({
 						<span>{title}</span>
 					</CardDescription>
 					{detailHref ? (
-						<DashboardCardLinkButton
-							label={`Abrir ${title}`}
-							to={detailHref}
-						/>
+						<DashboardCardLinkButton label={`Abrir ${title}`} to={detailHref} />
 					) : null}
 				</div>
 			</CardHeader>
@@ -116,7 +115,9 @@ export function TrafficSourcesCard({
 								<SegmentedBar
 									filledSegments={filledSegments}
 									filledClassName={
-										FILLED_SEGMENT_CLASSES[index % FILLED_SEGMENT_CLASSES.length]
+										FILLED_SEGMENT_CLASSES[
+											index % FILLED_SEGMENT_CLASSES.length
+										]
 									}
 								/>
 							</div>

@@ -1,8 +1,16 @@
 "use client";
-import { cn } from "@vault/ui/lib/utils";
-import * as React from "react";
 import { Badge } from "@vault/ui/components/badge";
-import { MinusIcon, TrendingUpIcon, ArrowUpIcon, ChevronUpIcon, TrendingDownIcon, ArrowDownIcon, ChevronDownIcon } from "lucide-react";
+import { cn } from "@vault/ui/lib/utils";
+import {
+	ArrowDownIcon,
+	ArrowUpIcon,
+	ChevronDownIcon,
+	ChevronUpIcon,
+	MinusIcon,
+	TrendingDownIcon,
+	TrendingUpIcon,
+} from "lucide-react";
+import * as React from "react";
 
 type DeltaIconVariant = "default" | "trend" | "arrow";
 type DeltaVariant = "default" | "badge";
@@ -18,7 +26,7 @@ function useDeltaValue() {
 
 	if (!context) {
 		throw new Error(
-			"DeltaIcon and DeltaValue must be used inside a `Delta` component."
+			"DeltaIcon and DeltaValue must be used inside a `Delta` component.",
 		);
 	}
 
@@ -43,7 +51,7 @@ function Delta({
 						value > 0
 							? "bg-emerald-500/10 text-emerald-500"
 							: "bg-red-500/10 text-red-500",
-						className
+						className,
 					)}
 					data-slot="delta"
 					variant="secondary"
@@ -56,7 +64,7 @@ function Delta({
 						"[&_svg]:size-3 [&_svg]:shrink-0",
 						value > 0 ? "text-emerald-600 dark:text-emerald-400" : "",
 						value < 0 ? "text-rose-600 dark:text-rose-400" : "",
-						className
+						className,
 					)}
 					data-slot="delta"
 					{...props}
@@ -80,7 +88,7 @@ function FilledShell({
 				"[&_svg]:size-2! [&_svg]:shrink-0 [&_svg]:stroke-3! [&_svg]:text-background",
 				value > 0 && "bg-emerald-500",
 				value < 0 && "bg-red-500",
-				(!value || value === 0) && "bg-muted-foreground"
+				(!value || value === 0) && "bg-muted-foreground",
 			)}
 			data-slot="delta-icon"
 		>
@@ -109,42 +117,50 @@ function DeltaIcon({
 
 	if (!resolvedValue || resolvedValue === 0) {
 		return shell(
-			<MinusIcon {...slotProps} className={mergedClassName} {...props} />
+			<MinusIcon {...slotProps} className={mergedClassName} {...props} />,
 		);
 	}
 
 	if (resolvedValue > 0) {
 		if (variant === "trend") {
 			return shell(
-				<TrendingUpIcon {...slotProps} className={mergedClassName} {...props} />
+				<TrendingUpIcon
+					{...slotProps}
+					className={mergedClassName}
+					{...props}
+				/>,
 			);
 		}
 
 		if (variant === "arrow") {
 			return shell(
-				<ArrowUpIcon {...slotProps} className={mergedClassName} {...props} />
+				<ArrowUpIcon {...slotProps} className={mergedClassName} {...props} />,
 			);
 		}
 
 		return shell(
-			<ChevronUpIcon {...slotProps} className={mergedClassName} {...props} />
+			<ChevronUpIcon {...slotProps} className={mergedClassName} {...props} />,
 		);
 	}
 
 	if (variant === "trend") {
 		return shell(
-			<TrendingDownIcon {...slotProps} className={mergedClassName} {...props} />
+			<TrendingDownIcon
+				{...slotProps}
+				className={mergedClassName}
+				{...props}
+			/>,
 		);
 	}
 
 	if (variant === "arrow") {
 		return shell(
-			<ArrowDownIcon {...slotProps} className={mergedClassName} {...props} />
+			<ArrowDownIcon {...slotProps} className={mergedClassName} {...props} />,
 		);
 	}
 
 	return shell(
-		<ChevronDownIcon {...slotProps} className={mergedClassName} {...props} />
+		<ChevronDownIcon {...slotProps} className={mergedClassName} {...props} />,
 	);
 }
 
@@ -176,4 +192,5 @@ function DeltaValue({
 		</span>
 	);
 }
+
 export { Delta, DeltaIcon, DeltaValue };

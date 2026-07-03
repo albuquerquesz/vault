@@ -16,8 +16,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@vault/ui/components/table";
-import { DashboardCard } from "@/components/dashboard-card";
 import { ArrowRightIcon } from "lucide-react";
+import { DashboardCard } from "@/components/dashboard-card";
 
 const invoices = [
 	{
@@ -85,8 +85,15 @@ export function DashboardInvoices() {
 				</Table>
 			</CardContent>
 			<div className="mask-t-from-30% absolute inset-x-0 bottom-0 flex h-1/5 items-center justify-center bg-background">
-				<Button className="relative" variant="ghost" render={<a href="/#" />} nativeButton={false}>View All
-                						<ArrowRightIcon aria-hidden="true" /></Button>
+				<Button
+					className="relative"
+					variant="ghost"
+					render={<a href="/#" />}
+					nativeButton={false}
+				>
+					View All
+					<ArrowRightIcon aria-hidden="true" />
+				</Button>
 			</div>
 		</DashboardCard>
 	);

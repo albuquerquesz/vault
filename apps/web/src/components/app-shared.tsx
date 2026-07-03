@@ -4,9 +4,8 @@ import {
 	AnimatedSidebarChartNoAxesColumnIncreasingIcon,
 	AnimatedSidebarChartPieIcon,
 	AnimatedSidebarCircleHelpIcon,
-	AnimatedSidebarWalletIcon,
 } from "@/components/animated-sidebar-icons";
-import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
+
 
 export type SidebarNavItem = {
 	title: string;
@@ -37,14 +36,9 @@ export const navGroups: SidebarNavGroup[] = [
 		label: "Finanças",
 		items: [
 			{
-				title: "Despesas diárias",
-				path: dashboardDetailDefinitions.dailyExpenses.path,
+				title: "Transações",
+				path: "/transactions",
 				icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
-			},
-			{
-				title: "Faturas do mês",
-				path: dashboardDetailDefinitions.monthlyBills.path,
-				icon: <AnimatedSidebarWalletIcon size={20} />,
 			},
 			{
 				title: "Resumo pessoal",

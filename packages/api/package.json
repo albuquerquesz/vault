@@ -26,7 +26,8 @@
 		"db:start": "docker compose up -d",
 		"db:watch": "docker compose up",
 		"db:stop": "docker compose stop",
-		"db:down": "docker compose down"
+		"db:down": "docker compose down",
+		"lint": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@t3-oss/env-core": "^0.13.1",

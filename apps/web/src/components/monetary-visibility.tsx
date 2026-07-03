@@ -3,11 +3,11 @@
 import { Button } from "@vault/ui/components/button";
 import { cn } from "@vault/ui/lib/utils";
 import { createContext, useContext, useEffect, useState } from "react";
+import { AnimatedNumber } from "@/components/animated-number";
 import {
 	AnimatedSidebarEyeIcon,
 	AnimatedSidebarEyeOffIcon,
 } from "@/components/animated-sidebar-icons";
-import { AnimatedNumber } from "@/components/animated-number";
 
 const STORAGE_KEY = "vault-monetary-visibility";
 const MASKED_VALUE = "...";
@@ -176,7 +176,9 @@ export function MonetaryVisibilityToggle() {
 
 	return (
 		<Button
-			aria-label={isVisible ? "Ocultar valores monetários" : "Mostrar valores monetários"}
+			aria-label={
+				isVisible ? "Ocultar valores monetários" : "Mostrar valores monetários"
+			}
 			aria-pressed={!isVisible}
 			className="size-9 rounded-full text-muted-foreground"
 			onClick={toggle}
