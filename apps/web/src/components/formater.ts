@@ -28,7 +28,7 @@ export function formatDate(isoDate: string, style: DashboardDateStyle): string {
 /** X-axis for range charts: weekday when showing ~a week, otherwise month + day. */
 export function formatChartAxisTick(
 	isoDate: string,
-	periodDays: number,
+	periodDays: number
 ): string {
 	const date = parseIsoCalendarDate(isoDate);
 	if (periodDays <= 7) {
@@ -42,7 +42,7 @@ export type ChartTooltipWeekdayStyle = "short" | "long";
 /** Tooltip label for a chart point (weekday + month + day). */
 export function formatChartTooltipDate(
 	isoDate: string,
-	weekdayStyle: ChartTooltipWeekdayStyle = "short",
+	weekdayStyle: ChartTooltipWeekdayStyle = "short"
 ): string {
 	const date = parseIsoCalendarDate(isoDate);
 	return date.toLocaleDateString(DASHBOARD_LOCALE, {
@@ -54,7 +54,7 @@ export function formatChartTooltipDate(
 
 export function formatCompactCurrency(
 	value: number,
-	options?: { maximumFractionDigits?: number },
+	options?: { maximumFractionDigits?: number }
 ) {
 	const { maximumFractionDigits = 0 } = options ?? {};
 	return new Intl.NumberFormat(DASHBOARD_LOCALE, {

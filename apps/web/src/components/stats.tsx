@@ -1,43 +1,38 @@
 import {
-	Card,
 	CardContent,
 	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
 import { Delta, DeltaIcon, DeltaValue } from "@/components/delta";
+import { DashboardCard } from "@/components/dashboard-card";
 
 type Stat = {
 	label: string;
 	value: string;
 	delta: number;
-	hint: string;
 };
 
-const stats: readonly Stat[] = [
+const stats: Stat[] = [
 	{
-		label: "Receita total",
-		value: "$284,920",
-		delta: 8.2,
-		hint: "vs 30 dias anteriores",
+		label: "Active users",
+		value: "847",
+		delta: 3.1,
 	},
 	{
-		label: "Pedidos",
-		value: "1,842",
-		delta: 4.1,
-		hint: "vs 30 dias anteriores",
+		label: "Revenue",
+		value: "$18,290",
+		delta: 12.4,
 	},
 	{
-		label: "Ticket médio",
-		value: "$154.60",
-		delta: -1.3,
-		hint: "vs 30 dias anteriores",
+		label: "Conversion Rate",
+		value: "3.28%",
+		delta: -0.4,
 	},
 	{
-		label: "Conversão da loja",
-		value: "3.06%",
-		delta: 0.6,
-		hint: "vs 30 dias anteriores",
+		label: "New signups",
+		value: "142",
+		delta: 8.7,
 	},
 ] as const;
 
@@ -45,33 +40,24 @@ export function DashboardStats() {
 	return (
 		<>
 			{stats.map((s) => (
-				<StatCard key={s.label} stat={s} />
+				<DashboardCard className="" key={s.label}>
+					<CardHeader className="flex flex-row items-center justify-between">
+						<CardTitle className="font-normal text-xs tracking-wide">
+							{s.label}
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="flex flex-row items-center gap-2">
+						<p className="font-semibold text-2xl tabular-nums">{s.value}</p>
+					</CardContent>
+					<CardFooter className="gap-1 rounded-none bg-background text-xs">
+						<Delta value={s.delta}>
+							<DeltaIcon />
+							<DeltaValue />
+						</Delta>
+						<span className="text-muted-foreground">vs last week</span>{" "}
+					</CardFooter>
+				</DashboardCard>
 			))}
 		</>
-	);
-}
-
-function StatCard({ stat }: { stat: Stat }) {
-	const { label, value, delta, hint } = stat;
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="font-normal text-muted-foreground text-xs">
-					{label}
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p className="text-balance font-semibold text-2xl tabular-nums tracking-tight">
-					{value}
-				</p>
-			</CardContent>
-			<CardFooter className="gap-1.5 text-xs">
-				<Delta value={delta} variant="default">
-					<DeltaIcon />
-					<DeltaValue />
-				</Delta>
-				<span className="text-pretty text-muted-foreground">{hint}</span>
-			</CardFooter>
-		</Card>
 	);
 }

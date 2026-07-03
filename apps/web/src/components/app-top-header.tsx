@@ -2,6 +2,7 @@
 
 import { cn } from "@vault/ui/lib/utils";
 import { SearchIcon, SlashIcon } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 function HeaderAction({
 	children,
@@ -23,6 +24,17 @@ function HeaderAction({
 }
 
 export function AppTopHeader() {
+	const { data: session } = authClient.useSession();
+
+	const initials = session?.user.name
+		? session.user.name
+				.split(" ")
+				.map((n) => n[0])
+				.join("")
+				.toUpperCase()
+				.slice(0, 2)
+		: "VA";
+
 	return (
 		<header className="h-14 border-b border-border bg-background">
 			<div className="flex h-full items-center justify-between gap-4 px-4 md:px-6">
@@ -36,8 +48,10 @@ export function AppTopHeader() {
 						</div>
 					</HeaderAction>
 
-					<div className="flex size-11 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-900 text-sm font-semibold text-foreground">
-						VA
+					<div
+						className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-900 text-sm font-semibold text-foreground"
+					>
+						{initials}
 					</div>
 				</div>
 			</div>

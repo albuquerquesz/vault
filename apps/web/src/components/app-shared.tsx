@@ -1,100 +1,102 @@
 import type { ReactNode } from "react";
 import {
-	AnimatedSidebarChartColumnIncreasingIcon,
-	AnimatedSidebarChartLineIcon,
-	AnimatedSidebarChartNoAxesColumnIncreasingIcon,
-	AnimatedSidebarChartPieIcon,
-	AnimatedSidebarCircleHelpIcon,
-	AnimatedSidebarWalletIcon,
-} from "@/components/animated-sidebar-icons";
-import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
+  LayoutGridIcon,
+  BarChart3Icon,
+  BriefcaseIcon,
+  UsersIcon,
+  PlugIcon,
+  KeyRoundIcon,
+  SettingsIcon,
+  CreditCardIcon,
+  HelpCircleIcon,
+  BookOpenIcon,
+} from "lucide-react";
 
 export type SidebarNavItem = {
-	title: string;
-	path?: string;
-	icon?: ReactNode;
-	isActive?: boolean;
-	subItems?: SidebarNavItem[];
+  title: string;
+  path?: string;
+  icon?: ReactNode;
+  isActive?: boolean;
+  subItems?: SidebarNavItem[];
 };
 
 export type SidebarNavGroup = {
-	label: string;
-	items: SidebarNavItem[];
+  label?: string;
+  items: SidebarNavItem[];
 };
 
 export const navGroups: SidebarNavGroup[] = [
-	{
-		label: "Operação",
-		items: [
-			{
-				title: "Visão Geral",
-				path: "/",
-				icon: <AnimatedSidebarChartNoAxesColumnIncreasingIcon size={20} />,
-				isActive: true,
-			},
-			{
-				title: "Despesas",
-				path: "/finance/expenses",
-				icon: <AnimatedSidebarWalletIcon size={20} />,
-			},
-			{
-				title: "Estabilidade",
-				path: "/finance/stability",
-				icon: <AnimatedSidebarChartLineIcon size={20} />,
-			},
-		],
-	},
-	{
-		label: "Análises",
-		items: [
-			{
-				title: "Faturas do mês",
-				path: dashboardDetailDefinitions.monthlyBills.path,
-				icon: <AnimatedSidebarWalletIcon size={20} />,
-			},
-			{
-				title: "Distribuição dos gastos",
-				path: dashboardDetailDefinitions.expenseDistribution.path,
-				icon: <AnimatedSidebarChartPieIcon size={20} />,
-			},
-			{
-				title: "Canais de origem",
-				path: dashboardDetailDefinitions.trafficSources.path,
-				icon: <AnimatedSidebarChartLineIcon size={20} />,
-			},
-			{
-				title: "Despesas diárias",
-				path: dashboardDetailDefinitions.dailyExpenses.path,
-				icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
-			},
-			{
-				title: "Investimentos",
-				path: dashboardDetailDefinitions.investments.path,
-				icon: <AnimatedSidebarChartLineIcon size={20} />,
-			},
-		],
-	},
-	{
-		label: "Suporte",
-		items: [
-			{
-				title: "Ajuda do vendedor",
-				path: "#/seller-help",
-				icon: <AnimatedSidebarCircleHelpIcon size={20} />,
-			},
-			{
-				title: "Status da plataforma",
-				path: "#/status",
-				icon: <AnimatedSidebarChartLineIcon size={20} />,
-			},
-		],
-	},
+  {
+    label: "Product",
+    items: [
+      {
+        title: "Dashboard",
+        path: "#/dashboard",
+        icon: <LayoutGridIcon />,
+        isActive: true,
+      },
+      {
+        title: "Analytics",
+        path: "#/analytics",
+        icon: <BarChart3Icon />,
+      },
+      {
+        title: "Projects",
+        path: "#/projects",
+        icon: <BriefcaseIcon />,
+      },
+    ],
+  },
+  {
+    label: "Workspace",
+    items: [
+      {
+        title: "Team",
+        path: "#/team",
+        icon: <UsersIcon />,
+      },
+      {
+        title: "Integrations",
+        path: "#/integrations",
+        icon: <PlugIcon />,
+      },
+      {
+        title: "API Keys",
+        path: "#/api-keys",
+        icon: <KeyRoundIcon />,
+      },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      {
+        title: "Settings",
+        path: "#/settings",
+        icon: <SettingsIcon />,
+      },
+      {
+        title: "Billing",
+        path: "#/billing",
+        icon: <CreditCardIcon />,
+      },
+    ],
+  },
+];
+
+export const footerNavLinks: SidebarNavItem[] = [
+  {
+    title: "Support",
+    path: "#/support",
+    icon: <HelpCircleIcon />,
+  },
 ];
 
 export const navLinks: SidebarNavItem[] = [
-	...navGroups.flatMap((group) =>
-		group.items.flatMap((item) =>
-			item.subItems?.length ? [item, ...item.subItems] : [item],
-		),
-	),
+  ...navGroups.flatMap((group) =>
+    group.items.flatMap((item) =>
+      item.subItems?.length ? [item, ...item.subItems] : [item],
+    ),
+  ),
+  ...footerNavLinks,
 ];

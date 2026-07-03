@@ -110,7 +110,7 @@ function SegmentedInvestmentBar({
       style={{ height }}
     >
       {Array.from({ length: segments }, (_, index) => (
-        <OverviewColumnSegment key={index} className="h-[10px] rounded-[5px]" />
+        <OverviewColumnSegment key={index} className="h-[14px] rounded-[2px]" />
       ))}
     </div>
   );

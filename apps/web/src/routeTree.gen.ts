@@ -10,13 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DashboardV2RouteImport } from './routes/dashboard-v2'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as FinanceStabilityRouteImport } from './routes/finance.stability'
-import { Route as FinanceExpensesRouteImport } from './routes/finance.expenses'
-import { Route as DashboardTrafficSourcesRouteImport } from './routes/dashboard.traffic-sources'
 import { Route as DashboardMonthlyBillsRouteImport } from './routes/dashboard.monthly-bills'
-import { Route as DashboardInvestmentsRouteImport } from './routes/dashboard.investments'
-import { Route as DashboardExpenseDistributionRouteImport } from './routes/dashboard.expense-distribution'
 import { Route as DashboardDailyExpensesRouteImport } from './routes/dashboard.daily-expenses'
 
 const LoginRoute = LoginRouteImport.update({
@@ -24,24 +20,14 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardV2Route = DashboardV2RouteImport.update({
+  id: '/dashboard-v2',
+  path: '/dashboard-v2',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinanceStabilityRoute = FinanceStabilityRouteImport.update({
-  id: '/finance/stability',
-  path: '/finance/stability',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinanceExpensesRoute = FinanceExpensesRouteImport.update({
-  id: '/finance/expenses',
-  path: '/finance/expenses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardTrafficSourcesRoute = DashboardTrafficSourcesRouteImport.update({
-  id: '/dashboard/traffic-sources',
-  path: '/dashboard/traffic-sources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardMonthlyBillsRoute = DashboardMonthlyBillsRouteImport.update({
@@ -49,17 +35,6 @@ const DashboardMonthlyBillsRoute = DashboardMonthlyBillsRouteImport.update({
   path: '/dashboard/monthly-bills',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardInvestmentsRoute = DashboardInvestmentsRouteImport.update({
-  id: '/dashboard/investments',
-  path: '/dashboard/investments',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardExpenseDistributionRoute =
-  DashboardExpenseDistributionRouteImport.update({
-    id: '/dashboard/expense-distribution',
-    path: '/dashboard/expense-distribution',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const DashboardDailyExpensesRoute = DashboardDailyExpensesRouteImport.update({
   id: '/dashboard/daily-expenses',
   path: '/dashboard/daily-expenses',
@@ -68,84 +43,56 @@ const DashboardDailyExpensesRoute = DashboardDailyExpensesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
-  '/dashboard/expense-distribution': typeof DashboardExpenseDistributionRoute
-  '/dashboard/investments': typeof DashboardInvestmentsRoute
   '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
-  '/dashboard/traffic-sources': typeof DashboardTrafficSourcesRoute
-  '/finance/expenses': typeof FinanceExpensesRoute
-  '/finance/stability': typeof FinanceStabilityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
-  '/dashboard/expense-distribution': typeof DashboardExpenseDistributionRoute
-  '/dashboard/investments': typeof DashboardInvestmentsRoute
   '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
-  '/dashboard/traffic-sources': typeof DashboardTrafficSourcesRoute
-  '/finance/expenses': typeof FinanceExpensesRoute
-  '/finance/stability': typeof FinanceStabilityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
-  '/dashboard/expense-distribution': typeof DashboardExpenseDistributionRoute
-  '/dashboard/investments': typeof DashboardInvestmentsRoute
   '/dashboard/monthly-bills': typeof DashboardMonthlyBillsRoute
-  '/dashboard/traffic-sources': typeof DashboardTrafficSourcesRoute
-  '/finance/expenses': typeof FinanceExpensesRoute
-  '/finance/stability': typeof FinanceStabilityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard-v2'
     | '/login'
     | '/dashboard/daily-expenses'
-    | '/dashboard/expense-distribution'
-    | '/dashboard/investments'
     | '/dashboard/monthly-bills'
-    | '/dashboard/traffic-sources'
-    | '/finance/expenses'
-    | '/finance/stability'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dashboard-v2'
     | '/login'
     | '/dashboard/daily-expenses'
-    | '/dashboard/expense-distribution'
-    | '/dashboard/investments'
     | '/dashboard/monthly-bills'
-    | '/dashboard/traffic-sources'
-    | '/finance/expenses'
-    | '/finance/stability'
   id:
     | '__root__'
     | '/'
+    | '/dashboard-v2'
     | '/login'
     | '/dashboard/daily-expenses'
-    | '/dashboard/expense-distribution'
-    | '/dashboard/investments'
     | '/dashboard/monthly-bills'
-    | '/dashboard/traffic-sources'
-    | '/finance/expenses'
-    | '/finance/stability'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardV2Route: typeof DashboardV2Route
   LoginRoute: typeof LoginRoute
   DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
-  DashboardExpenseDistributionRoute: typeof DashboardExpenseDistributionRoute
-  DashboardInvestmentsRoute: typeof DashboardInvestmentsRoute
   DashboardMonthlyBillsRoute: typeof DashboardMonthlyBillsRoute
-  DashboardTrafficSourcesRoute: typeof DashboardTrafficSourcesRoute
-  FinanceExpensesRoute: typeof FinanceExpensesRoute
-  FinanceStabilityRoute: typeof FinanceStabilityRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -157,6 +104,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard-v2': {
+      id: '/dashboard-v2'
+      path: '/dashboard-v2'
+      fullPath: '/dashboard-v2'
+      preLoaderRoute: typeof DashboardV2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -164,46 +118,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/finance/stability': {
-      id: '/finance/stability'
-      path: '/finance/stability'
-      fullPath: '/finance/stability'
-      preLoaderRoute: typeof FinanceStabilityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/finance/expenses': {
-      id: '/finance/expenses'
-      path: '/finance/expenses'
-      fullPath: '/finance/expenses'
-      preLoaderRoute: typeof FinanceExpensesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/traffic-sources': {
-      id: '/dashboard/traffic-sources'
-      path: '/dashboard/traffic-sources'
-      fullPath: '/dashboard/traffic-sources'
-      preLoaderRoute: typeof DashboardTrafficSourcesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dashboard/monthly-bills': {
       id: '/dashboard/monthly-bills'
       path: '/dashboard/monthly-bills'
       fullPath: '/dashboard/monthly-bills'
       preLoaderRoute: typeof DashboardMonthlyBillsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/investments': {
-      id: '/dashboard/investments'
-      path: '/dashboard/investments'
-      fullPath: '/dashboard/investments'
-      preLoaderRoute: typeof DashboardInvestmentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/expense-distribution': {
-      id: '/dashboard/expense-distribution'
-      path: '/dashboard/expense-distribution'
-      fullPath: '/dashboard/expense-distribution'
-      preLoaderRoute: typeof DashboardExpenseDistributionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/daily-expenses': {
@@ -218,14 +137,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardV2Route: DashboardV2Route,
   LoginRoute: LoginRoute,
   DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,
-  DashboardExpenseDistributionRoute: DashboardExpenseDistributionRoute,
-  DashboardInvestmentsRoute: DashboardInvestmentsRoute,
   DashboardMonthlyBillsRoute: DashboardMonthlyBillsRoute,
-  DashboardTrafficSourcesRoute: DashboardTrafficSourcesRoute,
-  FinanceExpensesRoute: FinanceExpensesRoute,
-  FinanceStabilityRoute: FinanceStabilityRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

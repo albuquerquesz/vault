@@ -109,12 +109,11 @@ export const AnimatedSidebarEyeIcon = forwardRef<
 });
 
 const eyeOffPathVariants: Variants = {
-	normal: { pathLength: 1, opacity: 1, pathOffset: 0 },
+	normal: { pathLength: 1, opacity: 1 },
 	animate: {
-		pathLength: [0, 2],
+		pathLength: [0, 1],
 		opacity: [0, 1],
-		pathOffset: [0, 2],
-		transition: { duration: 0.6 },
+		transition: { duration: 0.4, ease: "easeInOut" },
 	},
 };
 

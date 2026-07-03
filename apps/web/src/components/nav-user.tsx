@@ -14,15 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@vault/ui/components/dropdown-menu";
-import {
-	BellIcon,
-	BookOpenIcon,
-	CommandIcon,
-	CreditCardIcon,
-	LifeBuoyIcon,
-	LogOutIcon,
-	UserIcon,
-} from "lucide-react";
+import { UserIcon, SettingsIcon, CreditCardIcon, LogOutIcon } from "lucide-react";
 
 const user = {
 	name: "Shaban Haider",
@@ -33,10 +25,7 @@ const user = {
 export function NavUser() {
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger render={<Avatar className="size-8" />}>
-				<AvatarImage src={user.avatar} />
-				<AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger render={<Avatar className="size-8" />}><AvatarImage src={user.avatar} /><AvatarFallback>{user.name.charAt(0)}</AvatarFallback></DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-60">
 				<DropdownMenuItem className="flex items-center justify-start gap-2">
 					<DropdownMenuLabel className="flex items-center gap-3">
@@ -50,46 +39,28 @@ export function NavUser() {
 							<div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-muted-foreground text-xs">
 								{user.email}
 							</div>
-							<div className="mt-0.5 text-[10px] text-muted-foreground">
-								Dono da loja
-							</div>
 						</div>
 					</DropdownMenuLabel>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
-						<UserIcon />
-						Perfil
+						<UserIcon
+						/>
+						Account
+					</DropdownMenuItem>
+					<DropdownMenuItem>
+						<SettingsIcon
+						/>
+						Settings
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
-						<BellIcon />
-						Notificações
-					</DropdownMenuItem>
-					<DropdownMenuItem>
-						<CommandIcon />
-						Atalhos de teclado
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
-				<DropdownMenuSeparator />
-				<DropdownMenuGroup>
-					<DropdownMenuItem>
-						<LifeBuoyIcon />
-						Ajuda do vendedor
-					</DropdownMenuItem>
-					<DropdownMenuItem>
-						<BookOpenIcon />
-						Guias do vendedor
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
-				<DropdownMenuSeparator />
-				<DropdownMenuGroup>
-					<DropdownMenuItem>
-						<CreditCardIcon />
-						Plano e cobrança
+						<CreditCardIcon
+						/>
+						Plan & Billing
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
@@ -98,8 +69,9 @@ export function NavUser() {
 						className="w-full cursor-pointer"
 						variant="destructive"
 					>
-						<LogOutIcon />
-						Sair
+						<LogOutIcon
+						/>
+						Log out
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
