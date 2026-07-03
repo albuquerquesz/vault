@@ -38,6 +38,7 @@
 		"db:down": "turbo --ui=stream -F @vault/api db:down"
 	},
 	"dependencies": {
+		"class-variance-authority": "^0.7.1",
 		"dotenv": "catalog:",
 		"zod": "catalog:"
 	},

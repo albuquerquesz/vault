@@ -1,5 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Dashboard } from "@/components/dashboard";
+import {
+  ExpenseDistribution,
+  PersonalFinanceSummary,
+} from "@/components/personal-finance-summary";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/dashboard-v2")({
@@ -14,8 +17,11 @@ export const Route = createFileRoute("/dashboard-v2")({
 
 function RouteComponent() {
 	return (
-		<main className="h-full w-full">
-			<Dashboard />
+		<main className="h-full w-full p-6">
+			<div className="space-y-6">
+				<PersonalFinanceSummary />
+				<ExpenseDistribution />
+			</div>
 		</main>
 	);
 }

@@ -5,6 +5,7 @@
     "": {
       "name": "vault",
       "dependencies": {
+        "class-variance-authority": "^0.7.1",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },
