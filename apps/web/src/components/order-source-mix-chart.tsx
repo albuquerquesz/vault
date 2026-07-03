@@ -5,7 +5,6 @@ import {
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle,
 } from "@vault/ui/components/card";
 import {
 	ArrowDownRight,
@@ -31,8 +30,6 @@ type OrderSourceMixChartProps = {
 	data?: OrderSourceDatum[];
 	totalOrders?: number;
 	totalNetWorth: number;
-	periodLabel?: string;
-	deltaPct?: number;
 	loading?: boolean;
 	title?: string;
 	detailHref?: string;
@@ -60,11 +57,6 @@ const defaultData: OrderSourceDatum[] = [
 	},
 	{ source: "Outros", amount: 131, orders: 131, monthOverMonthTrend: "down" },
 ];
-
-function formatSignedPercent(value: number): string {
-	const sign = value > 0 ? "+" : "";
-	return `${sign}${value.toFixed(1)}%`;
-}
 
 function TrendIcon({ trend }: { trend: MonthOverMonthTrend }) {
 	if (trend === "up") {
@@ -98,7 +90,6 @@ export function OrderSourceMixChart({
 	totalOrders,
 	totalNetWorth,
 	title = "Distribuição dos gastos",
-	deltaPct = 0.5,
 	loading = false,
 	detailHref,
 }: OrderSourceMixChartProps) {
@@ -107,7 +98,7 @@ export function OrderSourceMixChart({
 	}
 
 	const safeData = data.length > 0 ? data : defaultData;
-	const resolvedTotalOrders = useMemo(
+	const _resolvedTotalOrders = useMemo(
 		() => totalOrders ?? safeData.reduce((sum, row) => sum + row.orders, 0),
 		[safeData, totalOrders],
 	);
@@ -123,22 +114,6 @@ export function OrderSourceMixChart({
 					{detailHref ? (
 						<DashboardCardLinkButton label={`Abrir ${title}`} to={detailHref} />
 					) : null}
-				</div>
-
-				<div className="flex flex-row items-start justify-between gap-4">
-					<div className="space-y-1">
-						<CardTitle className="text-4xl">
-							{resolvedTotalOrders.toLocaleString()}
-						</CardTitle>
-					</div>
-					<div className="space-y-1 text-right">
-						<CardTitle className="text-3xl">
-							{formatSignedPercent(deltaPct)}
-						</CardTitle>
-						<CardDescription className="text-lg">
-							vs 30 dias anteriores
-						</CardDescription>
-					</div>
 				</div>
 			</CardHeader>
 			<CardContent>
