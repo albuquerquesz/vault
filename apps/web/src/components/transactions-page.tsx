@@ -27,7 +27,7 @@ import {
 import { useMemo, useState } from "react";
 import { formatDate } from "@/components/formater";
 import Loader from "@/components/loader";
-import { MaskedMonetaryValue } from "@/components/monetary-visibility";
+import { MaskedMonetaryValue, MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 import {
   FinanceExpense,
   getMonthValue,
@@ -174,7 +174,8 @@ export function TransactionsPage() {
   }
 
   return (
-    <div className="grid gap-6">
+    <MonetaryVisibilityProvider>
+      <div className="grid gap-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
@@ -377,5 +378,6 @@ export function TransactionsPage() {
         </CardContent>
       </Card>
     </div>
+    </MonetaryVisibilityProvider>
   );
 }

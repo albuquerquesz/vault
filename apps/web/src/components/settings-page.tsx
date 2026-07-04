@@ -44,7 +44,7 @@ export function SettingsPage() {
 				<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 			</div>
 
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+			<div className="grid grid-cols-1 gap-6">
 				{/* Perfil */}
 				<Card className="financial-panel-border !pt-0 !pb-0 gap-0 p-0 ring-0">
 					<CardHeader className="px-4 py-3">
