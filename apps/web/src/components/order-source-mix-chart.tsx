@@ -104,7 +104,7 @@ export function OrderSourceMixChart({
 	);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[32rem] ring-0 md:col-span-2">
+		<Card className="financial-panel-border min-h-[32rem] ring-0">
 			<CardHeader className="gap-4">
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export function OrderSourceMixChart({
 				</div>
 			</CardHeader>
 			<CardContent>
-				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
 					<PieChart data={safeData} />
 
 					<ul

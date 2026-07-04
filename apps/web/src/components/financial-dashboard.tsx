@@ -16,8 +16,6 @@ export function FinancialDashboard() {
         .financial-panel-border {
           position: relative !important;
           border: 1px solid var(--panel-border) !important;
-          outline: 1px solid var(--panel-border) !important;
-          outline-offset: -1px !important;
           border-radius: 0 !important;
           box-shadow:
             inset 0 1px 0 color-mix(in oklab, var(--foreground) 6%, transparent),
