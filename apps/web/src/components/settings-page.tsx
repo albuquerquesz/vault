@@ -38,7 +38,7 @@ export function SettingsPage() {
 		: "?";
 
 	return (
-		<div className="space-y-6">
+		<div className="w-[1200px] mx-auto space-y-6">
 			<div className="flex items-center gap-3">
 				<SettingsIcon className="size-5 text-muted-foreground" />
 				<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>

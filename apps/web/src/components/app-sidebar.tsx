@@ -26,10 +26,10 @@ export function AppSidebar() {
       variant="sidebar"
     >
       <SidebarHeader className="h-14 justify-center border-b px-2">
-        <SidebarMenuButton render={<a href="#link" />}>
+        <div className="w-10 h-10 flex items-center justify-center">
           <LogoIcon />
           <span className="font-medium text-xl text-foreground!">Vault</span>
-        </SidebarMenuButton>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         {navGroups.map((group, index) => (

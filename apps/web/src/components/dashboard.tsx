@@ -14,7 +14,7 @@ export function Dashboard() {
 
 	return (
 		<div className="grid grid-cols-1 gap-4">
-			<h2 className="text-4xl font-semibold tracking-tight text-foreground">
+			<h2 className="text-4xl font-semibold tracking-tight text-foreground mb-6">
 				Bem-vindo de volta{firstName ? `, ${firstName}!` : "!"} 👋
 			</h2>
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr]">
