@@ -7,7 +7,6 @@ import {
 	CardHeader,
 } from "@vault/ui/components/card";
 import { ArrowUpRight, CreditCardIcon } from "lucide-react";
-import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 
 type MonthlyBillCardProps = {
 	totalBill?: number;
@@ -34,11 +33,7 @@ export function MonthlyBillCard({
 						<CreditCardIcon className="size-4 text-muted-foreground" />
 						<CardDescription className="text-base">{title}</CardDescription>
 					</div>
-					{detailHref ? (
-						<DashboardCardLinkButton label={`Abrir ${title}`} to={detailHref} />
-					) : (
-						<ArrowUpRight className="size-4 text-muted-foreground" />
-					)}
+					<ArrowUpRight className="size-4 text-muted-foreground" />
 				</div>
 			</CardHeader>
 			<CardContent className="flex flex-col gap-6">

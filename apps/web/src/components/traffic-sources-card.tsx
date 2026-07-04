@@ -8,7 +8,7 @@ import {
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
 import { Clock3Icon } from "lucide-react";
-import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
+import { ArrowUpRight } from "lucide-react";
 
 type TrafficSourceDatum = {
 	label: string;
@@ -81,7 +81,7 @@ export function TrafficSourcesCard({
 	const maxValue = Math.max(...data.map((item) => item.value), 1);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[22rem] ring-0">
+		<Card className="financial-panel-border h-full min-h-[22rem] w-full ring-0">
 			<CardHeader className="gap-4">
 				<div className="flex items-start justify-between gap-4">
 					<CardDescription className="flex items-center gap-2 text-base">
@@ -89,7 +89,7 @@ export function TrafficSourcesCard({
 						<span>{title}</span>
 					</CardDescription>
 					{detailHref ? (
-						<DashboardCardLinkButton label={`Abrir ${title}`} to={detailHref} />
+						<ArrowUpRight className="size-4 text-muted-foreground" />
 					) : null}
 				</div>
 			</CardHeader>

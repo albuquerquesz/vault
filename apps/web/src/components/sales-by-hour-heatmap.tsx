@@ -10,7 +10,7 @@ import {
 import { cn } from "@vault/ui/lib/utils";
 import { Clock3Icon } from "lucide-react";
 import { useMemo } from "react";
-import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
+import { ArrowUpRight } from "lucide-react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 
@@ -163,7 +163,7 @@ export function SalesByHourHeatmap({
 	}, [safeData]);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[22rem] ring-0">
+		<Card className="financial-panel-border h-full min-h-[22rem] w-full ring-0">
 			<CardHeader className="gap-4">
 				<div className="flex items-start justify-between gap-4">
 					<div className="flex items-center gap-2 text-muted-foreground">
@@ -171,7 +171,7 @@ export function SalesByHourHeatmap({
 						<CardDescription className="text-base">{title}</CardDescription>
 					</div>
 					{detailHref ? (
-						<DashboardCardLinkButton label={`Abrir ${title}`} to={detailHref} />
+						<ArrowUpRight className="size-4 text-muted-foreground" />
 					) : null}
 				</div>
 

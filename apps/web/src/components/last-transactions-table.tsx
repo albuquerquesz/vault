@@ -11,7 +11,6 @@ import {
 import { Skeleton } from "@vault/ui/components/skeleton";
 import { cn } from "@vault/ui/lib/utils";
 import { ReceiptTextIcon } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { formatDate } from "@/components/formater";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { useFinanceExpenses } from "@/features/finance/sdk";
@@ -54,7 +53,7 @@ export function LastTransactionsTable() {
 
   if (expensesQuery.isPending) {
     return (
-      <Card className="financial-panel-border ring-0">
+      <Card className="financial-panel-border w-full min-h-[22rem] ring-0">
         <CardHeader>
           <div className="flex items-center gap-2">
             <ReceiptTextIcon className="size-4 text-muted-foreground" />
@@ -78,7 +77,7 @@ export function LastTransactionsTable() {
   const lastFive = expenses.slice(0, 5);
 
   return (
-    <Card className="financial-panel-border ring-0">
+    <Card className="financial-panel-border w-full min-h-[22rem] ring-0">
       <CardHeader>
         <div className="flex items-center gap-2">
           <ReceiptTextIcon className="size-4 text-muted-foreground" />
@@ -128,7 +127,6 @@ export function LastTransactionsTable() {
             <div className="flex justify-center pt-2">
               <Button
                 className="text-muted-foreground"
-                render={<Link to="/transactions" />}
                 size="xs"
                 variant="ghost"
               >
