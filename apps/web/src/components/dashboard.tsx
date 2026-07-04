@@ -17,23 +17,23 @@ export function Dashboard() {
 			<h2 className="text-4xl font-semibold tracking-tight text-foreground">
 				Bem-vindo de volta{firstName ? `, ${firstName}!` : "!"} 👋
 			</h2>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-[70%_30%]">
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr]">
 				<OrderSourceMixChart
 					detailHref={dashboardDetailDefinitions.expenseDistribution.path}
 					totalNetWorth={1842}
 				/>
 				<MonthlyBillCard />
 			</div>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr]">
-				<div className="md:col-span-2">
-					<LastTransactionsTable />
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr]">
+				<LastTransactionsTable />
+				<div className="grid grid-cols-2 gap-4">
+					<TrafficSourcesCard
+						detailHref={dashboardDetailDefinitions.trafficSources.path}
+					/>
+					<SalesByHourHeatmap
+						detailHref={dashboardDetailDefinitions.dailyExpenses.path}
+					/>
 				</div>
-				<TrafficSourcesCard
-					detailHref={dashboardDetailDefinitions.trafficSources.path}
-				/>
-				<SalesByHourHeatmap
-					detailHref={dashboardDetailDefinitions.dailyExpenses.path}
-				/>
 			</div>
 		</div>
 	);
