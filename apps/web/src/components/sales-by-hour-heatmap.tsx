@@ -8,9 +8,8 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
-import { Clock3Icon } from "lucide-react";
+import { ArrowUpRight, Clock3Icon } from "lucide-react";
 import { useMemo } from "react";
-import { ArrowUpRight } from "lucide-react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 

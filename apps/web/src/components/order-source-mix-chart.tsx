@@ -119,38 +119,41 @@ export function OrderSourceMixChart({
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
 					<PieChart data={safeData} />
 
-					<ul
-						className="w-full"
-						aria-label="Detalhamento das origens de pedidos"
-					>
-						{safeData.map((row, index) => (
-							<li
-								key={row.source}
-								className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 py-3 last:pb-1"
-							>
-								<span
-									className="h-3 w-3 rounded-none"
-									style={{
-										backgroundColor: slicePalette[index % slicePalette.length],
-									}}
-								/>
-								<span className="min-w-0 truncate text-lg">{row.source}</span>
-								<span className="text-muted-foreground text-lg tabular-nums">
-									{totalNetWorth > 0
-										? `${((row.amount / totalNetWorth) * 100).toFixed(1)}%`
-										: "0%"}
-								</span>
-								<span className="text-lg tabular-nums">
-									{new Intl.NumberFormat("pt-BR", {
-										style: "currency",
-										currency: "BRL",
-										maximumFractionDigits: 0,
-									}).format(row.amount)}
-								</span>
-								<TrendIcon trend={row.monthOverMonthTrend} />
-							</li>
-						))}
-					</ul>
+					<div className="flex items-center">
+						<ul
+							className="w-full"
+							aria-label="Detalhamento das origens de pedidos"
+						>
+							{safeData.map((row, index) => (
+								<li
+									key={row.source}
+									className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 py-3 last:pb-1"
+								>
+									<span
+										className="h-3 w-3 rounded-none"
+										style={{
+											backgroundColor:
+												slicePalette[index % slicePalette.length],
+										}}
+									/>
+									<span className="min-w-0 truncate text-lg">{row.source}</span>
+									<span className="text-muted-foreground text-lg tabular-nums">
+										{totalNetWorth > 0
+											? `${((row.amount / totalNetWorth) * 100).toFixed(1)}%`
+											: "0%"}
+									</span>
+									<span className="text-lg tabular-nums">
+										{new Intl.NumberFormat("pt-BR", {
+											style: "currency",
+											currency: "BRL",
+											maximumFractionDigits: 0,
+										}).format(row.amount)}
+									</span>
+									<TrendIcon trend={row.monthOverMonthTrend} />
+								</li>
+							))}
+						</ul>
+					</div>
 				</div>
 			</CardContent>
 		</Card>

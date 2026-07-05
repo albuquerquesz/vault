@@ -74,6 +74,16 @@ fastify.get("/", async () => {
 	return "OK";
 });
 
+fastify.post("/api/webhooks/pluggy", async (req, reply) => {
+	const body = req.body;
+	// Handle item.synced events
+	if (body?.event === "item.synced") {
+		// Trigger transaction sync for the item
+		// In production, this would dispatch to a job queue
+	}
+	reply.code(200).send({ received: true });
+});
+
 fastify.listen({ port: 3000 }, (err) => {
 	if (err) {
 		fastify.log.error(err);

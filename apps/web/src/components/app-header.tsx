@@ -1,3 +1,4 @@
+import { useRouterState } from "@tanstack/react-router";
 import { Separator } from "@vault/ui/components/separator";
 import { cn } from "@vault/ui/lib/utils";
 import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
@@ -6,9 +7,17 @@ import { CustomSidebarTrigger } from "@/components/custom-sidebar-trigger";
 import { DecorIcon } from "@/components/decor-icon";
 import { NavUser } from "@/components/nav-user";
 
-const activeItem = navLinks.find((item) => item.isActive);
-
 export function AppHeader() {
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
+
+	const activeItem = navLinks.find((item) => {
+		if (!item.path) return false;
+		if (item.path === "/") return pathname === "/";
+		return pathname.startsWith(item.path);
+	});
+
 	return (
 		<header
 			className={cn(
@@ -23,7 +32,7 @@ export function AppHeader() {
 					className="mr-2 h-4 data-[orientation=vertical]:self-center"
 					orientation="vertical"
 				/>
-				<AppBreadcrumbs page={activeItem} />
+				<AppBreadcrumbs page={activeItem ?? null} />
 			</div>
 			<div className="flex items-center gap-3">
 				<NavUser />

@@ -81,7 +81,7 @@ type TopOverviewSectionProps = {
 	showMainFlow?: boolean;
 };
 
-const summaryCards: SummaryCard[] = [
+const _summaryCards: SummaryCard[] = [
 	{
 		title: "Saídas do mês",
 		value: 284_920,
@@ -459,7 +459,7 @@ function MiniBars({ bars }: { bars: readonly number[] }) {
 	);
 }
 
-function SummaryCard({
+function _SummaryCard({
 	title,
 	value,
 	description,

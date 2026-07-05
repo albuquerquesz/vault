@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PluggyRouteImport } from './routes/pluggy'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardV2RouteImport } from './routes/dashboard-v2'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardDailyExpensesRouteImport } from './routes/dashboard.daily-expenses'
 
@@ -26,14 +26,14 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PluggyRoute = PluggyRouteImport.update({
+  id: '/pluggy',
+  path: '/pluggy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardV2Route = DashboardV2RouteImport.update({
-  id: '/dashboard-v2',
-  path: '/dashboard-v2',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -49,16 +49,16 @@ const DashboardDailyExpensesRoute = DashboardDailyExpensesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
+  '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
+  '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
@@ -66,8 +66,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard-v2': typeof DashboardV2Route
   '/login': typeof LoginRoute
+  '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
@@ -76,24 +76,24 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard-v2'
     | '/login'
+    | '/pluggy'
     | '/settings'
     | '/transactions'
     | '/dashboard/daily-expenses'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard-v2'
     | '/login'
+    | '/pluggy'
     | '/settings'
     | '/transactions'
     | '/dashboard/daily-expenses'
   id:
     | '__root__'
     | '/'
-    | '/dashboard-v2'
     | '/login'
+    | '/pluggy'
     | '/settings'
     | '/transactions'
     | '/dashboard/daily-expenses'
@@ -101,8 +101,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardV2Route: typeof DashboardV2Route
   LoginRoute: typeof LoginRoute
+  PluggyRoute: typeof PluggyRoute
   SettingsRoute: typeof SettingsRoute
   TransactionsRoute: typeof TransactionsRoute
   DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
@@ -124,18 +124,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pluggy': {
+      id: '/pluggy'
+      path: '/pluggy'
+      fullPath: '/pluggy'
+      preLoaderRoute: typeof PluggyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard-v2': {
-      id: '/dashboard-v2'
-      path: '/dashboard-v2'
-      fullPath: '/dashboard-v2'
-      preLoaderRoute: typeof DashboardV2RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -157,8 +157,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardV2Route: DashboardV2Route,
   LoginRoute: LoginRoute,
+  PluggyRoute: PluggyRoute,
   SettingsRoute: SettingsRoute,
   TransactionsRoute: TransactionsRoute,
   DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,

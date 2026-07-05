@@ -1,12 +1,12 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
 import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
 import { LastTransactionsTable } from "@/components/last-transactions-table";
 import { MonthlyBillCard } from "@/components/monthly-bill-card";
 import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
 import { SalesByHourHeatmap } from "@/components/sales-by-hour-heatmap";
 import { TrafficSourcesCard } from "@/components/traffic-sources-card";
+import { authClient } from "@/lib/auth-client";
 
 export function Dashboard() {
 	const { data: session } = authClient.useSession();

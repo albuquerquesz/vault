@@ -7,8 +7,7 @@ import {
 	CardHeader,
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
-import { Clock3Icon } from "lucide-react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Clock3Icon } from "lucide-react";
 
 type TrafficSourceDatum = {
 	label: string;

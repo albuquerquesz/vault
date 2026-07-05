@@ -2,10 +2,8 @@ import type { ReactNode } from "react";
 import {
 	AnimatedSidebarChartColumnIncreasingIcon,
 	AnimatedSidebarChartNoAxesColumnIncreasingIcon,
-	AnimatedSidebarChartPieIcon,
 	AnimatedSidebarCircleHelpIcon,
 } from "@/components/animated-sidebar-icons";
-
 
 export type SidebarNavItem = {
 	title: string;
@@ -25,7 +23,7 @@ export const navGroups: SidebarNavGroup[] = [
 		label: "Produto",
 		items: [
 			{
-				title: "Painel",
+				title: "Visão Geral",
 				path: "/",
 				icon: <AnimatedSidebarChartNoAxesColumnIncreasingIcon size={20} />,
 				isActive: true,
@@ -39,11 +37,6 @@ export const navGroups: SidebarNavGroup[] = [
 				title: "Transações",
 				path: "/transactions",
 				icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
-			},
-			{
-				title: "Resumo pessoal",
-				path: "/dashboard-v2",
-				icon: <AnimatedSidebarChartPieIcon size={20} />,
 			},
 		],
 	},
