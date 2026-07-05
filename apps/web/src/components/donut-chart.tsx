@@ -2,7 +2,7 @@
 
 import { type ChartConfig, ChartContainer } from "@vault/ui/components/chart";
 import { cn } from "@vault/ui/lib/utils";
-import { Cell, Pie, PieChart as RechartsPieChart, Text } from "recharts";
+import { Cell, Pie, PieChart as RechartsPieChart } from "recharts";
 import { slicePalette } from "@/components/pie-chart";
 
 const chartConfig = {
@@ -20,7 +20,7 @@ type DonutChartProps = {
 
 export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 	return (
-		<div className={cn("flex items-center justify-center w-full", className)}>
+		<div className={cn("relative flex items-center justify-center w-full", className)}>
 			<ChartContainer config={chartConfig} className="h-[28rem] max-h-[28rem] w-full lg:h-[24rem] lg:max-h-[24rem]">
 				<RechartsPieChart
 					width={400}
@@ -46,19 +46,11 @@ export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 							/>
 						))}
 					</Pie>
-					<Text
-						x="50%"
-						y="50%"
-						textAnchor="middle"
-						dominantBaseline="central"
-						fill="hsl(var(--foreground))"
-						fontSize={28}
-						fontWeight={600}
-					>
-						{totalValue}
-					</Text>
 				</RechartsPieChart>
 			</ChartContainer>
+			<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+				<span className="text-2xl font-semibold text-foreground">{totalValue}</span>
+			</div>
 		</div>
 	);
 }
