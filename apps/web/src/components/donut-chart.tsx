@@ -20,9 +20,13 @@ type DonutChartProps = {
 
 export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 	return (
-		<div className={cn("relative h-[28rem] w-full lg:h-[24rem]", className)}>
-			<ChartContainer config={chartConfig}>
-				<RechartsPieChart accessibilityLayer>
+		<div className={cn("flex items-center justify-center w-full", className)}>
+			<ChartContainer config={chartConfig} className="h-[28rem] max-h-[28rem] w-full lg:h-[24rem] lg:max-h-[24rem]">
+				<RechartsPieChart
+					width={320}
+					height={320}
+					accessibilityLayer
+				>
 					<Pie
 						cx="50%"
 						cy="50%"
@@ -30,7 +34,7 @@ export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 						dataKey="orders"
 						innerRadius={60}
 						nameKey="source"
-						outerRadius={90}
+						outerRadius={110}
 						paddingAngle={0}
 						stroke="var(--background)"
 						strokeWidth={1}

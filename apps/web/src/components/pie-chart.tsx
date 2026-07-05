@@ -5,11 +5,11 @@ import { cn } from "@vault/ui/lib/utils";
 import { Cell, Pie, PieChart as RechartsPieChart } from "recharts";
 
 export const slicePalette = [
-	"color-mix(in oklab, var(--foreground) 35%, transparent)",
-	"color-mix(in oklab, var(--foreground) 28%, transparent)",
-	"color-mix(in oklab, var(--foreground) 22%, transparent)",
-	"color-mix(in oklab, var(--foreground) 16%, transparent)",
-	"color-mix(in oklab, var(--foreground) 10%, transparent)",
+	"color-mix(in oklab, var(--foreground) 70%, transparent)",
+	"color-mix(in oklab, var(--foreground) 55%, transparent)",
+	"color-mix(in oklab, var(--foreground) 40%, transparent)",
+	"color-mix(in oklab, var(--foreground) 30%, transparent)",
+	"color-mix(in oklab, var(--foreground) 20%, transparent)",
 ] as const;
 
 const chartConfig = {

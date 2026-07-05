@@ -5,7 +5,6 @@ import {
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle,
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
 import {
@@ -174,25 +173,27 @@ export function SalesByHourHeatmap({
 			<CardHeader className="border-b gap-4">
 				<div className="flex items-start justify-between gap-2">
 					<div className="flex items-start gap-2">
-						<div className="flex items-center gap-2 text-muted-foreground">
-							<Clock3Icon className="size-4" aria-hidden="true" />
-							<CardDescription className="text-base">{title}</CardDescription>
-						</div>
+						<CardDescription className="flex items-center gap-2 text-base">
+							<Clock3Icon className="size-4 text-muted-foreground" />
+							<span>{title}</span>
+						</CardDescription>
 					</div>
 					<Tooltip>
 						<TooltipTrigger render={<Info className="mt-0.5 size-4 text-muted-foreground" />} />
 						<TooltipContent>Mapa de calor das despesas por dia e hora</TooltipContent>
 					</Tooltip>
 				</div>
+			</CardHeader>
 
+			<CardContent className="space-y-3">
 				<div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
 					<div className="space-y-1">
-						<CardTitle className="text-4xl">
+						<p className="text-4xl font-semibold tracking-tight">
 							<MaskedMonetaryValue
 								format={(value) => formatCurrency(value, locale, currency)}
 								value={metrics.total}
 							/>
-						</CardTitle>
+						</p>
 						<p className="text-muted-foreground text-sm">
 							Pico · {metrics.peakLabel}
 						</p>
@@ -207,9 +208,6 @@ export function SalesByHourHeatmap({
 						<p className="text-muted-foreground text-sm">Média / hora</p>
 					</div>
 				</div>
-			</CardHeader>
-
-			<CardContent className="space-y-3">
 				<div className="space-y-4">
 					<div className="space-y-4">
 						<div className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-4">
@@ -249,7 +247,7 @@ export function SalesByHourHeatmap({
 													key={`${row.day}-${hour}`}
 													aria-label={`${row.day}, ${hour}h às ${(hour + 1) % 24}h: ${new Intl.NumberFormat(locale).format(value)}`}
 													className={cn(
-														"h-6 w-full rounded-[3px] border border-white/4",
+														"h-4 w-full rounded-[3px] border border-white/4",
 														INTENSITY_CLASSES[level],
 													)}
 													role="img"

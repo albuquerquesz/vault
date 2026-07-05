@@ -24,8 +24,7 @@ export function Dashboard() {
 				/>
 				<MonthlyBillCard />
 			</div>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_2fr]">
-				<LastTransactionsTable />
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr]">
 				<div className="grid grid-cols-2 gap-4">
 					<TrafficSourcesCard
 						detailHref={dashboardDetailDefinitions.trafficSources.path}
@@ -34,6 +33,7 @@ export function Dashboard() {
 						detailHref={dashboardDetailDefinitions.dailyExpenses.path}
 					/>
 				</div>
+				<LastTransactionsTable />
 			</div>
 		</div>
 	);

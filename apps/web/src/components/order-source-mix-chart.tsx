@@ -123,7 +123,7 @@ export function OrderSourceMixChart({
 					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent className="pt-0">
+			<CardContent className="pt-6">
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
 					<DonutChart
 						data={safeData}

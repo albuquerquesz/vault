@@ -5,8 +5,8 @@ import { Button } from "@vault/ui/components/button";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
-	CardTitle,
 } from "@vault/ui/components/card";
 import { Skeleton } from "@vault/ui/components/skeleton";
 import {
@@ -65,7 +65,7 @@ export function LastTransactionsTable() {
 					<div className="flex items-center justify-between gap-2">
 						<div className="flex items-center gap-2">
 							<ReceiptTextIcon className="size-4 text-muted-foreground" />
-							<CardTitle>Últimas transações</CardTitle>
+							<CardDescription className="text-base">Últimas transações</CardDescription>
 						</div>
 						<Tooltip>
 							<TooltipTrigger render={<Info className="size-4 text-muted-foreground" />} />
@@ -95,10 +95,10 @@ export function LastTransactionsTable() {
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
 						<ReceiptTextIcon className="size-4 text-muted-foreground" />
-						<CardTitle>Últimas transações</CardTitle>
+						<CardDescription className="text-base">Últimas transações</CardDescription>
 					</div>
 					<Tooltip>
-						<TooltipTrigger delay={800} render={<Info className="size-4 text-muted-foreground" />} />
+						<TooltipTrigger delay={800} render={<Info className="mt-0.5 size-4 text-muted-foreground" />} />
 						<TooltipContent>Últimas transações registradas</TooltipContent>
 					</Tooltip>
 				</div>

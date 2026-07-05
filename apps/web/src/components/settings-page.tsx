@@ -44,105 +44,101 @@ export function SettingsPage() {
 				<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 			</div>
 
-			<div className="grid grid-cols-1 gap-6">
+			<Card className="financial-panel-border !pt-0 !pb-0 gap-0 p-0 ring-0">
 				{/* Perfil */}
-				<Card className="financial-panel-border !pt-0 !pb-0 gap-0 p-0 ring-0">
-					<CardHeader className="px-4 py-3">
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<UserIcon className="size-4" />
-							<span>Perfil</span>
-						</div>
-					</CardHeader>
-					<CardContent className="px-4 py-4 space-y-4">
-						<div className="flex items-center gap-4">
-							<Avatar className="size-14">
-								<AvatarFallback>{initials}</AvatarFallback>
-							</Avatar>
-							<div>
-								<p className="font-medium text-foreground">
-									{session?.user.name || "Sem nome"}
-								</p>
-								<p className="text-sm text-muted-foreground">
-									{session?.user.email}
-								</p>
-							</div>
-						</div>
-						<Separator />
-						<div className="space-y-2">
-							<Label className="text-sm text-muted-foreground">Nome</Label>
-							<p className="text-sm text-foreground">
-								{session?.user.name || "—"}
+				<CardHeader className="px-4 py-3">
+					<div className="flex items-center gap-2 text-sm text-muted-foreground">
+						<UserIcon className="size-4" />
+						<span>Perfil</span>
+					</div>
+				</CardHeader>
+				<CardContent className="px-4 py-4 space-y-4">
+					<div className="flex items-center gap-4">
+						<Avatar className="size-14">
+							<AvatarFallback>{initials}</AvatarFallback>
+						</Avatar>
+						<div>
+							<p className="font-medium text-foreground">
+								{session?.user.name || "Sem nome"}
+							</p>
+							<p className="text-sm text-muted-foreground">
+								{session?.user.email}
 							</p>
 						</div>
-						<div className="space-y-2">
-							<Label className="text-sm text-muted-foreground">Email</Label>
-							<p className="text-sm text-foreground">{session?.user.email}</p>
-						</div>
-					</CardContent>
-				</Card>
+					</div>
+					<Separator />
+					<div className="space-y-2">
+						<Label className="text-sm text-muted-foreground">Nome</Label>
+						<p className="text-sm text-foreground">
+							{session?.user.name || "—"}
+						</p>
+					</div>
+					<div className="space-y-2">
+						<Label className="text-sm text-muted-foreground">Email</Label>
+						<p className="text-sm text-foreground">{session?.user.email}</p>
+					</div>
+				</CardContent>
 
 				{/* Conta */}
-				<Card className="financial-panel-border !pt-0 !pb-0 gap-0 p-0 ring-0">
-					<CardHeader className="px-4 py-3">
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<SettingsIcon className="size-4" />
-							<span>Conta</span>
-						</div>
-					</CardHeader>
-					<CardContent className="px-4 py-4 space-y-6">
-						<div className="space-y-2">
-							<Label className="text-sm text-muted-foreground">Tema</Label>
-							<Select value={theme} onValueChange={setTheme}>
-								<SelectTrigger className="w-full">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="light">
-										<div className="flex items-center gap-2">
-											<SunIcon className="size-4" />
-											Light
-										</div>
-									</SelectItem>
-									<SelectItem value="dark">
-										<div className="flex items-center gap-2">
-											<MoonIcon className="size-4" />
-											Dark
-										</div>
-									</SelectItem>
-									<SelectItem value="system">
-										<div className="flex items-center gap-2">
-											<SettingsIcon className="size-4" />
-											System
-										</div>
-									</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
+				<CardHeader className="px-4 py-3">
+					<div className="flex items-center gap-2 text-sm text-muted-foreground">
+						<SettingsIcon className="size-4" />
+						<span>Conta</span>
+					</div>
+				</CardHeader>
+				<CardContent className="px-4 py-4 space-y-6">
+					<div className="space-y-2">
+						<Label className="text-sm text-muted-foreground">Tema</Label>
+						<Select value={theme} onValueChange={setTheme}>
+							<SelectTrigger className="w-full">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="light">
+									<div className="flex items-center gap-2">
+										<SunIcon className="size-4" />
+										Light
+									</div>
+								</SelectItem>
+								<SelectItem value="dark">
+									<div className="flex items-center gap-2">
+										<MoonIcon className="size-4" />
+										Dark
+									</div>
+								</SelectItem>
+								<SelectItem value="system">
+									<div className="flex items-center gap-2">
+										<SettingsIcon className="size-4" />
+										System
+									</div>
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
 
-						<Separator />
+					<Separator />
 
-						<div className="space-y-2">
-							<Label className="text-sm text-muted-foreground">Sessão</Label>
-							<Button
-								variant="outline"
-								className="w-full gap-2"
-								onClick={() => {
-									authClient.signOut({
-										fetchOptions: {
-											onSuccess: () => {
-												navigate({ to: "/login" });
-											},
+					<div className="space-y-2">
+						<Label className="text-sm text-muted-foreground">Sessão</Label>
+						<Button
+							variant="outline"
+							className="w-full gap-2"
+							onClick={() => {
+								authClient.signOut({
+									fetchOptions: {
+										onSuccess: () => {
+											navigate({ to: "/login" });
 										},
-									});
-								}}
-							>
-								<LogOutIcon className="size-4" />
-								Sair
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
+									},
+								});
+							}}
+						>
+							<LogOutIcon className="size-4" />
+							Sair
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
 		</div>
 	);
 }
