@@ -9,7 +9,15 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { Skeleton } from "@vault/ui/components/skeleton";
-import { ReceiptTextIcon } from "lucide-react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@vault/ui/components/tooltip";
+import {
+	Info,
+	ReceiptTextIcon,
+} from "lucide-react";
 import { formatDate } from "@/components/formater";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { useFinanceExpenses } from "@/features/finance/sdk";
@@ -52,11 +60,17 @@ export function LastTransactionsTable() {
 
 	if (expensesQuery.isPending) {
 		return (
-			<Card className="financial-panel-border w-full min-h-[22rem] ring-0">
-				<CardHeader>
-					<div className="flex items-center gap-2">
-						<ReceiptTextIcon className="size-4 text-muted-foreground" />
-						<CardTitle>Últimas transações</CardTitle>
+			<Card className="financial-panel-border w-full min-h-[28rem] ring-0">
+				<CardHeader className="border-b">
+					<div className="flex items-center justify-between gap-2">
+						<div className="flex items-center gap-2">
+							<ReceiptTextIcon className="size-4 text-muted-foreground" />
+							<CardTitle>Últimas transações</CardTitle>
+						</div>
+						<Tooltip>
+							<TooltipTrigger delay={800} render={<Info className="size-4 text-muted-foreground" />} />
+							<TooltipContent>Últimas transações registradas</TooltipContent>
+						</Tooltip>
 					</div>
 				</CardHeader>
 				<CardContent>
@@ -76,11 +90,17 @@ export function LastTransactionsTable() {
 	const lastFive = expenses.slice(0, 5);
 
 	return (
-		<Card className="financial-panel-border w-full min-h-[22rem] ring-0">
-			<CardHeader>
-				<div className="flex items-center gap-2">
-					<ReceiptTextIcon className="size-4 text-muted-foreground" />
-					<CardTitle>Últimas transações</CardTitle>
+		<Card className="financial-panel-border w-full min-h-[28rem] ring-0">
+			<CardHeader className="border-b">
+				<div className="flex items-center justify-between gap-2">
+					<div className="flex items-center gap-2">
+						<ReceiptTextIcon className="size-4 text-muted-foreground" />
+						<CardTitle>Últimas transações</CardTitle>
+					</div>
+					<Tooltip>
+						<TooltipTrigger delay={800} render={<Info className="size-4 text-muted-foreground" />} />
+						<TooltipContent>Últimas transações registradas</TooltipContent>
+					</Tooltip>
 				</div>
 			</CardHeader>
 			<CardContent>

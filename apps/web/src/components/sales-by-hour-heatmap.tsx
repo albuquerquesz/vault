@@ -8,7 +8,15 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { cn } from "@vault/ui/lib/utils";
-import { ArrowUpRight, Clock3Icon } from "lucide-react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@vault/ui/components/tooltip";
+import {
+	Clock3Icon,
+	Info,
+} from "lucide-react";
 import { useMemo } from "react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
@@ -162,16 +170,13 @@ export function SalesByHourHeatmap({
 	}, [safeData]);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[22rem] w-full ring-0">
+		<Card className="financial-panel-border h-full min-h-[18rem] w-full ring-0">
 			<CardHeader className="gap-4">
-				<div className="flex items-start justify-between gap-4">
+				<div className="flex items-start gap-2">
 					<div className="flex items-center gap-2 text-muted-foreground">
 						<Clock3Icon className="size-4" aria-hidden="true" />
 						<CardDescription className="text-base">{title}</CardDescription>
 					</div>
-					{detailHref ? (
-						<ArrowUpRight className="size-4 text-muted-foreground" />
-					) : null}
 				</div>
 
 				<div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">

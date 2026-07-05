@@ -1,0 +1,52 @@
+"use client";
+
+import { type ChartConfig, ChartContainer } from "@vault/ui/components/chart";
+import { cn } from "@vault/ui/lib/utils";
+import { Cell, Pie, PieChart as RechartsPieChart } from "recharts";
+import { slicePalette } from "@/components/pie-chart";
+
+const chartConfig = {
+	orders: {
+		label: "Pedidos",
+		color: "var(--chart-1)",
+	},
+} satisfies ChartConfig;
+
+type DonutChartProps = {
+	data: readonly { source: string; orders: number }[];
+	totalValue: string;
+	className?: string;
+};
+
+export function DonutChart({ data, totalValue, className }: DonutChartProps) {
+	return (
+		<div className={cn("relative h-[28rem] w-full lg:h-[24rem]", className)}>
+			<ChartContainer config={chartConfig}>
+				<RechartsPieChart accessibilityLayer>
+					<Pie
+						cx="50%"
+						cy="50%"
+						data={data}
+						dataKey="orders"
+						innerRadius={50}
+						nameKey="source"
+						outerRadius="88%"
+						paddingAngle={0}
+						stroke="var(--background)"
+						strokeWidth={1}
+					>
+						{data.map((entry, index) => (
+							<Cell
+								key={entry.source}
+								fill={slicePalette[index % slicePalette.length]}
+							/>
+						))}
+					</Pie>
+				</RechartsPieChart>
+			</ChartContainer>
+			<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+				<span className="text-3xl font-semibold tabular-nums">{totalValue}</span>
+			</div>
+		</div>
+	);
+}

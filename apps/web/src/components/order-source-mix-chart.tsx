@@ -7,14 +7,21 @@ import {
 	CardHeader,
 } from "@vault/ui/components/card";
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@vault/ui/components/tooltip";
+import {
 	ArrowDownRight,
 	ArrowRight,
 	ArrowUpRight,
+	Info,
 	PieChartIcon,
 } from "lucide-react";
 import { useMemo } from "react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
-import { PieChart, slicePalette } from "@/components/pie-chart";
+import { DonutChart } from "@/components/donut-chart";
+import { slicePalette } from "@/components/pie-chart";
 
 type MonthOverMonthTrend = "up" | "down" | "neutral";
 
@@ -104,20 +111,28 @@ export function OrderSourceMixChart({
 
 	return (
 		<Card className="financial-panel-border ring-0">
-			<CardHeader className="gap-4">
+			<CardHeader className="border-b gap-4 pb-2">
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-2">
 						<PieChartIcon className="size-4 text-muted-foreground" />
 						<CardDescription className="text-base">{title}</CardDescription>
 					</div>
-					{detailHref ? (
-						<ArrowUpRight className="size-4 text-muted-foreground" />
-					) : null}
+					<Tooltip>
+						<TooltipTrigger delay={800} render={<Info className="size-4 text-muted-foreground" />} />
+						<TooltipContent>Mostra a distribuição dos seus gastos por categoria</TooltipContent>
+					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="pt-0">
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-					<PieChart data={safeData} />
+					<DonutChart
+						data={safeData}
+						totalValue={new Intl.NumberFormat("pt-BR", {
+							style: "currency",
+							currency: "BRL",
+							maximumFractionDigits: 0,
+						}).format(totalNetWorth)}
+					/>
 
 					<div className="flex items-center">
 						<ul

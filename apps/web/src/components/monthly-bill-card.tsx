@@ -6,7 +6,15 @@ import {
 	CardDescription,
 	CardHeader,
 } from "@vault/ui/components/card";
-import { CreditCardIcon } from "lucide-react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@vault/ui/components/tooltip";
+import {
+	CreditCardIcon,
+	Info,
+} from "lucide-react";
 
 type BillItem = {
 	name: string;
@@ -44,20 +52,26 @@ export function MonthlyBillCard({
 
 	return (
 		<Card className="financial-panel-border ring-0">
-			<CardHeader className="gap-4">
-				<div className="flex items-center gap-2">
-					<CreditCardIcon className="size-4 text-muted-foreground" />
-					<CardDescription className="text-base">{title}</CardDescription>
+			<CardHeader className="border-b gap-4 pb-2">
+				<div className="flex items-center justify-between gap-2">
+					<div className="flex items-center gap-2">
+						<CreditCardIcon className="size-4 text-muted-foreground" />
+						<CardDescription className="text-base">{title}</CardDescription>
+					</div>
+					<Tooltip>
+						<TooltipTrigger delay={800} render={<Info className="size-4 text-muted-foreground" />} />
+						<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
+					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent className="flex flex-col gap-6">
+			<CardContent className="flex flex-col gap-6 pt-0">
 				{/* Total */}
 				<div className="text-3xl font-semibold tabular-nums">
 					{fmt(totalBill)}
 				</div>
 
 				{/* Bill items list */}
-				<div className="space-y-4">
+				<div className="space-y-6">
 					{items.map((item) => {
 						const itemPct = item.total > 0 ? (item.paid / item.total) * 100 : 0;
 						return (

@@ -31,7 +31,7 @@ export function AppSidebar() {
 					<span className="font-medium text-xl text-foreground!">Vault</span>
 				</div>
 			</SidebarHeader>
-			<SidebarContent className="px-2">
+			<SidebarContent className="px-3">
 				<SidebarMenu>
 					{navLinks.map((item) => (
 						<SidebarMenuItem key={item.title}>

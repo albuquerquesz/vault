@@ -185,7 +185,7 @@ export function TransactionsPage() {
 							value={selectedMonth}
 							onValueChange={(v) => v && setSelectedMonth(v)}
 						>
-							<SelectTrigger className="w-[160px]">
+							<SelectTrigger className="rounded-md w-[160px]">
 								<CalendarIcon className="mr-2 h-4 w-4" />
 								<SelectValue />
 							</SelectTrigger>
@@ -202,7 +202,7 @@ export function TransactionsPage() {
 							value={categoryFilter}
 							onValueChange={(v) => v && setCategoryFilter(v)}
 						>
-							<SelectTrigger className="w-[180px]">
+							<SelectTrigger className="rounded-md w-[180px]">
 								<FilterIcon className="mr-2 h-4 w-4" />
 								<SelectValue placeholder="Todas categorias" />
 							</SelectTrigger>
@@ -220,7 +220,7 @@ export function TransactionsPage() {
 					<div className="relative w-full sm:w-auto">
 						<SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
-							className="pl-10 w-full sm:w-[280px]"
+							className="rounded-md pl-10 w-full sm:w-[280px]"
 							placeholder="Buscar transações..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}

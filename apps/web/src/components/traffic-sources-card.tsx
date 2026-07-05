@@ -6,8 +6,16 @@ import {
 	CardDescription,
 	CardHeader,
 } from "@vault/ui/components/card";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@vault/ui/components/tooltip";
 import { cn } from "@vault/ui/lib/utils";
-import { ArrowUpRight, Clock3Icon } from "lucide-react";
+import {
+	Clock3Icon,
+	Info,
+} from "lucide-react";
 
 type TrafficSourceDatum = {
 	label: string;
@@ -80,16 +88,19 @@ export function TrafficSourcesCard({
 	const maxValue = Math.max(...data.map((item) => item.value), 1);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[22rem] w-full ring-0">
-			<CardHeader className="gap-4">
-				<div className="flex items-start justify-between gap-4">
-					<CardDescription className="flex items-center gap-2 text-base">
-						<Clock3Icon className="size-4 text-muted-foreground" />
-						<span>{title}</span>
-					</CardDescription>
-					{detailHref ? (
-						<ArrowUpRight className="size-4 text-muted-foreground" />
-					) : null}
+		<Card className="financial-panel-border h-full min-h-[18rem] w-full ring-0">
+			<CardHeader className="border-b gap-4">
+				<div className="flex items-start justify-between gap-2">
+					<div className="flex items-start gap-2">
+						<CardDescription className="flex items-center gap-2 text-base">
+							<Clock3Icon className="size-4 text-muted-foreground" />
+							<span>{title}</span>
+						</CardDescription>
+					</div>
+					<Tooltip>
+						<TooltipTrigger delay={800} render={<Info className="mt-0.5 size-4 text-muted-foreground" />} />
+						<TooltipContent>Principais canais de origem de tráfego</TooltipContent>
+					</Tooltip>
 				</div>
 			</CardHeader>
 
