@@ -23,8 +23,8 @@ export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 		<div className={cn("flex items-center justify-center w-full", className)}>
 			<ChartContainer config={chartConfig} className="h-[28rem] max-h-[28rem] w-full lg:h-[24rem] lg:max-h-[24rem]">
 				<RechartsPieChart
-					width={320}
-					height={320}
+					width={400}
+					height={400}
 					accessibilityLayer
 				>
 					<Pie
@@ -32,9 +32,9 @@ export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 						cy="50%"
 						data={data}
 						dataKey="orders"
-						innerRadius={60}
+						innerRadius={70}
 						nameKey="source"
-						outerRadius={110}
+						outerRadius={120}
 						paddingAngle={0}
 						stroke="var(--background)"
 						strokeWidth={1}
@@ -51,8 +51,8 @@ export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 						y="50%"
 						textAnchor="middle"
 						dominantBaseline="central"
-						fill="var(--foreground)"
-						fontSize={24}
+						fill="hsl(var(--foreground))"
+						fontSize={28}
 						fontWeight={600}
 					>
 						{totalValue}
