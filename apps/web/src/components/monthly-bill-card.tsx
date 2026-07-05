@@ -59,7 +59,7 @@ export function MonthlyBillCard({
 						<CardDescription className="text-base">{title}</CardDescription>
 					</div>
 					<Tooltip>
-						<TooltipTrigger delay={800} render={<Info className="size-4 text-muted-foreground" />} />
+						<TooltipTrigger render={<Info className="size-4 text-muted-foreground" />} />
 						<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
 					</Tooltip>
 				</div>

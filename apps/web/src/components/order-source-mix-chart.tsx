@@ -118,7 +118,7 @@ export function OrderSourceMixChart({
 						<CardDescription className="text-base">{title}</CardDescription>
 					</div>
 					<Tooltip>
-						<TooltipTrigger delay={800} render={<Info className="size-4 text-muted-foreground" />} />
+						<TooltipTrigger render={<Info className="size-4 text-muted-foreground" />} />
 						<TooltipContent>Mostra a distribuição dos seus gastos por categoria</TooltipContent>
 					</Tooltip>
 				</div>

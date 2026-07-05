@@ -9,6 +9,7 @@ import { Toaster } from "@vault/ui/components/sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@vault/ui/components/tooltip";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
@@ -55,16 +56,18 @@ function RootComponent() {
 				forcedTheme={forcedTheme}
 				storageKey="vite-ui-theme"
 			>
-				{pathname === "/login" ? (
-					<div className="grid h-svh grid-rows-[auto_1fr]">
-						<Outlet />
-					</div>
-				) : (
-					<AppShell>
-						<Outlet />
-					</AppShell>
-				)}
-				<Toaster richColors />
+				<TooltipProvider delay={800}>
+					{pathname === "/login" ? (
+						<div className="grid h-svh grid-rows-[auto_1fr]">
+							<Outlet />
+						</div>
+					) : (
+						<AppShell>
+							<Outlet />
+						</AppShell>
+					)}
+					<Toaster richColors />
+				</TooltipProvider>
 			</ThemeProvider>
 		</>
 	);

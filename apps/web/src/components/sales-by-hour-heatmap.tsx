@@ -170,13 +170,19 @@ export function SalesByHourHeatmap({
 	}, [safeData]);
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[18rem] w-full ring-0">
-			<CardHeader className="gap-4">
-				<div className="flex items-start gap-2">
-					<div className="flex items-center gap-2 text-muted-foreground">
-						<Clock3Icon className="size-4" aria-hidden="true" />
-						<CardDescription className="text-base">{title}</CardDescription>
+		<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
+			<CardHeader className="border-b gap-4">
+				<div className="flex items-start justify-between gap-2">
+					<div className="flex items-start gap-2">
+						<div className="flex items-center gap-2 text-muted-foreground">
+							<Clock3Icon className="size-4" aria-hidden="true" />
+							<CardDescription className="text-base">{title}</CardDescription>
+						</div>
 					</div>
+					<Tooltip>
+						<TooltipTrigger render={<Info className="mt-0.5 size-4 text-muted-foreground" />} />
+						<TooltipContent>Mapa de calor das despesas por dia e hora</TooltipContent>
+					</Tooltip>
 				</div>
 
 				<div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
@@ -204,22 +210,22 @@ export function SalesByHourHeatmap({
 			</CardHeader>
 
 			<CardContent className="space-y-3">
-				<div className="space-y-2.5">
-					<div className="space-y-2.5">
-						<div className="grid grid-cols-[1.8rem_minmax(0,1fr)] items-start gap-3">
-							<div className="grid gap-2 pt-0.5 text-right text-[11px] text-muted-foreground">
+				<div className="space-y-4">
+					<div className="space-y-4">
+						<div className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-4">
+							<div className="grid gap-3 pt-0.5 text-right text-xs text-muted-foreground">
 								{safeData.map((row) => (
-									<span key={row.day} className="h-3 leading-none">
+									<span key={row.day} className="h-5 leading-none">
 										{row.day}
 									</span>
 								))}
 							</div>
 
-							<div className="grid gap-2">
+							<div className="grid gap-3">
 								{safeData.map((row) => (
 									<div
 										key={row.day}
-										className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-1"
+										className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-0.5"
 										role="group"
 										aria-labelledby={`heatmap-${row.day}`}
 									>
@@ -243,7 +249,7 @@ export function SalesByHourHeatmap({
 													key={`${row.day}-${hour}`}
 													aria-label={`${row.day}, ${hour}h às ${(hour + 1) % 24}h: ${new Intl.NumberFormat(locale).format(value)}`}
 													className={cn(
-														"h-3 w-full rounded-[2px] border border-white/4",
+														"h-5 w-full rounded-[3px] border border-white/4",
 														INTENSITY_CLASSES[level],
 													)}
 													role="img"
@@ -255,7 +261,7 @@ export function SalesByHourHeatmap({
 							</div>
 						</div>
 
-						<div className="grid grid-cols-[1.8rem_minmax(0,1fr)] gap-3 text-[11px] text-muted-foreground">
+						<div className="grid grid-cols-[2rem_minmax(0,1fr)] gap-4 text-xs text-muted-foreground">
 							<span />
 							<div className="grid grid-cols-5">
 								{HOUR_LABELS.map((label, index) => (
@@ -277,15 +283,15 @@ export function SalesByHourHeatmap({
 					</div>
 				</div>
 
-				<div className="flex items-center gap-3 text-xs text-muted-foreground">
+				<div className="flex items-center gap-3 text-sm text-muted-foreground">
 					<span>Menor</span>
-					<div className="flex items-center gap-1.5">
+					<div className="flex items-center gap-2">
 						{INTENSITY_CLASSES.map((className, index) => (
 							<span
 								key={className}
 								aria-hidden="true"
 								className={cn(
-									"h-2.5 w-3.5 rounded-[2px] border border-white/4",
+									"h-3 w-4 rounded-[3px] border border-white/4",
 									className,
 									index === INTENSITY_CLASSES.length - 1 &&
 										"shadow-[0_0_0_1px_rgba(255,255,255,0.08)]",
