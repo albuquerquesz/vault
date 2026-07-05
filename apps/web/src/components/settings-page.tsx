@@ -3,7 +3,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Avatar, AvatarFallback } from "@vault/ui/components/avatar";
 import { Button } from "@vault/ui/components/button";
-import { Card, CardContent } from "@vault/ui/components/card";
 import { Label } from "@vault/ui/components/label";
 import {
 	Select,
@@ -36,8 +35,7 @@ export function SettingsPage() {
 				<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 			</div>
 
-			<Card>
-				<CardContent className="space-y-6">
+			<div className="space-y-6">
 					{/* Profile */}
 					<div className="flex flex-col items-center gap-4 pt-2">
 						<Avatar className="size-20">
@@ -129,8 +127,7 @@ export function SettingsPage() {
 							Log out
 						</Button>
 					</div>
-				</CardContent>
-			</Card>
+			</div>
 		</div>
 	);
 }

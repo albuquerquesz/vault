@@ -4,7 +4,6 @@ import { useNavigate } from "@tanstack/react-router";
 import {
 	Avatar,
 	AvatarFallback,
-	AvatarImage,
 } from "@vault/ui/components/avatar";
 import {
 	DropdownMenu,
@@ -14,16 +13,19 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@vault/ui/components/dropdown-menu";
-import { CreditCardIcon, LogOutIcon, SettingsIcon } from "lucide-react";
+import { LogOutIcon, SettingsIcon } from "lucide-react";
 
-const user = {
-	name: "Shaban Haider",
-	email: "shaban@efferd.com",
-	avatar: "https://github.com/shabanhr.png",
-};
+import { authClient } from "@/lib/auth-client";
 
 export function NavUser() {
 	const navigate = useNavigate();
+	const { data: session } = authClient.useSession();
+
+	const name = session?.user.name ?? "";
+	const email = session?.user.email ?? "";
+	const initials = name
+		? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+		: "?";
 
 	return (
 		<DropdownMenu>
@@ -31,8 +33,7 @@ export function NavUser() {
 				render={
 					<button type="button" className="focus-visible:outline-none">
 						<Avatar className="size-8">
-							<AvatarImage src={user.avatar} />
-							<AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+							<AvatarFallback>{initials}</AvatarFallback>
 						</Avatar>
 					</button>
 				}
@@ -41,14 +42,13 @@ export function NavUser() {
 				<DropdownMenuGroup>
 					<div className="flex items-center gap-3 p-2">
 						<Avatar className="size-10">
-							<AvatarImage src={user.avatar} />
-							<AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+							<AvatarFallback>{initials}</AvatarFallback>
 						</Avatar>
 						<div>
-							<span className="font-medium text-foreground">{user.name}</span>{" "}
+							<span className="font-medium text-foreground">{name}</span>{" "}
 							<br />
 							<div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-muted-foreground text-xs">
-								{user.email}
+								{email}
 							</div>
 						</div>
 					</div>
@@ -62,16 +62,18 @@ export function NavUser() {
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
-					<DropdownMenuItem>
-						<CreditCardIcon />
-						Plan & Billing
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
-				<DropdownMenuSeparator />
-				<DropdownMenuGroup>
 					<DropdownMenuItem
 						className="w-full cursor-pointer"
 						variant="destructive"
+						onClick={() => {
+							authClient.signOut({
+								fetchOptions: {
+									onSuccess: () => {
+										navigate({ to: "/login" });
+									},
+								},
+							});
+						}}
 					>
 						<LogOutIcon />
 						Log out

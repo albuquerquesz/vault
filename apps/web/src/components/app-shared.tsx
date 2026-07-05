@@ -40,16 +40,6 @@ export const navGroups: SidebarNavGroup[] = [
       },
     ],
   },
-  {
-    label: "Administração",
-    items: [
-      {
-        title: "Configurações",
-        path: "/settings",
-        icon: <AnimatedSidebarCircleHelpIcon size={20} />,
-      },
-    ],
-  },
 ];
 
 export const navLinks: SidebarNavItem[] = [
