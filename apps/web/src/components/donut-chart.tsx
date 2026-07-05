@@ -25,12 +25,12 @@ export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 				<RechartsPieChart accessibilityLayer>
 					<Pie
 						cx="50%"
-						cy="40%"
+						cy="50%"
 						data={data}
 						dataKey="orders"
 						innerRadius={60}
 						nameKey="source"
-						outerRadius="65%"
+						outerRadius={90}
 						paddingAngle={0}
 						stroke="var(--background)"
 						strokeWidth={1}
@@ -45,7 +45,7 @@ export function DonutChart({ data, totalValue, className }: DonutChartProps) {
 				</RechartsPieChart>
 			</ChartContainer>
 			<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-				<span className="text-2xl font-semibold tabular-nums -translate-y-6">{totalValue}</span>
+				<span className="text-2xl font-semibold tabular-nums">{totalValue}</span>
 			</div>
 		</div>
 	);
