@@ -11,11 +11,12 @@ import {
 	SidebarMenuItem,
 } from "@vault/ui/components/sidebar";
 import { cn } from "@vault/ui/lib/utils";
-import { footerNavLinks, navLinks } from "@/components/app-shared";
+import { footerNavLinks, useNavLinks } from "@/components/app-shared";
 import { LatestChange } from "@/components/latest-change";
 import { LogoIcon } from "@/components/logo";
 
 export function AppSidebar() {
+	const navLinks = useNavLinks();
 	return (
 		<Sidebar
 			className={cn(

@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
+import { useLocation } from "@tanstack/react-router";
 import {
   AnimatedSidebarChartColumnIncreasingIcon,
   AnimatedSidebarChartNoAxesColumnIncreasingIcon,
-  AnimatedSidebarCircleHelpIcon,
 } from "@/components/animated-sidebar-icons";
 
 export type SidebarNavItem = {
@@ -18,6 +18,32 @@ export type SidebarNavGroup = {
   items: SidebarNavItem[];
 };
 
+const navItemsStatic: SidebarNavItem[] = [
+  {
+    title: "Visão Geral",
+    path: "/",
+    icon: <AnimatedSidebarChartNoAxesColumnIncreasingIcon size={20} />,
+  },
+  {
+    title: "Transações",
+    path: "/transactions",
+    icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
+  },
+];
+
+function useActivePath(): string {
+  const { pathname } = useLocation();
+  return pathname;
+}
+
+export function useNavLinks(): SidebarNavItem[] {
+  const activePath = useActivePath();
+  return navItemsStatic.map((item) => ({
+    ...item,
+    isActive: item.path !== undefined && activePath.startsWith(item.path),
+  }));
+}
+
 export const navGroups: SidebarNavGroup[] = [
   {
     label: "Produto",
@@ -26,7 +52,6 @@ export const navGroups: SidebarNavGroup[] = [
         title: "Visão Geral",
         path: "/",
         icon: <AnimatedSidebarChartNoAxesColumnIncreasingIcon size={20} />,
-        isActive: true,
       },
     ],
   },
@@ -40,14 +65,6 @@ export const navGroups: SidebarNavGroup[] = [
       },
     ],
   },
-];
-
-export const navLinks: SidebarNavItem[] = [
-  ...navGroups.flatMap((group) =>
-    group.items.flatMap((item) =>
-      item.subItems?.length ? [item, ...item.subItems] : [item],
-    ),
-  ),
 ];
 
 export const footerNavLinks: SidebarNavItem[] = [];

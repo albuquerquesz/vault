@@ -1,22 +1,14 @@
-import { useRouterState } from "@tanstack/react-router";
 import { Separator } from "@vault/ui/components/separator";
 import { cn } from "@vault/ui/lib/utils";
 import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
-import { navLinks } from "@/components/app-shared";
+import { useNavLinks } from "@/components/app-shared";
 import { CustomSidebarTrigger } from "@/components/custom-sidebar-trigger";
 import { DecorIcon } from "@/components/decor-icon";
 import { NavUser } from "@/components/nav-user";
 
 export function AppHeader() {
-	const pathname = useRouterState({
-		select: (state) => state.location.pathname,
-	});
-
-	const activeItem = navLinks.find((item) => {
-		if (!item.path) return false;
-		if (item.path === "/") return pathname === "/";
-		return pathname.startsWith(item.path);
-	});
+	const navLinks = useNavLinks();
+	const activeItem = navLinks.find((item) => item.isActive);
 
 	return (
 		<header

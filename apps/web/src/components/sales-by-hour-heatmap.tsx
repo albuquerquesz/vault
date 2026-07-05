@@ -223,7 +223,7 @@ export function SalesByHourHeatmap({
 								{safeData.map((row) => (
 									<div
 										key={row.day}
-										className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-px"
+										className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-0.5"
 										role="group"
 										aria-labelledby={`heatmap-${row.day}`}
 									>
