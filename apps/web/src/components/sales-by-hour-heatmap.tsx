@@ -249,7 +249,7 @@ export function SalesByHourHeatmap({
 													key={`${row.day}-${hour}`}
 													aria-label={`${row.day}, ${hour}h às ${(hour + 1) % 24}h: ${new Intl.NumberFormat(locale).format(value)}`}
 													className={cn(
-														"h-5 w-full rounded-[3px] border border-white/4",
+														"h-6 w-full rounded-[3px] border border-white/4",
 														INTENSITY_CLASSES[level],
 													)}
 													role="img"
