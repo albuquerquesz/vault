@@ -3,7 +3,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Avatar, AvatarFallback } from "@vault/ui/components/avatar";
 import { Button } from "@vault/ui/components/button";
-import { Card, CardContent, CardHeader } from "@vault/ui/components/card";
+import { Card, CardContent } from "@vault/ui/components/card";
 import { Label } from "@vault/ui/components/label";
 import {
 	Select,
@@ -45,13 +45,6 @@ export function SettingsPage() {
 			</div>
 
 			<Card className="financial-panel-border !pt-0 !pb-0 gap-0 p-0 ring-0">
-				{/* Perfil */}
-				<CardHeader className="px-4 py-3">
-					<div className="flex items-center gap-2 text-sm text-muted-foreground">
-						<UserIcon className="size-4" />
-						<span>Perfil</span>
-					</div>
-				</CardHeader>
 				<CardContent className="px-4 py-4 space-y-4">
 					<div className="flex items-center gap-4">
 						<Avatar className="size-14">
@@ -79,13 +72,6 @@ export function SettingsPage() {
 					</div>
 				</CardContent>
 
-				{/* Conta */}
-				<CardHeader className="px-4 py-3">
-					<div className="flex items-center gap-2 text-sm text-muted-foreground">
-						<SettingsIcon className="size-4" />
-						<span>Conta</span>
-					</div>
-				</CardHeader>
 				<CardContent className="px-4 py-4 space-y-6">
 					<div className="space-y-2">
 						<Label className="text-sm text-muted-foreground">Tema</Label>

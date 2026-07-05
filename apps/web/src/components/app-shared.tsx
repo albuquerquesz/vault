@@ -1,63 +1,63 @@
 import type { ReactNode } from "react";
 import {
-	AnimatedSidebarChartColumnIncreasingIcon,
-	AnimatedSidebarChartNoAxesColumnIncreasingIcon,
-	AnimatedSidebarCircleHelpIcon,
+  AnimatedSidebarChartColumnIncreasingIcon,
+  AnimatedSidebarChartNoAxesColumnIncreasingIcon,
+  AnimatedSidebarCircleHelpIcon,
 } from "@/components/animated-sidebar-icons";
 
 export type SidebarNavItem = {
-	title: string;
-	path?: string;
-	icon?: ReactNode;
-	isActive?: boolean;
-	subItems?: SidebarNavItem[];
+  title: string;
+  path?: string;
+  icon?: ReactNode;
+  isActive?: boolean;
+  subItems?: SidebarNavItem[];
 };
 
 export type SidebarNavGroup = {
-	label: string;
-	items: SidebarNavItem[];
+  label: string;
+  items: SidebarNavItem[];
 };
 
 export const navGroups: SidebarNavGroup[] = [
-	{
-		label: "Produto",
-		items: [
-			{
-				title: "Visão Geral",
-				path: "/",
-				icon: <AnimatedSidebarChartNoAxesColumnIncreasingIcon size={20} />,
-				isActive: true,
-			},
-		],
-	},
-	{
-		label: "Finanças",
-		items: [
-			{
-				title: "Transações",
-				path: "/transactions",
-				icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
-			},
-		],
-	},
-	{
-		label: "Administração",
-		items: [
-			{
-				title: "Configurações",
-				path: "/settings",
-				icon: <AnimatedSidebarCircleHelpIcon size={20} />,
-			},
-		],
-	},
+  {
+    label: "Produto",
+    items: [
+      {
+        title: "Visão Geral",
+        path: "/",
+        icon: <AnimatedSidebarChartNoAxesColumnIncreasingIcon size={20} />,
+        isActive: true,
+      },
+    ],
+  },
+  {
+    label: "Finanças",
+    items: [
+      {
+        title: "Transações",
+        path: "/transactions",
+        icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
+      },
+    ],
+  },
+  {
+    label: "Administração",
+    items: [
+      {
+        title: "Configurações",
+        path: "/settings",
+        icon: <AnimatedSidebarCircleHelpIcon size={20} />,
+      },
+    ],
+  },
 ];
 
 export const navLinks: SidebarNavItem[] = [
-	...navGroups.flatMap((group) =>
-		group.items.flatMap((item) =>
-			item.subItems?.length ? [item, ...item.subItems] : [item],
-		),
-	),
+  ...navGroups.flatMap((group) =>
+    group.items.flatMap((item) =>
+      item.subItems?.length ? [item, ...item.subItems] : [item],
+    ),
+  ),
 ];
 
 export const footerNavLinks: SidebarNavItem[] = [];

@@ -111,8 +111,8 @@ export function OrderSourceMixChart({
 
 	return (
 		<Card className="financial-panel-border ring-0">
-			<CardHeader className="border-b gap-4 pb-2">
-				<div className="flex items-center justify-between gap-4">
+			<CardHeader className="border-b">
+				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
 						<PieChartIcon className="size-4 text-muted-foreground" />
 						<CardDescription className="text-base">{title}</CardDescription>
@@ -123,15 +123,11 @@ export function OrderSourceMixChart({
 					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent className="pt-6">
+			<CardContent>
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
 					<DonutChart
 						data={safeData}
-						totalValue={new Intl.NumberFormat("pt-BR", {
-							style: "currency",
-							currency: "BRL",
-							maximumFractionDigits: 0,
-						}).format(totalNetWorth)}
+						totalValue={totalNetWorth}
 					/>
 
 					<div className="flex items-center">

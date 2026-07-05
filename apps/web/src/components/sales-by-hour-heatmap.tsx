@@ -170,9 +170,9 @@ export function SalesByHourHeatmap({
 
 	return (
 		<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
-			<CardHeader className="border-b gap-4">
-				<div className="flex items-start justify-between gap-2">
-					<div className="flex items-start gap-2">
+			<CardHeader className="border-b">
+				<div className="flex items-center justify-between gap-2">
+					<div className="flex items-center gap-2">
 						<CardDescription className="flex items-center gap-2 text-base">
 							<Clock3Icon className="size-4 text-muted-foreground" />
 							<span>{title}</span>
@@ -223,7 +223,7 @@ export function SalesByHourHeatmap({
 								{safeData.map((row) => (
 									<div
 										key={row.day}
-										className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-0.5"
+										className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-px"
 										role="group"
 										aria-labelledby={`heatmap-${row.day}`}
 									>

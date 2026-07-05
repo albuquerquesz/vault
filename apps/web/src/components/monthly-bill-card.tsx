@@ -52,7 +52,7 @@ export function MonthlyBillCard({
 
 	return (
 		<Card className="financial-panel-border ring-0">
-			<CardHeader className="border-b gap-4 pb-2">
+			<CardHeader className="border-b">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
 						<CreditCardIcon className="size-4 text-muted-foreground" />
@@ -64,7 +64,7 @@ export function MonthlyBillCard({
 					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent className="flex flex-col gap-6 pt-0">
+			<CardContent className="flex flex-col gap-6">
 				{/* Total */}
 				<div className="text-3xl font-semibold tabular-nums">
 					{fmt(totalBill)}
