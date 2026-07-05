@@ -13,13 +13,7 @@ import {
 	SelectValue,
 } from "@vault/ui/components/select";
 import { Separator } from "@vault/ui/components/separator";
-import {
-	LogOutIcon,
-	MoonIcon,
-	SettingsIcon,
-	SunIcon,
-	UserIcon,
-} from "lucide-react";
+import { LogOutIcon, MoonIcon, SettingsIcon, SunIcon } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { authClient } from "@/lib/auth-client";
 
@@ -28,84 +22,96 @@ export function SettingsPage() {
 	const { data: session } = authClient.useSession();
 	const navigate = useNavigate();
 
-	const initials = session?.user.name
-		? session.user.name
-				.split(" ")
-				.map((n) => n[0])
-				.join("")
-				.toUpperCase()
-				.slice(0, 2)
+	const name = session?.user.name ?? "";
+	const email = session?.user.email ?? "";
+	const firstName = name.split(" ")[0];
+	const initials = name
+		? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 		: "?";
 
 	return (
-		<div className="w-[1200px] mx-auto space-y-6">
+		<div className="mx-auto w-[1200px] space-y-6">
 			<div className="flex items-center gap-3">
 				<SettingsIcon className="size-5 text-muted-foreground" />
 				<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 			</div>
 
-			<Card className="financial-panel-border !pt-0 !pb-0 gap-0 p-0 ring-0">
-				<CardContent className="px-4 py-4 space-y-4">
-					<div className="flex items-center gap-4">
-						<Avatar className="size-14">
+			<Card>
+				<CardContent className="space-y-6">
+					{/* Profile */}
+					<div className="flex flex-col items-center gap-4 pt-2">
+						<Avatar className="size-20">
 							<AvatarFallback>{initials}</AvatarFallback>
 						</Avatar>
-						<div>
-							<p className="font-medium text-foreground">
-								{session?.user.name || "Sem nome"}
-							</p>
-							<p className="text-sm text-muted-foreground">
-								{session?.user.email}
-							</p>
+						<div className="text-center">
+							<p className="text-lg font-semibold">{name || "—"}</p>
+							<p className="text-sm text-muted-foreground">{email || "—"}</p>
 						</div>
 					</div>
+
 					<Separator />
-					<div className="space-y-2">
-						<Label className="text-sm text-muted-foreground">Nome</Label>
-						<p className="text-sm text-foreground">
-							{session?.user.name || "—"}
+
+					{/* Account info */}
+					<div className="space-y-4">
+						<p className="text-xs uppercase tracking-wider text-muted-foreground">
+							Account
 						</p>
-					</div>
-					<div className="space-y-2">
-						<Label className="text-sm text-muted-foreground">Email</Label>
-						<p className="text-sm text-foreground">{session?.user.email}</p>
-					</div>
-				</CardContent>
-
-				<CardContent className="px-4 py-4 space-y-6">
-					<div className="space-y-2">
-						<Label className="text-sm text-muted-foreground">Tema</Label>
-						<Select value={theme} onValueChange={setTheme}>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="light">
-									<div className="flex items-center gap-2">
-										<SunIcon className="size-4" />
-										Light
-									</div>
-								</SelectItem>
-								<SelectItem value="dark">
-									<div className="flex items-center gap-2">
-										<MoonIcon className="size-4" />
-										Dark
-									</div>
-								</SelectItem>
-								<SelectItem value="system">
-									<div className="flex items-center gap-2">
-										<SettingsIcon className="size-4" />
-										System
-									</div>
-								</SelectItem>
-							</SelectContent>
-						</Select>
+						<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label className="text-muted-foreground">Name</Label>
+								<p className="text-sm">{name || "—"}</p>
+							</div>
+							<div className="space-y-2">
+								<Label className="text-muted-foreground">Email</Label>
+								<p className="text-sm">{email || "—"}</p>
+							</div>
+						</div>
 					</div>
 
 					<Separator />
 
-					<div className="space-y-2">
-						<Label className="text-sm text-muted-foreground">Sessão</Label>
+					{/* Preferences */}
+					<div className="space-y-4">
+						<p className="text-xs uppercase tracking-wider text-muted-foreground">
+							Preferences
+						</p>
+						<div className="space-y-2">
+							<Label className="text-muted-foreground">Theme</Label>
+							<Select value={theme} onValueChange={setTheme}>
+								<SelectTrigger className="w-full">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="light">
+										<div className="flex items-center gap-2">
+											<SunIcon className="size-4" />
+											Light
+										</div>
+									</SelectItem>
+									<SelectItem value="dark">
+										<div className="flex items-center gap-2">
+											<MoonIcon className="size-4" />
+											Dark
+										</div>
+									</SelectItem>
+									<SelectItem value="system">
+										<div className="flex items-center gap-2">
+											<SettingsIcon className="size-4" />
+											System
+										</div>
+									</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+					</div>
+
+					<Separator />
+
+					{/* Session */}
+					<div className="space-y-4">
+						<p className="text-xs uppercase tracking-wider text-muted-foreground">
+							Session
+						</p>
 						<Button
 							variant="outline"
 							className="w-full gap-2"
@@ -120,7 +126,7 @@ export function SettingsPage() {
 							}}
 						>
 							<LogOutIcon className="size-4" />
-							Sair
+							Log out
 						</Button>
 					</div>
 				</CardContent>

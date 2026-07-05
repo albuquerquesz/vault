@@ -5,7 +5,6 @@ import { LastTransactionsTable } from "@/components/last-transactions-table";
 import { MonthlyBillCard } from "@/components/monthly-bill-card";
 import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
 import { SalesByHourHeatmap } from "@/components/sales-by-hour-heatmap";
-import { TrafficSourcesCard } from "@/components/traffic-sources-card";
 import { authClient } from "@/lib/auth-client";
 
 export function Dashboard() {
@@ -24,15 +23,10 @@ export function Dashboard() {
 				/>
 				<MonthlyBillCard />
 			</div>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr]">
-				<div className="grid grid-cols-2 gap-4">
-					<TrafficSourcesCard
-						detailHref={dashboardDetailDefinitions.trafficSources.path}
-					/>
-					<SalesByHourHeatmap
-						detailHref={dashboardDetailDefinitions.dailyExpenses.path}
-					/>
-				</div>
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr]">
+				<SalesByHourHeatmap
+					detailHref={dashboardDetailDefinitions.dailyExpenses.path}
+				/>
 				<LastTransactionsTable />
 			</div>
 		</div>
