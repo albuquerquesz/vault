@@ -37,11 +37,15 @@ function useActivePath(): string {
 }
 
 export function useNavLinks(): SidebarNavItem[] {
-  const activePath = useActivePath();
-  return navItemsStatic.map((item) => ({
-    ...item,
-    isActive: item.path !== undefined && activePath.startsWith(item.path),
-  }));
+	const activePath = useActivePath();
+	return navItemsStatic.map((item) => {
+		const itemPath = item.path ?? "";
+		const isActive =
+			itemPath === "/"
+				? activePath === "/"
+				: activePath.startsWith(itemPath);
+		return { ...item, isActive };
+	});
 }
 
 export const navGroups: SidebarNavGroup[] = [
