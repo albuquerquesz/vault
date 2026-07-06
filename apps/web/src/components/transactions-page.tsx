@@ -4,8 +4,8 @@ import { Badge } from "@vault/ui/components/badge";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
-	CardTitle,
 } from "@vault/ui/components/card";
 import { Input } from "@vault/ui/components/input";
 import {
@@ -15,11 +15,18 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@vault/ui/components/select";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@vault/ui/components/tooltip";
 import { cn } from "@vault/ui/lib/utils";
 import {
 	ArrowDownIcon,
 	CalendarIcon,
 	FilterIcon,
+	Info,
+	ReceiptTextIcon,
 	SearchIcon,
 	WalletIcon,
 } from "lucide-react";
@@ -29,7 +36,6 @@ import {
 	MaskedMonetaryValue,
 	MonetaryVisibilityProvider,
 } from "@/components/monetary-visibility";
-import { RecentTransactionsTable } from "@/components/recent-transactions-table";
 import {
 	type FinanceExpense,
 	getMonthValue,
@@ -164,8 +170,8 @@ export function TransactionsPage() {
 	if (expensesQuery.isError) {
 		return (
 			<Card className="financial-panel-border ring-0">
-				<CardHeader>
-					<CardTitle>Erro ao carregar</CardTitle>
+				<CardHeader className="border-b">
+					<CardDescription>Erro ao carregar</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<p className="text-muted-foreground">
@@ -178,64 +184,75 @@ export function TransactionsPage() {
 
 	return (
 		<MonetaryVisibilityProvider>
-			<div className="grid gap-6">
-				{/* Filters bar */}
-				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-					<div className="flex items-center gap-2">
-						<Select
-							value={selectedMonth}
-							onValueChange={(v) => v && setSelectedMonth(v)}
-						>
-							<SelectTrigger className="rounded-md w-[160px]">
-								<CalendarIcon className="mr-2 h-4 w-4" />
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{monthOptions.map((opt) => (
-									<SelectItem key={opt.value} value={opt.value}>
-										{opt.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+			<div className="grid gap-4">
+				{/* Filters card */}
+				<Card className="financial-panel-border ring-0">
+					<CardHeader className="border-b">
+						<div className="flex items-center justify-between gap-2">
+							<CardDescription className="flex items-center gap-2 text-base">
+								<FilterIcon className="size-4 text-muted-foreground" />
+								Filtros
+							</CardDescription>
+						</div>
+					</CardHeader>
+					<CardContent>
+						<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+							<div className="flex items-center gap-2">
+								<Select
+									value={selectedMonth}
+									onValueChange={(v) => v && setSelectedMonth(v)}
+								>
+									<SelectTrigger className="rounded-md w-[160px]">
+										<CalendarIcon className="mr-2 h-4 w-4" />
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{monthOptions.map((opt) => (
+											<SelectItem key={opt.value} value={opt.value}>
+												{opt.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 
-						<Select
-							value={categoryFilter}
-							onValueChange={(v) => v && setCategoryFilter(v)}
-						>
-							<SelectTrigger className="rounded-md w-[180px]">
-								<FilterIcon className="mr-2 h-4 w-4" />
-								<SelectValue placeholder="Todas categorias" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">Todas categorias</SelectItem>
-								{CATEGORIES.map((cat) => (
-									<SelectItem key={cat} value={cat}>
-										{cat}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+								<Select
+									value={categoryFilter}
+									onValueChange={(v) => v && setCategoryFilter(v)}
+								>
+									<SelectTrigger className="rounded-md w-[180px]">
+										<SelectValue placeholder="Todas categorias" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">Todas categorias</SelectItem>
+										{CATEGORIES.map((cat) => (
+											<SelectItem key={cat} value={cat}>
+												{cat}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
 
-					<div className="relative w-full sm:w-auto">
-						<SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-						<Input
-							className="rounded-md pl-10 w-full sm:w-[280px]"
-							placeholder="Buscar transações..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-						/>
-					</div>
-				</div>
+							<div className="relative w-full sm:w-auto">
+								<SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+								<Input
+									className="rounded-md pl-10 w-full sm:w-[280px]"
+									placeholder="Buscar transações..."
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+								/>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
 
 				{/* Summary cards */}
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 					<Card className="financial-panel-border ring-0">
-						<CardHeader className="pb-2">
-							<CardTitle className="text-sm font-medium text-muted-foreground">
+						<CardHeader className="border-b">
+							<CardDescription className="text-base">
 								Total gasto
-							</CardTitle>
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="flex items-center gap-2">
@@ -251,10 +268,10 @@ export function TransactionsPage() {
 					</Card>
 
 					<Card className="financial-panel-border ring-0">
-						<CardHeader className="pb-2">
-							<CardTitle className="text-sm font-medium text-muted-foreground">
+						<CardHeader className="border-b">
+							<CardDescription className="text-base">
 								Orçamento diário
-							</CardTitle>
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="flex items-center gap-2">
@@ -275,10 +292,10 @@ export function TransactionsPage() {
 					</Card>
 
 					<Card className="financial-panel-border ring-0">
-						<CardHeader className="pb-2">
-							<CardTitle className="text-sm font-medium text-muted-foreground">
+						<CardHeader className="border-b">
+							<CardDescription className="text-base">
 								Transações
-							</CardTitle>
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<span className="text-2xl font-semibold">
@@ -293,8 +310,23 @@ export function TransactionsPage() {
 
 				{/* Transaction list */}
 				<Card className="financial-panel-border ring-0">
-					<CardHeader>
-						<CardTitle>Extrato</CardTitle>
+					<CardHeader className="border-b">
+						<div className="flex items-center justify-between gap-2">
+							<CardDescription className="flex items-center gap-2 text-base">
+								<ReceiptTextIcon className="size-4 text-muted-foreground" />
+								Extrato
+							</CardDescription>
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<Info className="mt-0.5 size-4 text-muted-foreground" />
+									}
+								/>
+								<TooltipContent>
+									Despesas registradas no período selecionado
+								</TooltipContent>
+							</Tooltip>
+						</div>
 					</CardHeader>
 					<CardContent>
 						{groupedExpenses.size === 0 ? (
@@ -360,8 +392,6 @@ export function TransactionsPage() {
 						)}
 					</CardContent>
 				</Card>
-
-				<RecentTransactionsTable />
 			</div>
 		</MonetaryVisibilityProvider>
 	);

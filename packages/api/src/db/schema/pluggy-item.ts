@@ -1,12 +1,12 @@
 import { relations } from "drizzle-orm";
-import { index, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { user } from "./user";
 
 export const pluggyItems = pgTable(
 	"pluggy_items",
 	{
 		id: uuid("id").defaultRandom().primaryKey(),
-		userId: uuid("user_id")
+		userId: text("user_id")
 			.references(() => user.id, { onDelete: "cascade" })
 			.notNull(),
 		pluggyItemId: varchar("pluggy_item_id", { length: 255 }).notNull(),

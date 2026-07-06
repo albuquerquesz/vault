@@ -90,6 +90,10 @@ export const financeRouter = router({
 				})
 				.returning();
 
+			if (!createdExpense) {
+				throw new Error("Falha ao criar despesa");
+			}
+
 			return serializeExpense(createdExpense);
 		}),
 	upsertMonthlyBudget: protectedProcedure
@@ -115,6 +119,10 @@ export const financeRouter = router({
 					},
 				})
 				.returning();
+
+			if (!budget) {
+				throw new Error("Falha ao salvar orcamento mensal");
+			}
 
 			return serializeMonthlyBudget(budget);
 		}),

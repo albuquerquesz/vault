@@ -1,7 +1,6 @@
 import { env } from "../db/env";
 
 const PLUGGY_API = "https://api.pluggy.ai";
-const PLUGGY_AUTH = "https://auth.pluggy.ai";
 
 let cachedApiKey: { key: string; expiresAt: number } | null = null;
 
@@ -10,12 +9,12 @@ async function getApiKey(): Promise<string> {
 		return cachedApiKey.key;
 	}
 
-	const res = await fetch(`${PLUGGY_AUTH}/auth`, {
+	const res = await fetch(`${PLUGGY_API}/auth`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
-			client_id: env.PLUGGY_CLIENT_ID,
-			client_secret: env.PLUGGY_CLIENT_SECRET,
+			clientId: env.PLUGGY_CLIENT_ID,
+			clientSecret: env.PLUGGY_CLIENT_SECRET,
 		}),
 	});
 
@@ -24,10 +23,10 @@ async function getApiKey(): Promise<string> {
 		throw new Error(`Pluggy auth failed (${res.status}): ${text}`);
 	}
 
-	const data = (await res.json()) as { api_key: string; expires_in: number };
+	const data = (await res.json()) as { apiKey: string; expiresIn?: number };
 	cachedApiKey = {
-		key: data.api_key,
-		expiresAt: Date.now() + (data.expires_in ?? 7200) * 1000,
+		key: data.apiKey,
+		expiresAt: Date.now() + (data.expiresIn ?? 7200) * 1000,
 	};
 	return cachedApiKey.key;
 }
@@ -41,7 +40,7 @@ async function pluggyFetch(
 		...opts,
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${apiKey}`,
+			"X-API-KEY": apiKey,
 			...opts.headers,
 		},
 	});
@@ -59,8 +58,7 @@ async function pluggyFetch(
 }
 
 export interface PluggyConnectToken {
-	connect_token: string;
-	expires_at: string;
+	accessToken: string;
 }
 
 export interface PluggyTransaction {

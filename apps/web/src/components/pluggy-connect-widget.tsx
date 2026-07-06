@@ -14,7 +14,7 @@ export function PluggyConnectWidget() {
 	useEffect(() => {
 		getConnectToken()
 			.then((data) => {
-				setConnectToken(data.connect_token);
+				setConnectToken(data.accessToken);
 			})
 			.catch((err: Error) => {
 				setError(err.message);
