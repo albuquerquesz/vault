@@ -12,7 +12,7 @@ export function Dashboard() {
 	const firstName = session?.user.name?.split(" ")[0] ?? "";
 
 	return (
-		<div className="grid grid-cols-1 gap-4">
+		<div className="grid grid-cols-1 gap-4 pt-6">
 			<h2 className="text-4xl font-semibold tracking-tight text-foreground mb-6">
 				Bem-vindo de volta{firstName ? `, ${firstName}!` : "!"} 👋
 			</h2>

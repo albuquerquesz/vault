@@ -8,7 +8,18 @@ import { env } from "@/common/env";
 export const queryClient = new QueryClient({
 	queryCache: new QueryCache({
 		onError: (error, query) => {
-			toast.error(error.message, {
+			const raw = error.message;
+			// Sanitize: never expose SQL, stack traces, or internal details
+			const isInternal =
+				/\b(select|insert|update|delete|create|drop|alter)\b/i.test(raw) ||
+				raw.includes("Failed query") ||
+				raw.includes("params:") ||
+				raw.includes("stack:") ||
+				raw.includes("at ");
+			const message = isInternal
+				? "Erro ao carregar os dados. Tente novamente."
+				: raw;
+			toast.error(message, {
 				action: {
 					label: "retry",
 					onClick: query.invalidate,
