@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@vault/ui/components/avatar";
 import { Badge } from "@vault/ui/components/badge";
 import { Button } from "@vault/ui/components/button";
 import {
@@ -53,10 +52,6 @@ function SkeletonRow() {
 			<Skeleton className="h-4 w-16 shrink-0" />
 			<Skeleton className="h-5 w-20 shrink-0" />
 			<Skeleton className="h-4 w-20 shrink-0" />
-			<div className="flex items-center gap-2 shrink-0">
-				<Skeleton className="size-6 rounded-full" />
-				<Skeleton className="h-4 w-16" />
-			</div>
 		</div>
 	);
 }
@@ -79,8 +74,6 @@ export function RecentTransactionsTable() {
 				<div className="divide-y">
 					{transactions.map((tx) => {
 						const amount = Number(tx.amount);
-						const providerInitial =
-							(tx.provider ?? "?")[0]?.toUpperCase() ?? "?";
 
 						return (
 							<div
@@ -110,17 +103,6 @@ export function RecentTransactionsTable() {
 								>
 									{formatBRLSigned(amount)}
 								</span>
-
-								<div className="flex items-center gap-2 shrink-0">
-									<Avatar className="size-6">
-										<AvatarFallback className="size-6 bg-emerald-500/20 text-emerald-500 text-xs font-medium">
-											{providerInitial}
-										</AvatarFallback>
-									</Avatar>
-									<span className="text-sm text-muted-foreground">
-										{tx.provider ?? "—"}
-									</span>
-								</div>
 							</div>
 						);
 					})}
