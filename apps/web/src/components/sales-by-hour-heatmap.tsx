@@ -109,11 +109,11 @@ function clampHeatmapData(
 
 function formatCurrency(
 	value: number,
-	locale: string,
+	_locale: string,
 	currency: string,
 	maximumFractionDigits = 1,
 ) {
-	return new Intl.NumberFormat(locale, {
+	return new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency,
 		notation: "compact",

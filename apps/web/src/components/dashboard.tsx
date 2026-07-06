@@ -24,12 +24,18 @@ export function Dashboard() {
 				/>
 				<MonthlyBillCard />
 			</div>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr]">
-				<SalesByHourHeatmap
-					detailHref={dashboardDetailDefinitions.dailyExpenses.path}
-				/>
-				<RecentTransactionsTable />
-							<GoalsCard />
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-10">
+				<div className="md:col-span-3">
+					<SalesByHourHeatmap
+						detailHref={dashboardDetailDefinitions.dailyExpenses.path}
+					/>
+				</div>
+				<div className="md:col-span-3">
+					<GoalsCard />
+				</div>
+				<div className="md:col-span-4">
+					<RecentTransactionsTable />
+				</div>
 			</div>
 		</div>
 	);

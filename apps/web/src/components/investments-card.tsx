@@ -53,10 +53,10 @@ function formatCurrency(value: number, locale = "pt-BR", currency = "BRL") {
 
 function _formatCompactCurrency(
 	value: number,
-	locale = "pt-BR",
+	_locale = "pt-BR",
 	currency = "BRL",
 ) {
-	return new Intl.NumberFormat(locale, {
+	return new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency,
 		notation: "compact",
@@ -69,7 +69,10 @@ function formatAxisCurrency(value: number) {
 		return "R$ 0";
 	}
 
-	return `${Math.round(value / 1_000)} mil`;
+	return new Intl.NumberFormat("en-US", {
+		notation: "compact",
+		maximumFractionDigits: 0,
+	}).format(value);
 }
 
 function getChartMaxWithHeadroom(

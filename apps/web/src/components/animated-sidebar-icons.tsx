@@ -64,7 +64,7 @@ export const AnimatedSidebarEyeIcon = forwardRef<
 
 	return (
 		<div
-			className={cn(className)}
+			className={cn("flex items-center justify-center leading-none", className)}
 			onMouseEnter={handleMouseEnter}
 			onMouseLeave={handleMouseLeave}
 			role="presentation"
@@ -154,7 +154,7 @@ export const AnimatedSidebarEyeOffIcon = forwardRef<
 
 	return (
 		<div
-			className={cn(className)}
+			className={cn("flex items-center justify-center leading-none", className)}
 			onMouseEnter={handleMouseEnter}
 			onMouseLeave={handleMouseLeave}
 			role="presentation"

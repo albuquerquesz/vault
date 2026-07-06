@@ -1,8 +1,13 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Button } from "@vault/ui/components/button";
-import { Card, CardContent, CardHeader } from "@vault/ui/components/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@vault/ui/components/card";
 import { Input } from "@vault/ui/components/input";
-import { Plus, Target, XIcon } from "lucide-react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@vault/ui/components/tooltip";
+import { Info, Target, XIcon } from "lucide-react";
 import { useState } from "react";
 import { type Goal, useCreateGoal, useGoals } from "@/features/finance/sdk";
 
@@ -38,24 +43,27 @@ function GoalsCard() {
 
 	return (
 		<Card className="financial-panel-border w-full">
-			<CardHeader>
-				<div className="flex items-center justify-between">
+			<CardHeader className="border-b">
+				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
-						<Target className="size-4 text-muted-foreground" />
-						<span className="text-sm font-medium">Metas</span>
+						<CardDescription className="flex items-center gap-2 text-base">
+							<Target className="size-4 text-muted-foreground" />
+							<span>Metas</span>
+						</CardDescription>
 					</div>
-					<Button
-						variant="ghost"
-						size="sm"
-						className="gap-1 text-muted-foreground"
-						onClick={() => setOpen(true)}
-					>
-						<Plus className="size-3.5" />
-						Adicionar
-					</Button>
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Info className="mt-0.5 size-4 text-muted-foreground" />
+							}
+						/>
+						<TooltipContent>
+							Acompanhe o progresso das suas metas financeiras
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="space-y-3">
 				{isLoading ? (
 					<div className="text-sm text-muted-foreground">Carregando...</div>
 				) : goals?.length === 0 ? (
