@@ -41,6 +41,7 @@
 	"dependencies": {
 		"class-variance-authority": "^0.7.1",
 		"dotenv": "catalog:",
+		"pg": "^8.22.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

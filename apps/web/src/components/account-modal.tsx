@@ -32,109 +32,112 @@ export function AccountModal({ open, onOpenChange }: { open: boolean; onOpenChan
 
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
-			<Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs" />
-			<Dialog.Popup
-				className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 bg-card text-card-foreground shadow-2xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 sm:rounded-xl"
-				focusManagement="initialFocus"
-			>
-				<div className="flex flex-col gap-4 p-6">
-					{/* Title + Close */}
-					<div className="flex items-center justify-between">
-						<h2 className="text-lg font-semibold tracking-tight">Conta</h2>
-						<Dialog.Close as={Button} variant="ghost" size="icon-sm" className="h-8 w-8">
-							<XIcon className="size-4" />
-						</Dialog.Close>
-					</div>
-
-					{/* User card */}
-					<div className="flex items-center gap-3 rounded-xl border border-border p-3">
-						<Avatar className="size-12">
-							<AvatarFallback className="text-sm">{initials}</AvatarFallback>
-						</Avatar>
-						<div className="min-w-0 flex-1">
-							<p className="truncate text-sm font-medium">{name || "—"}</p>
-							<p className="truncate text-xs text-muted-foreground">{email || "—"}</p>
+			<Dialog.Portal>
+				<Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs" />
+				<Dialog.Popup
+					className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 bg-card text-card-foreground shadow-2xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 sm:rounded-xl"
+				>
+					<div className="flex flex-col gap-4 p-6">
+						{/* Title + Close */}
+						<div className="flex items-center justify-between">
+							<h2 className="text-lg font-semibold tracking-tight">Conta</h2>
+							<Dialog.Close
+								render={<Button variant="ghost" size="icon-sm" className="h-8 w-8" />}
+							>
+								<XIcon className="size-4" />
+							</Dialog.Close>
 						</div>
-						<Button variant="outline" size="sm" className="shrink-0" disabled>
-							Grátis
-						</Button>
-					</div>
 
-					<Separator />
-
-					{/* Perfil e Acesso */}
-					<div className="space-y-4">
-						<p className="text-xs uppercase tracking-wider text-muted-foreground">
-							Perfil e Acesso
-						</p>
-						<div className="grid grid-cols-2 gap-4">
-							<div className="space-y-2">
-								<Label className="text-xs text-muted-foreground">Nome</Label>
-								<Input
-									value={editName}
-									onChange={(e) => setEditName(e.target.value)}
-								/>
+						{/* User card */}
+						<div className="flex items-center gap-3 rounded-xl border border-border p-3">
+							<Avatar className="size-12">
+								<AvatarFallback className="text-sm">{initials}</AvatarFallback>
+							</Avatar>
+							<div className="min-w-0 flex-1">
+								<p className="truncate text-sm font-medium">{name || "—"}</p>
+								<p className="truncate text-xs text-muted-foreground">{email || "—"}</p>
 							</div>
-							<div className="space-y-2">
-								<Label className="text-xs text-muted-foreground">Nova e-mail</Label>
-								<Input
-									type="email"
-									value={editEmail}
-									onChange={(e) => setEditEmail(e.target.value)}
-								/>
-							</div>
-						</div>
-						<div className="grid grid-cols-2 gap-4">
-							<Button size="sm" disabled>
-								Salvar nome
-							</Button>
-							<Button variant="outline" size="sm" disabled>
-								Enviar link de confirmação
+							<Button variant="outline" size="sm" className="shrink-0" disabled>
+								Grátis
 							</Button>
 						</div>
-					</div>
 
-					<Separator />
+						<Separator />
 
-					{/* Senha */}
-					<div className="flex items-start justify-between gap-4">
-						<div className="space-y-1">
-							<p className="text-sm font-medium">Senha</p>
-							<p className="max-w-sm text-xs text-muted-foreground">
-								Enviamos um link seguro pro seu e-mail pra você escolher uma nova senha.
+						{/* Perfil e Acesso */}
+						<div className="space-y-4">
+							<p className="text-xs uppercase tracking-wider text-muted-foreground">
+								Perfil e Acesso
 							</p>
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-2">
+									<Label className="text-xs text-muted-foreground">Nome</Label>
+									<Input
+										value={editName}
+										onChange={(e) => setEditName(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label className="text-xs text-muted-foreground">Nova e-mail</Label>
+									<Input
+										type="email"
+										value={editEmail}
+										onChange={(e) => setEditEmail(e.target.value)}
+									/>
+								</div>
+							</div>
+							<div className="grid grid-cols-2 gap-4">
+								<Button size="sm" disabled>
+									Salvar nome
+								</Button>
+								<Button variant="outline" size="sm" disabled>
+									Enviar link de confirmação
+								</Button>
+							</div>
 						</div>
-						<Button variant="outline" size="sm" className="shrink-0" disabled>
+
+						<Separator />
+
+						{/* Senha */}
+						<div className="flex items-start justify-between gap-4">
+							<div className="space-y-1">
+								<p className="text-sm font-medium">Senha</p>
+								<p className="max-w-sm text-xs text-muted-foreground">
+									Enviamos um link seguro pro seu e-mail pra você escolher uma nova senha.
+								</p>
+							</div>
+							<Button variant="outline" size="sm" className="shrink-0" disabled>
 								Redefinir senha
 							</Button>
-					</div>
+						</div>
 
-					<Separator />
+						<Separator />
 
-					{/* Footer */}
-					<div className="flex items-center justify-between">
-						<Button variant="ghost" size="sm" className="text-muted-foreground" disabled>
-							Apagar conta
-						</Button>
-						<Button
-							variant="destructive"
-							size="sm"
-							onClick={() => {
-								authClient.signOut({
-									fetchOptions: {
-										onSuccess: () => {
-											navigate({ to: "/login" });
+						{/* Footer */}
+						<div className="flex items-center justify-between">
+							<Button variant="ghost" size="sm" className="text-muted-foreground" disabled>
+								Apagar conta
+							</Button>
+							<Button
+								variant="destructive"
+								size="sm"
+								onClick={() => {
+									authClient.signOut({
+										fetchOptions: {
+											onSuccess: () => {
+												navigate({ to: "/login" });
+											},
 										},
-									},
-								});
-							}}
-						>
-							<LogOutIcon className="mr-1.5 size-4" />
-							Sair
-						</Button>
+									});
+								}}
+							>
+								<LogOutIcon className="mr-1.5 size-4" />
+								Sair
+							</Button>
+						</div>
 					</div>
-				</div>
-			</Dialog.Popup>
+				</Dialog.Popup>
+			</Dialog.Portal>
 		</Dialog.Root>
 	);
 }

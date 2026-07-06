@@ -186,27 +186,16 @@ export function SalesByHourHeatmap({
 			</CardHeader>
 
 			<CardContent className="space-y-3">
-				<div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
-					<div className="space-y-1">
-						<p className="text-4xl font-semibold tracking-tight">
-							<MaskedMonetaryValue
-								format={(value) => formatCurrency(value, locale, currency)}
-								value={metrics.total}
-							/>
-						</p>
-						<p className="text-muted-foreground text-sm">
-							Pico · {metrics.peakLabel}
-						</p>
-					</div>
-					<div className="space-y-1 text-right">
-						<p className="text-xl font-semibold tracking-tight">
-							<MaskedMonetaryValue
-								format={(value) => formatCurrency(value, locale, currency)}
-								value={metrics.averagePerHour}
-							/>
-						</p>
-						<p className="text-muted-foreground text-sm">Média / hora</p>
-					</div>
+				<div className="space-y-1">
+					<p className="text-4xl font-semibold tracking-tight">
+						<MaskedMonetaryValue
+							format={(value) => formatCurrency(value, locale, currency)}
+							value={metrics.total}
+						/>
+					</p>
+					<p className="text-muted-foreground text-sm">
+						Pico · {metrics.peakLabel}
+					</p>
 				</div>
 				<div className="space-y-4">
 					<div className="space-y-4">

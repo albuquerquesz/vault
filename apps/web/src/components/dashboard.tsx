@@ -2,6 +2,7 @@
 
 import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
 import { MonthlyBillCard } from "@/components/monthly-bill-card";
+import { GoalsCard } from "@/components/goals-card";
 import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
 import { RecentTransactionsTable } from "@/components/recent-transactions-table";
 import { SalesByHourHeatmap } from "@/components/sales-by-hour-heatmap";
@@ -23,11 +24,12 @@ export function Dashboard() {
 				/>
 				<MonthlyBillCard />
 			</div>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr]">
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr]">
 				<SalesByHourHeatmap
 					detailHref={dashboardDetailDefinitions.dailyExpenses.path}
 				/>
 				<RecentTransactionsTable />
+							<GoalsCard />
 			</div>
 		</div>
 	);

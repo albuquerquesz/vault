@@ -1,6 +1,7 @@
 export * from "./account";
 export * from "./auth";
 export * from "./expense";
+export * from "./goal";
 export * from "./monthly-budget";
 export * from "./pluggy-item";
 export * from "./pluggy-transaction";

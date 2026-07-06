@@ -1,6 +1,6 @@
 import { and, eq, gte, lte, sum } from "drizzle-orm";
 import { z } from "zod";
-import { expense, monthlyBudget } from "../db/schema";
+import { expense, goal, monthlyBudget } from "../db/schema";
 import { protectedProcedure, router } from "../index";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -37,6 +37,20 @@ function serializeMonthlyBudget(record: typeof monthlyBudget.$inferSelect) {
 		income: Number(record.income),
 	};
 }
+
+function serializeGoal(record: typeof goal.$inferSelect) {
+	return {
+		...record,
+		targetAmount: Number(record.targetAmount),
+		currentAmount: Number(record.currentAmount),
+	};
+}
+
+const goalInput = z.object({
+	name: z.string().trim().min(1).max(128),
+	targetAmount: z.number().positive(),
+	currentAmount: z.number().min(0).default(0).optional(),
+});
 
 export const financeRouter = router({
 	listExpenses: protectedProcedure
@@ -162,5 +176,53 @@ export const financeRouter = router({
 						? remainingBudget / remainingDays
 						: 0,
 			};
+		}),
+	listGoals: protectedProcedure.query(async ({ ctx }) => {
+			const goals = await ctx.db.query.goal.findMany({
+				where: eq(goal.userId, ctx.session.user.id),
+				orderBy: (fields, operators) => [operators.asc(fields.createdAt)],
+			});
+
+			return goals.map(serializeGoal);
+		}),
+	createGoal: protectedProcedure
+		.input(goalInput)
+		.mutation(async ({ ctx, input }) => {
+			const created = (await ctx.db
+				.insert(goal)
+				.values({
+					userId: ctx.session.user.id,
+					name: input.name,
+					targetAmount: input.targetAmount.toFixed(2),
+					currentAmount: (input.currentAmount ?? 0).toFixed(2),
+				})
+				.returning())[0]!;
+
+			return serializeGoal(created);
+		}),
+	updateGoal: protectedProcedure
+		.input(
+			z.object({
+				id: z.string(),
+				currentAmount: z.number().min(0),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const updated = (await ctx.db
+				.update(goal)
+				.set({ currentAmount: input.currentAmount.toFixed(2) })
+				.where(
+					and(
+						eq(goal.id, input.id),
+						eq(goal.userId, ctx.session.user.id),
+					),
+				)
+				.returning())[0];
+
+			if (!updated) {
+				throw new Error("Meta não encontrada");
+			}
+
+			return serializeGoal(updated);
 		}),
 });

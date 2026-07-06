@@ -97,3 +97,37 @@ export function useUpsertMonthlyBudget(
 		financeSdk.upsertMonthlyBudgetMutationOptions(month, queryClient, today),
 	);
 }
+
+// --- Goals ---
+
+export type Goal = RouterOutputs["finance"]["listGoals"][number];
+export type CreateGoalInput = RouterInputs["finance"]["createGoal"];
+export type UpdateGoalInput = RouterInputs["finance"]["updateGoal"];
+
+export const goalsSdk = {
+	listGoalsOptions: () => trpc.finance.listGoals.queryOptions(),
+
+	createGoalMutationOptions: (client: QueryClient = queryClient) =>
+		trpc.finance.createGoal.mutationOptions({
+			onSuccess: () =>
+				client.invalidateQueries(trpc.finance.listGoals.queryFilter()),
+		}),
+
+	updateGoalMutationOptions: (client: QueryClient = queryClient) =>
+		trpc.finance.updateGoal.mutationOptions({
+			onSuccess: () =>
+				client.invalidateQueries(trpc.finance.listGoals.queryFilter()),
+		}),
+};
+
+export function useGoals() {
+	return useQuery(goalsSdk.listGoalsOptions());
+}
+
+export function useCreateGoal() {
+	return useMutation(goalsSdk.createGoalMutationOptions());
+}
+
+export function useUpdateGoal() {
+	return useMutation(goalsSdk.updateGoalMutationOptions());
+}
