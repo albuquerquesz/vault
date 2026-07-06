@@ -13,7 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@vault/ui/components/dropdown-menu";
-import { LogOutIcon, SettingsIcon } from "lucide-react";
+import { LogOutIcon } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
 

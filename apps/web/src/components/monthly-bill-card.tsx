@@ -85,7 +85,7 @@ export function MonthlyBillCard({
 									</div>
 									<span className="font-medium">{item.name}</span>
 								</div>
-								<div className="flex items-center gap-2 tabular-nums">
+								<div className="flex items-center gap-2 tabular-nums text-lg">
 									<span>{fmt(item.paid)}</span>
 									<span className="text-muted-foreground">
 										/ {fmt(item.total)}
