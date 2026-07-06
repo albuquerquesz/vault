@@ -13,14 +13,13 @@ import {
 	CircleHelpIcon,
 	InfoIcon,
 	KeyRoundIcon,
+	LogOutIcon,
 	MailIcon,
 	MonitorIcon,
 	MoonIcon,
 	Settings2Icon,
 	SunIcon,
 	UserRoundIcon,
-	XIcon,
-	LogOutIcon,
 } from "lucide-react";
 import * as React from "react";
 
@@ -112,20 +111,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 				<Dialog.Popup className="fixed left-1/2 top-1/2 z-50 h-[min(92vh,60rem)] w-[min(calc(100vw-2rem),64rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[2rem] border border-border/70 bg-card text-card-foreground shadow-2xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0">
 					<div className="grid h-full min-h-0 md:grid-cols-[16rem_minmax(0,1fr)]">
 						<aside className="flex min-h-0 flex-col border-b border-border/70 p-7 md:border-b-0 md:border-r">
-							<div className="flex items-start justify-between gap-4">
-								<div>
-									<h2
-										className="text-2xl font-semibold tracking-tight md:text-[2rem]"
-										style={headingStyle}
-									>
-										Configurações
-									</h2>
-								</div>
-								<Dialog.Close
-									render={<Button className="rounded-full" size="icon-sm" variant="ghost" />}
+							<div>
+								<h2
+									className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+									style={headingStyle}
 								>
-									<XIcon className="size-4" />
-								</Dialog.Close>
+									Configurações
+								</h2>
 							</div>
 
 							<nav className="mt-8 flex flex-col gap-2">
@@ -168,7 +160,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="space-y-4">
 										<div>
-											<p className="text-2xl font-medium">Tema</p>
+											<p className="text-2xl font-medium" style={headingStyle}>Tema</p>
 										</div>
 										<div className="grid grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/50 p-2 sm:grid-cols-3">
 											{[
@@ -202,7 +194,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium">Quanto você recebe?</p>
+											<p className="text-2xl font-medium" style={headingStyle}>Quanto você recebe?</p>
 											<p className="text-sm text-muted-foreground">
 												Preencha o valor mensal para futuras automações.
 											</p>
@@ -222,7 +214,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium">Quando você recebe?</p>
+											<p className="text-2xl font-medium" style={headingStyle}>Quando você recebe?</p>
 											<p className="text-sm text-muted-foreground">
 												Escolha o dia do mês em que o salário cai na conta.
 											</p>
@@ -244,7 +236,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium">API key do Pluggy</p>
+											<p className="text-2xl font-medium" style={headingStyle}>API key do Pluggy</p>
 											<p className="text-sm text-muted-foreground">
 												Este campo está pronto, mas ainda não salva nem ativa a integração.
 											</p>
@@ -285,7 +277,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 												<AvatarFallback className="text-xl">{initials}</AvatarFallback>
 											</Avatar>
 											<div className="space-y-1">
-												<p className="text-2xl font-medium">{name || "Sua conta"}</p>
+												<p className="text-2xl font-medium" style={headingStyle}>{name || "Sua conta"}</p>
 												<p className="text-sm text-muted-foreground">{email || "Sem e-mail cadastrado"}</p>
 											</div>
 											<div className="sm:ml-auto">
@@ -324,7 +316,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium">Sessão</p>
+											<p className="text-2xl font-medium" style={headingStyle}>Sessão</p>
 											<p className="text-sm text-muted-foreground">
 												Encerrar a sessão atual neste dispositivo.
 											</p>
@@ -350,7 +342,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium">Documentos legais</p>
+											<p className="text-2xl font-medium" style={headingStyle}>Documentos legais</p>
 											<p className="text-sm text-muted-foreground">
 												Os links existem no layout, mas ainda não possuem conteúdo publicado.
 											</p>
