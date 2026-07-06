@@ -44,6 +44,8 @@ const settingsSections: Array<{
 	{ id: "about", label: "Sobre", icon: InfoIcon },
 ];
 
+const headingStyle = { fontFamily: '"Space Grotesk", sans-serif' } as const;
+
 function SectionCard({
 	children,
 	className,
@@ -112,7 +114,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 						<aside className="flex min-h-0 flex-col border-b border-border/70 p-7 md:border-b-0 md:border-r">
 							<div className="flex items-start justify-between gap-4">
 								<div>
-									<h2 className="text-3xl font-semibold tracking-tight">Configurações</h2>
+									<h2
+										className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+										style={headingStyle}
+									>
+										Configurações
+									</h2>
 								</div>
 								<Dialog.Close
 									render={<Button className="rounded-full" size="icon-sm" variant="ghost" />}
@@ -131,12 +138,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 											key={section.id}
 											type="button"
 											className={cn(
-												"flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-lg transition-colors",
+												"flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-base font-medium transition-colors",
 												isActive
 													? "bg-muted text-foreground"
 													: "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
 											)}
 											onClick={() => setActiveSection(section.id)}
+											style={headingStyle}
 										>
 											<Icon className="size-5" />
 											<span>{section.label}</span>
@@ -150,7 +158,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 							{activeSection === "general" ? (
 								<div className="space-y-5">
 									<div>
-										<h3 className="text-3xl font-semibold tracking-tight">Geral</h3>
+										<h3
+											className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+											style={headingStyle}
+										>
+											Geral
+										</h3>
 									</div>
 
 									<SectionCard className="space-y-4">
@@ -257,7 +270,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 							{activeSection === "account" ? (
 								<div className="space-y-5">
 									<div>
-										<h3 className="text-3xl font-semibold tracking-tight">Conta</h3>
+										<h3
+											className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+											style={headingStyle}
+										>
+											Conta
+										</h3>
 									</div>
 
 									<SectionCard className="space-y-5">
@@ -322,7 +340,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 							{activeSection === "about" ? (
 								<div className="space-y-5">
 									<div>
-										<h3 className="text-3xl font-semibold tracking-tight">Sobre</h3>
+										<h3
+											className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+											style={headingStyle}
+										>
+											Sobre
+										</h3>
 									</div>
 
 									<SectionCard className="space-y-4">
