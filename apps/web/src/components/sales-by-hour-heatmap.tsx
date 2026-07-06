@@ -219,11 +219,11 @@ export function SalesByHourHeatmap({
 								))}
 							</div>
 
-							<div className="grid gap-3">
+							<div className="grid gap-1">
 								{safeData.map((row) => (
 									<div
 										key={row.day}
-										className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-0.5"
+										className="flex gap-[4px]"
 										role="group"
 										aria-labelledby={`heatmap-${row.day}`}
 									>
@@ -247,7 +247,7 @@ export function SalesByHourHeatmap({
 													key={`${row.day}-${hour}`}
 													aria-label={`${row.day}, ${hour}h às ${(hour + 1) % 24}h: ${new Intl.NumberFormat(locale).format(value)}`}
 													className={cn(
-														"h-4 w-full rounded-[3px] border border-white/4",
+														"h-4 w-[12px] rounded-[2px] border border-white/4 flex-shrink-0",
 														INTENSITY_CLASSES[level],
 													)}
 													role="img"
@@ -259,23 +259,22 @@ export function SalesByHourHeatmap({
 							</div>
 						</div>
 
-						<div className="grid grid-cols-[2rem_minmax(0,1fr)] gap-4 text-xs text-muted-foreground">
+						<div className="grid grid-cols-[2rem_auto] gap-4 text-xs text-muted-foreground">
 							<span />
-							<div className="grid grid-cols-5">
-								{HOUR_LABELS.map((label, index) => (
-									<span
-										key={label}
-										className={cn(
-											index === 0 && "text-left",
-											index > 0 &&
-												index < HOUR_LABELS.length - 1 &&
-												"text-center",
-											index === HOUR_LABELS.length - 1 && "text-right",
-										)}
-									>
-										{label}
-									</span>
-								))}
+							<div className="relative" style={{ width: 24 * 16 - 4 }}>
+								{HOUR_LABELS.map((label, index) => {
+									// hours: 0, 6, 12, 18, 23 → position = hour * 16px
+									const hour = index === HOUR_LABELS.length - 1 ? 23 : index * 6;
+									return (
+										<span
+											key={label}
+											className="absolute"
+											style={{ left: `${hour * 16}px` }}
+										>
+											{label}
+										</span>
+									);
+								})}
 							</div>
 						</div>
 					</div>

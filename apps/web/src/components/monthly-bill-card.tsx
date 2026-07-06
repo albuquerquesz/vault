@@ -71,7 +71,7 @@ export function MonthlyBillCard({
 				</div>
 
 				{/* Bill items list */}
-				<div className="space-y-6">
+				<div className="space-y-8">
 					{items.map((item) => {
 						const itemPct = item.total > 0 ? (item.paid / item.total) * 100 : 0;
 						return (

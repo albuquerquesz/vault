@@ -55,13 +55,6 @@ export function NavUser() {
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
-					<DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
-						<SettingsIcon />
-						Settings
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
-				<DropdownMenuSeparator />
-				<DropdownMenuGroup>
 					<DropdownMenuItem
 						className="w-full cursor-pointer"
 						variant="destructive"

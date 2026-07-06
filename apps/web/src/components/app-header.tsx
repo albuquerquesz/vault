@@ -4,7 +4,6 @@ import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { useNavLinks } from "@/components/app-shared";
 import { CustomSidebarTrigger } from "@/components/custom-sidebar-trigger";
 import { DecorIcon } from "@/components/decor-icon";
-import { MonetaryVisibilityToggle } from "@/components/monetary-visibility";
 import { NavUser } from "@/components/nav-user";
 
 export function AppHeader() {
@@ -21,7 +20,6 @@ export function AppHeader() {
 			<DecorIcon className="hidden md:block" position="bottom-left" />
 			<div className="flex items-center gap-3">
 				<CustomSidebarTrigger />
-				<MonetaryVisibilityToggle />
 				<Separator
 					className="mr-2 h-4 data-[orientation=vertical]:self-center"
 					orientation="vertical"
