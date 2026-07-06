@@ -42,7 +42,7 @@ function GoalsCard() {
 	};
 
 	return (
-		<Card className="financial-panel-border w-full">
+		<Card className="financial-panel-border h-full min-h-[24rem] w-full">
 			<CardHeader className="border-b">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
