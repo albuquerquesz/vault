@@ -7,7 +7,7 @@ import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 export function AppShell({ children }: { children: React.ReactNode }) {
 	return (
 		<MonetaryVisibilityProvider>
-			<SidebarProvider>
+			<SidebarProvider onOpenChange={() => {}} open>
 				<AppSidebar />
 				<SidebarInset>
 					<AppHeader />

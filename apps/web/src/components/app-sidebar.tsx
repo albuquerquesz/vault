@@ -24,7 +24,7 @@ export function AppSidebar() {
 				"*:data-[slot=sidebar-inner]:bg-background",
 				"**:data-[slot=sidebar-menu-button]:[&>span]:text-foreground/75",
 			)}
-			collapsible="none"
+			collapsible="icon"
 			variant="sidebar"
 		>
 			<SidebarHeader className="h-14 justify-center border-b px-2">
