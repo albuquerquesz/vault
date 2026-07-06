@@ -2,22 +2,22 @@ import { SidebarInset, SidebarProvider } from "@vault/ui/components/sidebar";
 import { cn } from "@vault/ui/lib/utils";
 import { AppHeader } from "@/components/app-header";
 import { AppSidebar } from "@/components/app-sidebar";
+import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
 	return (
-		<SidebarProvider className={cn("[--app-wrapper-max-width:96rem]")}>
-			<AppSidebar />
-			<SidebarInset>
-				<AppHeader />
-				<div
-					className={cn(
-						"flex flex-1 flex-col p-4 md:p-6",
-						"mx-auto w-full max-w-(--app-wrapper-max-width)",
-					)}
-				>
-					{children}
-				</div>
-			</SidebarInset>
-		</SidebarProvider>
+		<MonetaryVisibilityProvider>
+			<SidebarProvider>
+				<AppSidebar />
+				<SidebarInset>
+					<AppHeader />
+					<div className="flex flex-1 flex-col px-8 md:px-8">
+						<div className="mx-auto w-full">
+							{children}
+						</div>
+					</div>
+				</SidebarInset>
+			</SidebarProvider>
+		</MonetaryVisibilityProvider>
 	);
 }

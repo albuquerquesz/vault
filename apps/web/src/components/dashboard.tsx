@@ -1,9 +1,9 @@
 "use client";
 
 import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
-import { LastTransactionsTable } from "@/components/last-transactions-table";
 import { MonthlyBillCard } from "@/components/monthly-bill-card";
 import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
+import { RecentTransactionsTable } from "@/components/recent-transactions-table";
 import { SalesByHourHeatmap } from "@/components/sales-by-hour-heatmap";
 import { authClient } from "@/lib/auth-client";
 
@@ -27,7 +27,7 @@ export function Dashboard() {
 				<SalesByHourHeatmap
 					detailHref={dashboardDetailDefinitions.dailyExpenses.path}
 				/>
-				<LastTransactionsTable />
+				<RecentTransactionsTable />
 			</div>
 		</div>
 	);

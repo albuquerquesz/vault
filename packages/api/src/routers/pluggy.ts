@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db";
 import { pluggyItems, pluggyTransactions } from "../db/schema";
@@ -108,5 +108,33 @@ export const pluggyRouter = router({
 
 			await pluggyService.deleteItem(item.pluggyItemId);
 			await db.delete(pluggyItems).where(eq(pluggyItems.id, item.id));
+		}),
+
+	listTransactions: protectedProcedure
+		.input(
+			z.object({
+				limit: z.number().optional().default(20),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const transactions = await db
+				.select({
+					id: pluggyTransactions.id,
+					pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
+					date: pluggyTransactions.date,
+					amount: pluggyTransactions.amount,
+					description: pluggyTransactions.description,
+					category: pluggyTransactions.category,
+					provider: pluggyItems.provider,
+				})
+				.from(pluggyTransactions)
+				.innerJoin(
+					pluggyItems,
+					eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
+				)
+				.where(eq(pluggyItems.userId, ctx.session.user.id))
+				.orderBy(desc(pluggyTransactions.date))
+				.limit(input.limit);
+			return transactions;
 		}),
 });

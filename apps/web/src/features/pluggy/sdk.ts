@@ -8,6 +8,8 @@ type RouterInputs = inferRouterInputs<AppRouter>;
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 export type PluggyItem = RouterOutputs["pluggy"]["listItems"][number];
+export type PluggyTransaction =
+	RouterOutputs["pluggy"]["listTransactions"][number];
 export type PluggyConnectTokenOutput = RouterOutputs["pluggy"]["connectToken"];
 export type PluggySyncInput = RouterInputs["pluggy"]["syncTransactions"];
 export type PluggyDeleteItemInput = RouterInputs["pluggy"]["deleteItem"];
@@ -60,4 +62,11 @@ export function usePluggyDeleteItem() {
 		await invalidatePluggyQueries();
 		toast.success("Item removido");
 	};
+}
+
+export function usePluggyTransactions(limit = 20) {
+	return useQuery({
+		...trpc.pluggy.listTransactions.queryOptions({ limit }),
+		staleTime: 1000 * 60 * 5,
+	});
 }

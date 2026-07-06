@@ -29,6 +29,7 @@ import {
 	MaskedMonetaryValue,
 	MonetaryVisibilityProvider,
 } from "@/components/monetary-visibility";
+import { RecentTransactionsTable } from "@/components/recent-transactions-table";
 import {
 	type FinanceExpense,
 	getMonthValue,
@@ -359,6 +360,8 @@ export function TransactionsPage() {
 						)}
 					</CardContent>
 				</Card>
+
+				<RecentTransactionsTable />
 			</div>
 		</MonetaryVisibilityProvider>
 	);
