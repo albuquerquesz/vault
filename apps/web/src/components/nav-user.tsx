@@ -2,10 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { useNavigate } from "@tanstack/react-router";
-import {
-	Avatar,
-	AvatarFallback,
-} from "@vault/ui/components/avatar";
+import { Avatar, AvatarFallback } from "@vault/ui/components/avatar";
 import { Button } from "@vault/ui/components/button";
 import { LogOutIcon, XIcon } from "lucide-react";
 import { useState } from "react";
@@ -20,7 +17,12 @@ export function NavUser() {
 	const name = session?.user.name ?? "";
 	const email = session?.user.email ?? "";
 	const initials = name
-		? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+		? name
+				.split(" ")
+				.map((n) => n[0])
+				.join("")
+				.toUpperCase()
+				.slice(0, 2)
 		: "?";
 
 	const handleSignOut = () => {

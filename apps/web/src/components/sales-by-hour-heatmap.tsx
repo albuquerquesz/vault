@@ -6,16 +6,13 @@ import {
 	CardDescription,
 	CardHeader,
 } from "@vault/ui/components/card";
-import { cn } from "@vault/ui/lib/utils";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@vault/ui/components/tooltip";
-import {
-	Clock3Icon,
-	Info,
-} from "lucide-react";
+import { cn } from "@vault/ui/lib/utils";
+import { Clock3Icon, Info } from "lucide-react";
 import { useMemo } from "react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
@@ -179,8 +176,12 @@ export function SalesByHourHeatmap({
 						</CardDescription>
 					</div>
 					<Tooltip>
-						<TooltipTrigger render={<Info className="mt-0.5 size-4 text-muted-foreground" />} />
-						<TooltipContent>Mapa de calor das despesas por dia e hora</TooltipContent>
+						<TooltipTrigger
+							render={<Info className="mt-0.5 size-4 text-muted-foreground" />}
+						/>
+						<TooltipContent>
+							Mapa de calor das despesas por dia e hora
+						</TooltipContent>
 					</Tooltip>
 				</div>
 			</CardHeader>
@@ -253,7 +254,8 @@ export function SalesByHourHeatmap({
 							<div className="relative" style={{ width: 24 * 16 - 4 }}>
 								{HOUR_LABELS.map((label, index) => {
 									// hours: 0, 6, 12, 18, 23 → position = hour * 16px
-									const hour = index === HOUR_LABELS.length - 1 ? 23 : index * 6;
+									const hour =
+										index === HOUR_LABELS.length - 1 ? 23 : index * 6;
 									return (
 										<span
 											key={label}

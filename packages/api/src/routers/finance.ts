@@ -178,25 +178,27 @@ export const financeRouter = router({
 			};
 		}),
 	listGoals: protectedProcedure.query(async ({ ctx }) => {
-			const goals = await ctx.db.query.goal.findMany({
-				where: eq(goal.userId, ctx.session.user.id),
-				orderBy: (fields, operators) => [operators.asc(fields.createdAt)],
-			});
+		const goals = await ctx.db.query.goal.findMany({
+			where: eq(goal.userId, ctx.session.user.id),
+			orderBy: (fields, operators) => [operators.asc(fields.createdAt)],
+		});
 
-			return goals.map(serializeGoal);
-		}),
+		return goals.map(serializeGoal);
+	}),
 	createGoal: protectedProcedure
 		.input(goalInput)
 		.mutation(async ({ ctx, input }) => {
-			const created = (await ctx.db
-				.insert(goal)
-				.values({
-					userId: ctx.session.user.id,
-					name: input.name,
-					targetAmount: input.targetAmount.toFixed(2),
-					currentAmount: (input.currentAmount ?? 0).toFixed(2),
-				})
-				.returning())[0]!;
+			const created = (
+				await ctx.db
+					.insert(goal)
+					.values({
+						userId: ctx.session.user.id,
+						name: input.name,
+						targetAmount: input.targetAmount.toFixed(2),
+						currentAmount: (input.currentAmount ?? 0).toFixed(2),
+					})
+					.returning()
+			)[0]!;
 
 			return serializeGoal(created);
 		}),
@@ -208,16 +210,15 @@ export const financeRouter = router({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const updated = (await ctx.db
-				.update(goal)
-				.set({ currentAmount: input.currentAmount.toFixed(2) })
-				.where(
-					and(
-						eq(goal.id, input.id),
-						eq(goal.userId, ctx.session.user.id),
-					),
-				)
-				.returning())[0];
+			const updated = (
+				await ctx.db
+					.update(goal)
+					.set({ currentAmount: input.currentAmount.toFixed(2) })
+					.where(
+						and(eq(goal.id, input.id), eq(goal.userId, ctx.session.user.id)),
+					)
+					.returning()
+			)[0];
 
 			if (!updated) {
 				throw new Error("Meta não encontrada");

@@ -1,6 +1,11 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Button } from "@vault/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader } from "@vault/ui/components/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+} from "@vault/ui/components/card";
 import { Input } from "@vault/ui/components/input";
 import {
 	Tooltip,
@@ -53,9 +58,7 @@ function GoalsCard() {
 					</div>
 					<Tooltip>
 						<TooltipTrigger
-							render={
-								<Info className="mt-0.5 size-4 text-muted-foreground" />
-							}
+							render={<Info className="mt-0.5 size-4 text-muted-foreground" />}
 						/>
 						<TooltipContent>
 							Acompanhe o progresso das suas metas financeiras
@@ -106,9 +109,7 @@ function GoalsCard() {
 			<Dialog.Root open={open} onOpenChange={setOpen}>
 				<Dialog.Portal>
 					<Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs" />
-					<Dialog.Popup
-						className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 bg-card text-card-foreground shadow-2xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 sm:rounded-xl"
-					>
+					<Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 bg-card text-card-foreground shadow-2xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 sm:rounded-xl">
 						<form onSubmit={handleSubmit}>
 							<div className="flex flex-col gap-4 p-6">
 								{/* Title + Close */}
@@ -131,10 +132,7 @@ function GoalsCard() {
 
 								<div className="flex flex-col gap-4">
 									<div className="flex flex-col gap-1.5">
-										<label
-											htmlFor="goal-name"
-											className="text-sm font-medium"
-										>
+										<label htmlFor="goal-name" className="text-sm font-medium">
 											Nome
 										</label>
 										<Input
