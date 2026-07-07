@@ -11,29 +11,9 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@vault/ui/components/tooltip";
-import {
-	CreditCardIcon,
-	Info,
-} from "lucide-react";
-
-type BillItem = {
-	name: string;
-	paid: number;
-	total: number;
-};
-
-type MonthlyBillCardProps = {
-	totalBill?: number;
-	items?: BillItem[];
-	detailHref?: string;
-	title?: string;
-};
-
-const DEFAULT_ITEMS: BillItem[] = [
-	{ name: "Gold", paid: 478.36, total: 550 },
-	{ name: "Streaming", paid: 39.9, total: 39.9 },
-	{ name: "Cloud", paid: 19.9, total: 29.9 },
-];
+import { CreditCardIcon, Info } from "lucide-react";
+import { HomeCardSkeleton } from "@/components/home-card-skeleton";
+import { getMonthValue, useFinanceMonthlyBills } from "@/features/finance/sdk";
 
 const fmt = (value: number) =>
 	new Intl.NumberFormat("pt-BR", {
@@ -41,14 +21,48 @@ const fmt = (value: number) =>
 		currency: "BRL",
 	}).format(value);
 
-export function MonthlyBillCard({
-	totalBill = 550,
-	items = DEFAULT_ITEMS,
-	detailHref,
-	title = "Faturas do mês",
-}: MonthlyBillCardProps) {
-	const totalPaid = items.reduce((sum, item) => sum + item.paid, 0);
-	const _percentage = totalBill > 0 ? (totalPaid / totalBill) * 100 : 0;
+export function MonthlyBillCard() {
+	const month = getMonthValue();
+	const billsQuery = useFinanceMonthlyBills(month);
+
+	if (billsQuery.isPending) {
+		return <HomeCardSkeleton variant="bills" />;
+	}
+
+	if (billsQuery.isError) {
+		return (
+			<Card className="financial-panel-border ring-0">
+				<CardHeader className="border-b">
+					<div className="flex items-center justify-between gap-2">
+						<div className="flex items-center gap-2">
+							<CreditCardIcon className="size-4 text-muted-foreground" />
+							<CardDescription className="text-base">
+								Faturas do mês
+							</CardDescription>
+						</div>
+						<Tooltip>
+							<TooltipTrigger
+								render={<Info className="size-4 text-muted-foreground" />}
+							/>
+							<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
+						</Tooltip>
+					</div>
+				</CardHeader>
+				<CardContent className="py-6 text-sm text-muted-foreground">
+					Não foi possível carregar as faturas do mês.
+				</CardContent>
+			</Card>
+		);
+	}
+
+	const bills = billsQuery.data;
+
+	if (!bills) {
+		return null;
+	}
+
+	const bill = bills.bills[0];
+	const items = bills.items;
 
 	return (
 		<Card className="financial-panel-border ring-0">
@@ -56,39 +70,45 @@ export function MonthlyBillCard({
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
 						<CreditCardIcon className="size-4 text-muted-foreground" />
-						<CardDescription className="text-base">{title}</CardDescription>
+						<CardDescription className="text-base">
+							Faturas do mês
+						</CardDescription>
 					</div>
 					<Tooltip>
-						<TooltipTrigger render={<Info className="size-4 text-muted-foreground" />} />
+						<TooltipTrigger
+							render={<Info className="size-4 text-muted-foreground" />}
+						/>
 						<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
 					</Tooltip>
 				</div>
 			</CardHeader>
 			<CardContent className="flex flex-col gap-6">
-				{/* Total */}
 				<div className="text-3xl font-semibold tabular-nums">
-					{fmt(totalBill)}
+					{bill ? fmt(bill.totalBill) : fmt(0)}
 				</div>
 
-				{/* Bill items list */}
 				<div className="space-y-8">
 					{items.map((item) => {
-						const itemPct = item.total > 0 ? (item.paid / item.total) * 100 : 0;
+						const itemPct =
+							item.totalAmount > 0
+								? (item.paidAmount / item.totalAmount) * 100
+								: 0;
+
 						return (
 							<div
 								key={item.name}
-								className="flex items-center justify-between text-base"
+								className="flex items-center justify-between gap-4 text-base"
 							>
 								<div className="flex items-center gap-2">
-									<div className="flex items-center justify-center rounded bg-foreground/10 text-foreground size-7 text-sm font-medium">
-										{item.name[0].toLowerCase()}
+									<div className="flex size-7 items-center justify-center rounded bg-foreground/10 text-sm font-medium text-foreground">
+										{item.name[0]?.toLowerCase() ?? "?"}
 									</div>
 									<span className="font-medium">{item.name}</span>
 								</div>
 								<div className="flex items-center gap-2 tabular-nums text-lg">
-									<span>{fmt(item.paid)}</span>
+									<span>{fmt(item.paidAmount)}</span>
 									<span className="text-muted-foreground">
-										/ {fmt(item.total)}
+										/ {fmt(item.totalAmount)}
 									</span>
 									<span className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-sm tabular-nums">
 										{itemPct.toFixed(0)}%

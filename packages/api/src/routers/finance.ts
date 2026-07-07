@@ -1,9 +1,16 @@
-import { and, eq, gte, lte, sum } from "drizzle-orm";
+import type { FastifyInstance } from "fastify";
+import { and, asc, desc, eq, gte, lte, sum } from "drizzle-orm";
 import { z } from "zod";
-import { expense, goal, monthlyBudget } from "../db/schema";
-import { protectedProcedure, router } from "../index";
+import { db } from "../db";
+import { expense, goal, monthlyBill, monthlyBillItem, monthlyBudget, savingsTarget } from "../db/schema";
+import { requireSession } from "../index";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
+const defaultMonthlyBillItems = [
+	{ name: "Gold", paidAmount: 478.36, totalAmount: 550, sortOrder: 1 },
+	{ name: "Streaming", paidAmount: 39.9, totalAmount: 39.9, sortOrder: 2 },
+	{ name: "Cloud", paidAmount: 19.9, totalAmount: 29.9, sortOrder: 3 },
+] as const;
 
 const expenseInput = z.object({
 	date: z.iso.date(),
@@ -17,221 +24,260 @@ function getMonthBounds(month: string) {
 	const endDate = new Date(`${month}-01T00:00:00.000Z`);
 	endDate.setUTCMonth(endDate.getUTCMonth() + 1);
 	endDate.setUTCDate(0);
-
-	return {
-		start,
-		end: endDate.toISOString().slice(0, 10),
-	};
+	return { start, end: endDate.toISOString().slice(0, 10) };
 }
 
-function serializeExpense(record: typeof expense.$inferSelect) {
-	return {
-		...record,
-		amount: Number(record.amount),
-	};
-}
+function serializeExpense(r: typeof expense.$inferSelect) { return { ...r, amount: Number(r.amount) }; }
+function serializeMonthlyBudget(r: typeof monthlyBudget.$inferSelect) { return { ...r, income: Number(r.income) }; }
+function serializeGoal(r: typeof goal.$inferSelect) { return { ...r, targetAmount: Number(r.targetAmount), currentAmount: Number(r.currentAmount) }; }
+function serializeMonthlyBill(r: typeof monthlyBill.$inferSelect) { return { ...r, totalBill: Number(r.totalBill) }; }
+function serializeMonthlyBillItem(r: typeof monthlyBillItem.$inferSelect) { return { ...r, paidAmount: Number(r.paidAmount), totalAmount: Number(r.totalAmount) }; }
+function serializeSavingsTarget(r: typeof savingsTarget.$inferSelect) { return { ...r, savingsPercentage: Number(r.savingsPercentage) }; }
 
-function serializeMonthlyBudget(record: typeof monthlyBudget.$inferSelect) {
-	return {
-		...record,
-		income: Number(record.income),
-	};
-}
+export function registerFinanceRoutes(server: FastifyInstance) {
 
-function serializeGoal(record: typeof goal.$inferSelect) {
-	return {
-		...record,
-		targetAmount: Number(record.targetAmount),
-		currentAmount: Number(record.currentAmount),
-	};
-}
-
-const goalInput = z.object({
-	name: z.string().trim().min(1).max(128),
-	targetAmount: z.number().positive(),
-	currentAmount: z.number().min(0).default(0).optional(),
-});
-
-export const financeRouter = router({
-	listExpenses: protectedProcedure
-		.input(
-			z.object({
-				month: z.string().regex(monthPattern),
-			}),
-		)
-		.query(async ({ ctx, input }) => {
-			const { start, end } = getMonthBounds(input.month);
-
-			const expenses = await ctx.db.query.expense.findMany({
-				where: and(
-					eq(expense.userId, ctx.session.user.id),
-					gte(expense.expenseDate, start),
-					lte(expense.expenseDate, end),
-				),
-				orderBy: (fields, operators) => [
-					operators.desc(fields.expenseDate),
-					operators.desc(fields.createdAt),
-				],
-			});
-
-			return expenses.map(serializeExpense);
-		}),
-	createExpense: protectedProcedure
-		.input(expenseInput)
-		.mutation(async ({ ctx, input }) => {
-			const [createdExpense] = await ctx.db
-				.insert(expense)
-				.values({
-					userId: ctx.session.user.id,
-					expenseDate: input.date,
-					amount: input.amount.toFixed(2),
-					category: input.category,
-					note: input.note,
-				})
-				.returning();
-
-			if (!createdExpense) {
-				throw new Error("Falha ao criar despesa");
+	server.route({
+		method: "GET",
+		url: "/expenses",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const month = (req.query as { month: string }).month;
+				if (!monthPattern.test(month)) return reply.status(400).send({ error: "Invalid month format. Use YYYY-MM" });
+				const { start, end } = getMonthBounds(month);
+				const records = await db.select().from(expense)
+					.where(and(eq(expense.userId, session.user.id), gte(expense.expenseDate, start), lte(expense.expenseDate, end)))
+					.orderBy(desc(expense.expenseDate), desc(expense.createdAt));
+				return reply.send(records.map(serializeExpense));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				throw error;
 			}
+		},
+	});
 
-			return serializeExpense(createdExpense);
-		}),
-	upsertMonthlyBudget: protectedProcedure
-		.input(
-			z.object({
-				month: z.string().regex(monthPattern),
-				income: z.number().positive(),
-			}),
-		)
-		.mutation(async ({ ctx, input }) => {
-			const [budget] = await ctx.db
-				.insert(monthlyBudget)
-				.values({
-					userId: ctx.session.user.id,
-					month: input.month,
-					income: input.income.toFixed(2),
-				})
-				.onConflictDoUpdate({
-					target: [monthlyBudget.userId, monthlyBudget.month],
-					set: {
-						income: input.income.toFixed(2),
-						updatedAt: new Date(),
-					},
-				})
-				.returning();
-
-			if (!budget) {
-				throw new Error("Falha ao salvar orcamento mensal");
+	server.route({
+		method: "POST",
+		url: "/expenses",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const input = expenseInput.parse(req.body);
+				const [record] = await db.insert(expense).values({
+					userId: session.user.id, expenseDate: input.date, amount: input.amount.toString(),
+					category: input.category, note: input.note ?? null,
+				}).returning();
+				return reply.code(201).send(serializeExpense(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError) return reply.status(400).send({ error: error.message });
+				throw error;
 			}
+		},
+	});
 
-			return serializeMonthlyBudget(budget);
-		}),
-	getMonthlyOverview: protectedProcedure
-		.input(
-			z.object({
-				month: z.string().regex(monthPattern),
-				today: z.iso.date().optional(),
-			}),
-		)
-		.query(async ({ ctx, input }) => {
-			const budget = await ctx.db.query.monthlyBudget.findFirst({
-				where: and(
-					eq(monthlyBudget.userId, ctx.session.user.id),
-					eq(monthlyBudget.month, input.month),
-				),
-			});
-
-			const { start, end } = getMonthBounds(input.month);
-			const [spentRow] = await ctx.db
-				.select({
-					total: sum(expense.amount),
-				})
-				.from(expense)
-				.where(
-					and(
-						eq(expense.userId, ctx.session.user.id),
-						gte(expense.expenseDate, start),
-						lte(expense.expenseDate, end),
-					),
-				);
-
-			const income = Number(budget?.income ?? 0);
-			const spent = Number(spentRow?.total ?? 0);
-			const remainingBudget = Math.max(0, income - spent);
-			const today = input.today ?? new Date().toISOString().slice(0, 10);
-			const todayDate = new Date(`${today}T00:00:00.000Z`);
-			const monthEnd = new Date(`${end}T00:00:00.000Z`);
-			const remainingDays =
-				todayDate > monthEnd
-					? 0
-					: Math.max(
-							1,
-							Math.floor(
-								(monthEnd.getTime() - todayDate.getTime()) /
-									(1000 * 60 * 60 * 24),
-							) + 1,
-						);
-
-			return {
-				month: input.month,
-				income,
-				spent,
-				spentPercentage: income > 0 ? (spent / income) * 100 : 0,
-				remainingBudget,
-				remainingDays,
-				dailyCap:
-					remainingBudget > 0 && remainingDays > 0
-						? remainingBudget / remainingDays
-						: 0,
-			};
-		}),
-	listGoals: protectedProcedure.query(async ({ ctx }) => {
-		const goals = await ctx.db.query.goal.findMany({
-			where: eq(goal.userId, ctx.session.user.id),
-			orderBy: (fields, operators) => [operators.asc(fields.createdAt)],
-		});
-
-		return goals.map(serializeGoal);
-	}),
-	createGoal: protectedProcedure
-		.input(goalInput)
-		.mutation(async ({ ctx, input }) => {
-			const created = (
-				await ctx.db
-					.insert(goal)
-					.values({
-						userId: ctx.session.user.id,
-						name: input.name,
-						targetAmount: input.targetAmount.toFixed(2),
-						currentAmount: (input.currentAmount ?? 0).toFixed(2),
-					})
-					.returning()
-			)[0]!;
-
-			return serializeGoal(created);
-		}),
-	updateGoal: protectedProcedure
-		.input(
-			z.object({
-				id: z.string(),
-				currentAmount: z.number().min(0),
-			}),
-		)
-		.mutation(async ({ ctx, input }) => {
-			const updated = (
-				await ctx.db
-					.update(goal)
-					.set({ currentAmount: input.currentAmount.toFixed(2) })
-					.where(
-						and(eq(goal.id, input.id), eq(goal.userId, ctx.session.user.id)),
-					)
-					.returning()
-			)[0];
-
-			if (!updated) {
-				throw new Error("Meta não encontrada");
+	server.route({
+		method: "POST",
+		url: "/budget",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { month, income } = z.object({ month: z.string().regex(monthPattern), income: z.number().positive() }).parse(req.body);
+				const [record] = await db.insert(monthlyBudget).values({
+					userId: session.user.id, month, income: income.toString(),
+				}).onConflictDoUpdate({ target: [monthlyBudget.userId, monthlyBudget.month], set: { income: income.toString() } }).returning();
+				return reply.send(serializeMonthlyBudget(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError) return reply.status(400).send({ error: error.message });
+				throw error;
 			}
+		},
+	});
 
-			return serializeGoal(updated);
-		}),
-});
+	server.route({
+		method: "GET",
+		url: "/overview",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const query = req.query as { month: string; today?: string };
+				if (!monthPattern.test(query.month)) return reply.status(400).send({ error: "Invalid month format. Use YYYY-MM" });
+				const { start, end } = getMonthBounds(query.month);
+				const budget = await db.select().from(monthlyBudget)
+					.where(and(eq(monthlyBudget.userId, session.user.id), eq(monthlyBudget.month, query.month)))
+					.limit(1).then(r => r[0]);
+				if (!budget) return reply.send({ month: query.month, income: 0, spent: 0, spentPercentage: 0, remainingBudget: 0, remainingDays: 0, dailyCap: 0 });
+				const income = Number(budget.income);
+				const result = await db.select({ totalSpent: sum(expense.amount).mapWith(Number) })
+					.from(expense).where(and(eq(expense.userId, session.user.id), gte(expense.expenseDate, start), lte(expense.expenseDate, end)))
+					.limit(1).then(r => r[0]);
+				const spent = result?.totalSpent ?? 0;
+				const remainingBudget = Math.max(0, income - spent);
+				const todayDate = query.today ? new Date(query.today) : new Date();
+				const endOfMonth = new Date(end);
+				const remainingDays = Math.max(0, Math.ceil((endOfMonth.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)));
+				return reply.send({ month: query.month, income, spent, spentPercentage: (spent / income) * 100, remainingBudget, remainingDays, dailyCap: remainingDays > 0 ? remainingBudget / remainingDays : 0 });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/goals",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const records = await db.select().from(goal).where(eq(goal.userId, session.user.id)).orderBy(asc(goal.createdAt));
+				return reply.send(records.map(serializeGoal));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/goals",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { name, targetAmount, currentAmount } = z.object({
+					name: z.string().trim().min(1).max(128), targetAmount: z.number().positive(), currentAmount: z.number().min(0).default(0),
+				}).parse(req.body);
+				const [record] = await db.insert(goal).values({
+					userId: session.user.id, name, targetAmount: targetAmount.toString(), currentAmount: (currentAmount ?? 0).toString(),
+				}).returning();
+				return reply.code(201).send(serializeGoal(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError) return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "PATCH",
+		url: "/goals/:id",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id } = z.object({ id: z.string() }).parse(req.params);
+				const { currentAmount } = z.object({ currentAmount: z.number().min(0) }).parse(req.body);
+				const existing = await db.select().from(goal).where(and(eq(goal.id, id), eq(goal.userId, session.user.id))).limit(1).then(r => r[0]);
+				if (!existing) return reply.status(404).send({ error: "Goal not found" });
+				const [record] = await db.update(goal).set({ currentAmount: currentAmount.toString() }).where(eq(goal.id, id)).returning();
+				return reply.send(serializeGoal(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError) return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/monthly-bills",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const month = (req.query as { month: string }).month;
+				if (!monthPattern.test(month)) return reply.status(400).send({ error: "Invalid month format. Use YYYY-MM" });
+				const bills = await db.select().from(monthlyBill).where(and(eq(monthlyBill.userId, session.user.id), eq(monthlyBill.month, month)));
+				if (bills.length === 0) {
+					const defaultBill = { id: "default", userId: session.user.id, month, totalBill: "0", createdAt: new Date(), updatedAt: new Date() };
+					const items = defaultMonthlyBillItems.map((item, index) => ({ id: `default-${index}`, monthlyBillId: "default" as never, ...item, createdAt: new Date(), updatedAt: new Date() }));
+					return reply.send({ bills: [serializeMonthlyBill(defaultBill)], items });
+				}
+				const items = await Promise.all(bills.map(async bill => {
+					const billItems = await db.select().from(monthlyBillItem).where(eq(monthlyBillItem.monthlyBillId, bill.id)).orderBy(asc(monthlyBillItem.sortOrder));
+					return billItems.map(serializeMonthlyBillItem);
+				}));
+				return reply.send({ bills: bills.map(serializeMonthlyBill), items: items.flat() });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				throw error;
+			}
+		},
+	});
+
+	// --- Savings Target ---
+
+	server.route({
+		method: "GET",
+		url: "/savings-target",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const month = (req.query as { month?: string }).month || new Date().toISOString().slice(0, 7);
+
+				if (!monthPattern.test(month)) {
+					return reply.status(400).send({ error: "Invalid month format. Use YYYY-MM" });
+				}
+
+				const [result] = await db
+					.select()
+					.from(savingsTarget)
+					.where(and(eq(savingsTarget.userId, session.user.id), eq(savingsTarget.month, month)));
+
+				if (!result) {
+					return reply.send({ month, savingsPercentage: null });
+				}
+
+				return reply.send(serializeSavingsTarget(result));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/savings-target",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const body = req.body as { month: string; savingsPercentage: number };
+
+				if (!monthPattern.test(body.month)) {
+					return reply.status(400).send({ error: "Invalid month format. Use YYYY-MM" });
+				}
+
+				const percentage = body.savingsPercentage;
+				if (typeof percentage !== "number" || percentage < 0 || percentage > 100) {
+					return reply.status(400).send({ error: "savingsPercentage must be between 0 and 100" });
+				}
+
+				const existing = await db
+					.select({ id: savingsTarget.id })
+					.from(savingsTarget)
+					.where(and(eq(savingsTarget.userId, session.user.id), eq(savingsTarget.month, body.month)));
+
+				if (existing.length > 0) {
+					await db
+						.update(savingsTarget)
+						.set({ savingsPercentage: String(percentage) })
+						.where(eq(savingsTarget.id, existing[0].id));
+				} else {
+					await db.insert(savingsTarget).values({
+						userId: session.user.id,
+						month: body.month,
+						savingsPercentage: String(percentage),
+					});
+				}
+
+				return reply.send({ month: body.month, savingsPercentage: percentage });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
+				throw error;
+			}
+		},
+	});
+}

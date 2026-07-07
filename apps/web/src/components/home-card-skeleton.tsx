@@ -9,7 +9,8 @@ type HomeCardSkeletonVariant =
 	| "heatmap"
 	| "bills"
 	| "category"
-	| "investment";
+	| "investment"
+	| "spending-limit";
 
 type HomeCardSkeletonProps = {
 	variant: HomeCardSkeletonVariant;
@@ -83,16 +84,18 @@ function MixSkeleton() {
 				}
 			/>
 			<CardContent>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+				<div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] xl:items-center">
 					<Skeleton className="mx-auto h-72 w-full max-w-72 rounded-full" />
 					<div className="space-y-4">
 						{Array.from({ length: 5 }).map((_, index) => (
 							<div
 								key={`mix-row-${index}`}
-								className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4"
+								className="flex flex-col gap-2 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-x-4"
 							>
-								<Skeleton className="h-3 w-3" />
-								<Skeleton className="h-5 w-full" />
+								<div className="flex items-center gap-3 sm:contents">
+									<Skeleton className="h-3 w-3" />
+									<Skeleton className="h-5 w-full" />
+								</div>
 								<Skeleton className="h-5 w-12" />
 								<Skeleton className="h-5 w-20" />
 								<Skeleton className="h-5 w-5" />
@@ -129,7 +132,24 @@ function HeatmapSkeleton() {
 				}
 			/>
 			<CardContent className="space-y-4">
-				<div className="grid grid-cols-[1.8rem_minmax(0,1fr)] items-start gap-3">
+				<div className="space-y-3 md:hidden">
+					{Array.from({ length: 7 }).map((_, index) => (
+						<div
+							key={`heatmap-mobile-row-${index}`}
+							className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-3 py-3"
+						>
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-12" />
+								<Skeleton className="h-3 w-24" />
+							</div>
+							<div className="text-right">
+								<Skeleton className="ml-auto h-5 w-24" />
+								<Skeleton className="ml-auto mt-1 h-3 w-16" />
+							</div>
+						</div>
+					))}
+				</div>
+				<div className="hidden grid-cols-[1.8rem_minmax(0,1fr)] items-start gap-3 md:grid">
 					<div className="grid gap-2 pt-0.5">
 						{Array.from({ length: 7 }).map((_, index) => (
 							<Skeleton key={`heatmap-label-${index}`} className="h-3 w-5" />
@@ -151,7 +171,7 @@ function HeatmapSkeleton() {
 						))}
 					</div>
 				</div>
-				<div className="grid grid-cols-[1.8rem_minmax(0,1fr)] gap-3">
+				<div className="hidden grid-cols-[1.8rem_minmax(0,1fr)] gap-3 md:grid">
 					<span />
 					<div className="grid grid-cols-5 gap-2">
 						{Array.from({ length: 5 }).map((_, index) => (
@@ -273,6 +293,31 @@ function InvestmentSkeleton() {
 	);
 }
 
+function SpendingLimitSkeleton() {
+	return (
+		<>
+			<HeaderBlock
+				left={
+					<div className="flex items-center gap-2">
+						<Skeleton className="size-4" />
+						<Skeleton className="h-5 w-28" />
+					</div>
+				}
+			/>
+			<CardContent className="space-y-4">
+				<Skeleton className="h-10 w-48" />
+				<div className="space-y-2">
+					<div className="flex items-center justify-between">
+						<Skeleton className="h-3 w-32" />
+						<Skeleton className="h-3 w-24" />
+					</div>
+					<Skeleton className="h-1.5 w-full rounded-full" />
+				</div>
+			</CardContent>
+		</>
+	);
+}
+
 const skeletonByVariant: Record<
 	HomeCardSkeletonVariant,
 	() => React.ReactNode
@@ -283,6 +328,7 @@ const skeletonByVariant: Record<
 	bills: BillsSkeleton,
 	category: CategorySkeleton,
 	investment: InvestmentSkeleton,
+	"spending-limit": SpendingLimitSkeleton,
 };
 
 export function HomeCardSkeleton({

@@ -1,21 +1,101 @@
 import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
-import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@vault/api/routers/index";
-import { queryClient, trpc } from "@/utils/trpc";
+import { getCachedData, setCachedData } from "@/features/finance/cache";
+import { apiFetch, queryClient } from "@/utils/api";
+import { useEffect } from "react";
 
-type RouterInputs = inferRouterInputs<AppRouter>;
-type RouterOutputs = inferRouterOutputs<AppRouter>;
+// --- Types ---
 
-export type FinanceListExpensesInput = RouterInputs["finance"]["listExpenses"];
-export type FinanceCreateExpenseInput =
-	RouterInputs["finance"]["createExpense"];
-export type FinanceUpsertMonthlyBudgetInput =
-	RouterInputs["finance"]["upsertMonthlyBudget"];
-export type FinanceMonthlyOverviewInput =
-	RouterInputs["finance"]["getMonthlyOverview"];
-export type FinanceExpense = RouterOutputs["finance"]["listExpenses"][number];
-export type FinanceMonthlyOverview =
-	RouterOutputs["finance"]["getMonthlyOverview"];
+export interface FinanceExpense {
+	id: string;
+	userId: string;
+	expenseDate: string;
+	amount: number;
+	category: string;
+	note: string | null;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface FinanceMonthlyOverview {
+	month: string;
+	income: number;
+	spent: number;
+	spentPercentage: number;
+	remainingBudget: number;
+	remainingDays: number;
+	dailyCap: number;
+}
+
+export interface FinanceMonthlyBill {
+	id: string;
+	userId: string;
+	month: string;
+	totalBill: number;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface FinanceMonthlyBillItem {
+	id: string;
+	monthlyBillId: string;
+	name: string;
+	paidAmount: number;
+	totalAmount: number;
+	sortOrder: number;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface FinanceMonthlyBills {
+	bills: FinanceMonthlyBill[];
+	items: FinanceMonthlyBillItem[];
+}
+
+export interface Goal {
+	id: string;
+	userId: string;
+	name: string;
+	targetAmount: number;
+	currentAmount: number;
+	currency: string;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface CreateExpenseInput {
+	date: string;
+	amount: number;
+	category: string;
+	note?: string;
+}
+
+export interface UpsertBudgetInput {
+	month: string;
+	income: number;
+}
+
+export interface CreateGoalInput {
+	name: string;
+	targetAmount: number;
+	currentAmount?: number;
+}
+
+export interface UpdateGoalInput {
+	id: string;
+	currentAmount: number;
+}
+
+export interface SavingsTarget {
+	month: string;
+	savingsPercentage: number | null;
+}
+
+export interface UpsertSavingsTargetInput {
+	month: string;
+	savingsPercentage: number;
+}
+
+// --- Helpers ---
 
 export function getMonthValue(date = new Date()) {
 	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -31,53 +111,120 @@ function invalidateFinanceMonthQueries(
 	today = getTodayValue(),
 ) {
 	return Promise.all([
-		client.invalidateQueries(trpc.finance.listExpenses.queryFilter({ month })),
-		client.invalidateQueries(
-			trpc.finance.getMonthlyOverview.queryFilter({ month, today }),
-		),
+		client.invalidateQueries({ queryKey: ["expenses", month] }),
+		client.invalidateQueries({ queryKey: ["overview", month, today] }),
 	]);
 }
 
+// --- SDK ---
+
 export const financeSdk = {
 	listExpensesOptions(month = getMonthValue()) {
-		return trpc.finance.listExpenses.queryOptions({ month });
+		return {
+			queryKey: ["expenses", month],
+			queryFn: () =>
+				apiFetch<FinanceExpense[]>(`/api/finance/expenses?month=${encodeURIComponent(month)}`),
+		} as const;
 	},
+
+	listMonthlyBillsOptions(month = getMonthValue()) {
+		return {
+			queryKey: ["monthlyBills", month],
+			queryFn: () =>
+				apiFetch<FinanceMonthlyBills>(`/api/finance/monthly-bills?month=${encodeURIComponent(month)}`),
+		} as const;
+	},
+
 	monthlyOverviewOptions(month = getMonthValue(), today = getTodayValue()) {
-		return trpc.finance.getMonthlyOverview.queryOptions({ month, today });
+		return {
+			queryKey: ["overview", month, today],
+			queryFn: () =>
+				apiFetch<FinanceMonthlyOverview>(`/api/finance/overview?month=${encodeURIComponent(month)}&today=${encodeURIComponent(today)}`),
+		} as const;
 	},
+
 	createExpenseMutationOptions(
 		month = getMonthValue(),
 		client: QueryClient = queryClient,
 		today = getTodayValue(),
 	) {
-		return trpc.finance.createExpense.mutationOptions({
+		return {
+			mutationFn: (input: CreateExpenseInput) =>
+				apiFetch<FinanceExpense>("/api/finance/expenses", {
+					method: "POST",
+					body: input,
+				}),
 			onSuccess: async () => {
 				await invalidateFinanceMonthQueries(client, month, today);
 			},
-		});
+		} as const;
 	},
+
 	upsertMonthlyBudgetMutationOptions(
 		month = getMonthValue(),
 		client: QueryClient = queryClient,
 		today = getTodayValue(),
 	) {
-		return trpc.finance.upsertMonthlyBudget.mutationOptions({
+		return {
+			mutationFn: (input: UpsertBudgetInput) =>
+				apiFetch<unknown>("/api/finance/budget", {
+					method: "POST",
+					body: input,
+				}),
 			onSuccess: async () => {
 				await invalidateFinanceMonthQueries(client, month, today);
 			},
-		});
+		} as const;
 	},
 };
 
+// --- Hooks ---
+
 export function useFinanceExpenses(month = getMonthValue()) {
-	return useQuery(financeSdk.listExpensesOptions(month));
+	const cached = getCachedData<FinanceExpense[]>(
+		"listExpenses",
+		month,
+	);
+
+	const query = useQuery({
+		...financeSdk.listExpensesOptions(month),
+		initialData: cached ?? undefined,
+	});
+
+	useEffect(() => {
+		if (query.data) {
+			setCachedData("listExpenses", month, query.data);
+		}
+	}, [query.data, month]);
+
+	return query;
 }
 
 export function useFinanceMonthlyOverview(
 	month = getMonthValue(),
 	today = getTodayValue(),
 ) {
-	return useQuery(financeSdk.monthlyOverviewOptions(month, today));
+	const cached = getCachedData<FinanceMonthlyOverview>(
+		"getMonthlyOverview",
+		`${month}:${today}`,
+	);
+
+	const query = useQuery({
+		...financeSdk.monthlyOverviewOptions(month, today),
+		initialData: cached ?? undefined,
+	});
+
+	useEffect(() => {
+		if (query.data) {
+			setCachedData("getMonthlyOverview", `${month}:${today}`, query.data);
+		}
+	}, [query.data, month, today]);
+
+	return query;
+}
+
+export function useFinanceMonthlyBills(month = getMonthValue()) {
+	return useQuery(financeSdk.listMonthlyBillsOptions(month));
 }
 
 export function useCreateExpense(
@@ -100,24 +247,31 @@ export function useUpsertMonthlyBudget(
 
 // --- Goals ---
 
-export type Goal = RouterOutputs["finance"]["listGoals"][number];
-export type CreateGoalInput = RouterInputs["finance"]["createGoal"];
-export type UpdateGoalInput = RouterInputs["finance"]["updateGoal"];
-
 export const goalsSdk = {
-	listGoalsOptions: () => trpc.finance.listGoals.queryOptions(),
+	listGoalsOptions: () => ({
+		queryKey: ["goals"],
+		queryFn: () => apiFetch<Goal[]>("/api/finance/goals"),
+	}) as const,
 
-	createGoalMutationOptions: (client: QueryClient = queryClient) =>
-		trpc.finance.createGoal.mutationOptions({
-			onSuccess: () =>
-				client.invalidateQueries(trpc.finance.listGoals.queryFilter()),
-		}),
+	createGoalMutationOptions: (client: QueryClient = queryClient) => ({
+		mutationFn: (input: CreateGoalInput) =>
+			apiFetch<Goal>("/api/finance/goals", {
+				method: "POST",
+				body: input,
+			}),
+		onSuccess: () =>
+			client.invalidateQueries({ queryKey: ["goals"] }),
+	}) as const,
 
-	updateGoalMutationOptions: (client: QueryClient = queryClient) =>
-		trpc.finance.updateGoal.mutationOptions({
-			onSuccess: () =>
-				client.invalidateQueries(trpc.finance.listGoals.queryFilter()),
-		}),
+	updateGoalMutationOptions: (client: QueryClient = queryClient) => ({
+		mutationFn: (input: UpdateGoalInput) =>
+			apiFetch<Goal>(`/api/finance/goals/${input.id}`, {
+				method: "PATCH",
+				body: { currentAmount: input.currentAmount },
+			}),
+		onSuccess: () =>
+			client.invalidateQueries({ queryKey: ["goals"] }),
+	}) as const,
 };
 
 export function useGoals() {
@@ -130,4 +284,32 @@ export function useCreateGoal() {
 
 export function useUpdateGoal() {
 	return useMutation(goalsSdk.updateGoalMutationOptions());
+}
+
+export const savingsTargetSdk = {
+	queryKey: (month: string) => ["finance", "savings-target", month] as const,
+	queryOptions: (month: string) => ({
+		queryKey: savingsTargetSdk.queryKey(month),
+		queryFn: async () => {
+			const res = await apiFetch<SavingsTarget>(`/finance/savings-target?month=${month}`);
+			return res;
+		},
+	}),
+	mutationOptions: () => ({
+		mutationFn: async (input: UpsertSavingsTargetInput) => {
+			const res = await apiFetch<SavingsTarget>("/finance/savings-target", {
+				method: "POST",
+				body: JSON.stringify(input),
+			});
+			return res;
+		},
+	}),
+};
+
+export function useSavingsTarget(month = getMonthValue()) {
+	return useQuery(savingsTargetSdk.queryOptions(month));
+}
+
+export function useUpsertSavingsTarget() {
+	return useMutation(savingsTargetSdk.mutationOptions());
 }

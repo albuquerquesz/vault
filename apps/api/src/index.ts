@@ -1,12 +1,7 @@
 import fastifyCors from "@fastify/cors";
-import {
-	type FastifyTRPCPluginOptions,
-	fastifyTRPCPlugin,
-} from "@trpc/server/adapters/fastify";
 import { auth } from "@vault/api/auth";
 import { env } from "@vault/api/common/env";
-import { createContext } from "@vault/api/context";
-import { type AppRouter, appRouter } from "@vault/api/routers/index";
+import { registerRoutes } from "@vault/api/routers/index";
 import Fastify from "fastify";
 
 const baseCorsConfig = {
@@ -31,7 +26,6 @@ fastify.route({
 			const url = new URL(request.url, `http://${request.headers.host}`);
 			const headers = new Headers();
 
-			//key = "Content/Type", value = "application/json"
 			Object.entries(request.headers).forEach(([key, value]) => {
 				if (value) headers.append(key, value.toString());
 			});
@@ -59,27 +53,16 @@ fastify.route({
 	},
 });
 
-fastify.register(fastifyTRPCPlugin, {
-	prefix: "/trpc",
-	trpcOptions: {
-		router: appRouter,
-		createContext,
-		onError({ path, error }) {
-			console.error(`Error in tRPC handler on path '${path}':`, error);
-		},
-	} satisfies FastifyTRPCPluginOptions<AppRouter>["trpcOptions"],
-});
+await registerRoutes(fastify);
 
 fastify.get("/", async () => {
 	return "OK";
 });
 
 fastify.post("/api/webhooks/pluggy", async (req, reply) => {
-	const body = req.body;
-	// Handle item.synced events
+	const body = req.body as { event?: string } | undefined;
 	if (body?.event === "item.synced") {
 		// Trigger transaction sync for the item
-		// In production, this would dispatch to a job queue
 	}
 	reply.code(200).send({ received: true });
 });

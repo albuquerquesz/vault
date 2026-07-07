@@ -31,11 +31,10 @@
 	},
 	"dependencies": {
 		"@t3-oss/env-core": "^0.13.1",
-		"@trpc/client": "catalog:",
-		"@trpc/server": "catalog:",
 		"better-auth": "catalog:",
 		"dotenv": "catalog:",
 		"drizzle-orm": "^0.45.1",
+		"fastify": "^5.3.3",
 		"pg": "^8.17.1",
 		"zod": "catalog:"
 	},

@@ -22,6 +22,20 @@
       "when": 1783306056418,
       "tag": "0002_narrow_cyclops",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783375342639,
+      "tag": "0003_mellow_orbit",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783382508945,
+      "tag": "0004_needy_yellow_claw",
+      "breakpoints": true
     }
   ]
 }

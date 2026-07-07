@@ -1,28 +1,59 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@vault/api/routers/index";
 import { toast } from "sonner";
-import { queryClient, trpc, trpcClient } from "@/utils/trpc";
+import { apiFetch, queryClient } from "@/utils/api";
 
-type RouterInputs = inferRouterInputs<AppRouter>;
-type RouterOutputs = inferRouterOutputs<AppRouter>;
+// --- Types ---
 
-export type PluggyItem = RouterOutputs["pluggy"]["listItems"][number];
-export type PluggyTransaction =
-	RouterOutputs["pluggy"]["listTransactions"][number];
-export type PluggyConnectTokenOutput = RouterOutputs["pluggy"]["connectToken"];
-export type PluggySyncInput = RouterInputs["pluggy"]["syncTransactions"];
-export type PluggyDeleteItemInput = RouterInputs["pluggy"]["deleteItem"];
-
-function invalidatePluggyQueries() {
-	return queryClient.invalidateQueries(trpc.pluggy.listItems.queryFilter());
+export interface PluggyItem {
+	id: string;
+	userId: string;
+	pluggyItemId: string;
+	provider: string;
+	status: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
+
+export interface PluggyTransaction {
+	id: string;
+	pluggyTransactionId: string;
+	date: string;
+	amount: string;
+	description: string | null;
+	category: string | null;
+	provider: string;
+}
+
+export interface PluggyConnectTokenOutput {
+	accessToken: string;
+}
+
+export interface PluggySyncInput {
+	pluggyItemId: string;
+	startDate: string;
+	endDate: string;
+}
+
+export interface PluggyDeleteItemInput {
+	pluggyItemId: string;
+}
+
+// --- SDK ---
 
 export const pluggySdk = {
 	listItemsOptions() {
-		return trpc.pluggy.listItems.queryOptions();
+		return {
+			queryKey: ["pluggyItems"],
+			queryFn: () => apiFetch<PluggyItem[]>("/api/pluggy/items"),
+		} as const;
 	},
 };
+
+function invalidatePluggyQueries() {
+	return queryClient.invalidateQueries({ queryKey: ["pluggyItems"] });
+}
+
+// --- Hooks ---
 
 export function usePluggyItems() {
 	return useQuery({
@@ -33,11 +64,14 @@ export function usePluggyItems() {
 
 export function usePluggyConnectToken() {
 	return useMutation({
-		mutationFn: () => trpcClient.pluggy.connectToken.mutate(void 0),
+		mutationFn: () =>
+			apiFetch<PluggyConnectTokenOutput>("/api/pluggy/connect-token", {
+				method: "POST",
+			}),
 		onSuccess: () => {
 			toast.success("Token gerado com sucesso");
 		},
-		onError: (error) => {
+		onError: (error: Error) => {
 			toast.error(error.message);
 		},
 	});
@@ -45,12 +79,16 @@ export function usePluggyConnectToken() {
 
 export function usePluggySync(input: PluggySyncInput) {
 	return useMutation({
-		mutationFn: () => trpcClient.pluggy.syncTransactions.mutate(input),
+		mutationFn: () =>
+			apiFetch<{ synced: number; total: number }>(
+				"/api/pluggy/sync",
+				{ method: "POST", body: input },
+			),
 		onSuccess: async () => {
 			await invalidatePluggyQueries();
 			toast.success("Transações sincronizadas");
 		},
-		onError: (error) => {
+		onError: (error: Error) => {
 			toast.error(error.message);
 		},
 	});
@@ -58,7 +96,9 @@ export function usePluggySync(input: PluggySyncInput) {
 
 export function usePluggyDeleteItem() {
 	return async (input: PluggyDeleteItemInput) => {
-		await trpcClient.pluggy.deleteItem.mutate(input);
+		await apiFetch<unknown>(`/api/pluggy/items/${input.pluggyItemId}`, {
+			method: "DELETE",
+		});
 		await invalidatePluggyQueries();
 		toast.success("Item removido");
 	};
@@ -66,7 +106,11 @@ export function usePluggyDeleteItem() {
 
 export function usePluggyTransactions(limit = 20) {
 	return useQuery({
-		...trpc.pluggy.listTransactions.queryOptions({ limit }),
+		queryKey: ["pluggyTransactions", limit],
+		queryFn: () =>
+			apiFetch<PluggyTransaction[]>(
+				`/api/pluggy/transactions?limit=${limit}`,
+			),
 		staleTime: 1000 * 60 * 5,
 	});
 }

@@ -1,4 +1,3 @@
-import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	HeadContent,
@@ -10,13 +9,11 @@ import { Toaster } from "@vault/ui/components/sonner";
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@vault/ui/components/tooltip";
-import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
 
 export interface RouterAppContext {
-	trpc: typeof trpc;
-	queryClient: QueryClient;
+	queryClient: import("@tanstack/react-query").QueryClient;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({

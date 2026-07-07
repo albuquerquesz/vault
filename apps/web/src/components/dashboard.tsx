@@ -1,6 +1,6 @@
 "use client";
 
-import { dashboardDetailDefinitions } from "@/components/dashboard-detail-definitions";
+import { DailySpendingLimitCard } from "@/components/daily-spending-limit-card";
 import { MonthlyBillCard } from "@/components/monthly-bill-card";
 import { GoalsCard } from "@/components/goals-card";
 import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
@@ -14,27 +14,28 @@ export function Dashboard() {
 
 	return (
 		<div className="grid grid-cols-1 gap-4 pt-6">
-			<h2 className="text-4xl font-semibold tracking-tight text-foreground mb-6">
+			<h2 className="mb-2 text-2xl font-semibold tracking-tight text-foreground sm:mb-6 sm:text-3xl xl:text-4xl">
 				Bem-vindo de volta{firstName ? `, ${firstName}!` : "!"} 👋
 			</h2>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr]">
-				<OrderSourceMixChart
-					detailHref={dashboardDetailDefinitions.expenseDistribution.path}
-					totalNetWorth={1842}
-				/>
+			<div className="grid grid-cols-1 gap-4 xl:grid-cols-[2fr_1fr]">
+				<OrderSourceMixChart />
 				<MonthlyBillCard />
 			</div>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-10">
-				<div className="md:col-span-3">
-					<SalesByHourHeatmap
-						detailHref={dashboardDetailDefinitions.dailyExpenses.path}
-					/>
+			<div className="grid grid-cols-1 gap-4 xl:grid-cols-10">
+				<div className="xl:col-span-3">
+					<SalesByHourHeatmap />
 				</div>
-				<div className="md:col-span-3">
+				<div className="xl:col-span-3">
 					<GoalsCard />
 				</div>
-				<div className="md:col-span-4">
+				<div className="xl:col-span-4">
 					<RecentTransactionsTable />
+				</div>
+			</div>
+
+			<div className="grid grid-cols-1 gap-4 xl:grid-cols-10">
+				<div className="xl:col-span-3">
+					<DailySpendingLimitCard />
 				</div>
 			</div>
 		</div>

@@ -1,18 +1,8 @@
-import { protectedProcedure, publicProcedure, router } from "../index";
-import { financeRouter } from "./finance";
-import { pluggyRouter } from "./pluggy";
+import type { FastifyInstance } from "fastify";
+import { registerFinanceRoutes } from "./finance";
+import { registerPluggyRoutes } from "./pluggy";
 
-export const appRouter = router({
-	healthCheck: publicProcedure.query(() => {
-		return "OK";
-	}),
-	finance: financeRouter,
-	pluggy: pluggyRouter,
-	privateData: protectedProcedure.query(({ ctx }) => {
-		return {
-			message: "This is private",
-			user: ctx.session.user,
-		};
-	}),
-});
-export type AppRouter = typeof appRouter;
+export async function registerRoutes(server: FastifyInstance) {
+	server.register(async (s) => { registerFinanceRoutes(s); }, { prefix: "/api/finance" });
+	server.register(async (s) => { registerPluggyRoutes(s); }, { prefix: "/api/pluggy" });
+}

@@ -22,6 +22,7 @@ import { useMemo } from "react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { DonutChart } from "@/components/donut-chart";
 import { slicePalette } from "@/components/pie-chart";
+import { useFinanceExpenses } from "@/features/finance/sdk";
 
 type MonthOverMonthTrend = "up" | "down" | "neutral";
 
@@ -33,36 +34,8 @@ export type OrderSourceDatum = {
 };
 
 type OrderSourceMixChartProps = {
-	data?: OrderSourceDatum[];
-	totalOrders?: number;
-	totalNetWorth: number;
-	loading?: boolean;
 	title?: string;
-	detailHref?: string;
 };
-
-const defaultData: OrderSourceDatum[] = [
-	{
-		source: "Busca orgânica",
-		amount: 698,
-		orders: 698,
-		monthOverMonthTrend: "up",
-	},
-	{
-		source: "Direto",
-		amount: 516,
-		orders: 516,
-		monthOverMonthTrend: "neutral",
-	},
-	{ source: "Referência", amount: 276, orders: 276, monthOverMonthTrend: "up" },
-	{
-		source: "Social pago",
-		amount: 221,
-		orders: 221,
-		monthOverMonthTrend: "down",
-	},
-	{ source: "Outros", amount: 131, orders: 131, monthOverMonthTrend: "down" },
-];
 
 function TrendIcon({ trend }: { trend: MonthOverMonthTrend }) {
 	if (trend === "up") {
@@ -92,21 +65,41 @@ function TrendIcon({ trend }: { trend: MonthOverMonthTrend }) {
 }
 
 export function OrderSourceMixChart({
-	data = defaultData,
-	totalOrders,
-	totalNetWorth,
 	title = "Distribuição dos gastos",
-	loading = false,
-	detailHref,
 }: OrderSourceMixChartProps) {
-	if (loading) {
+	const { data: expenses, isLoading } = useFinanceExpenses();
+
+	const sourceData = useMemo(() => {
+		if (!expenses || expenses.length === 0) return [] as OrderSourceDatum[];
+		const grouped = new Map<string, { amount: number; count: number }>();
+
+		for (const expense of expenses) {
+			const existing = grouped.get(expense.category) ?? {
+				amount: 0,
+				count: 0,
+			};
+			existing.amount += expense.amount;
+			existing.count += 1;
+			grouped.set(expense.category, existing);
+		}
+
+		return Array.from(grouped.entries())
+			.map(([source, { amount, count }]) => ({
+				source,
+				amount,
+				orders: count,
+				monthOverMonthTrend: "neutral" as const,
+			}))
+			.sort((a, b) => b.amount - a.amount);
+	}, [expenses]);
+
+	if (isLoading || !sourceData.length) {
 		return <HomeCardSkeleton variant="mix" />;
 	}
 
-	const safeData = data.length > 0 ? data : defaultData;
-	const _resolvedTotalOrders = useMemo(
-		() => totalOrders ?? safeData.reduce((sum, row) => sum + row.orders, 0),
-		[safeData, totalOrders],
+	const totalNetWorth = useMemo(
+		() => sourceData.reduce((sum, row) => sum + row.amount, 0),
+		[sourceData],
 	);
 
 	return (
@@ -123,44 +116,50 @@ export function OrderSourceMixChart({
 					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent>
-				<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+			<CardContent className="space-y-6">
+				<div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
 					<DonutChart
-						data={safeData}
+						data={sourceData}
 						totalValue={totalNetWorth}
 					/>
 
-					<div className="flex items-center">
+					<div className="flex min-w-0 items-center">
 						<ul
-							className="w-full"
+							className="w-full min-w-0"
 							aria-label="Detalhamento das origens de pedidos"
 						>
-							{safeData.map((row, index) => (
+							{sourceData.map((row, index) => (
 								<li
 									key={row.source}
-									className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 py-3 last:pb-1"
+									className="flex flex-col gap-2 py-3 last:pb-1 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-x-4"
 								>
-									<span
-										className="h-3 w-3 rounded-none"
-										style={{
-											backgroundColor:
-												slicePalette[index % slicePalette.length],
-										}}
-									/>
-									<span className="min-w-0 truncate text-lg">{row.source}</span>
-									<span className="text-muted-foreground text-lg tabular-nums">
+									<div className="flex items-center gap-3 sm:contents">
+										<span
+											className="h-3 w-3 rounded-none"
+											style={{
+												backgroundColor:
+													slicePalette[index % slicePalette.length],
+											}}
+										/>
+										<span className="min-w-0 truncate text-base sm:text-lg">
+											{row.source}
+										</span>
+									</div>
+									<span className="text-sm text-muted-foreground tabular-nums sm:text-lg">
 										{totalNetWorth > 0
 											? `${((row.amount / totalNetWorth) * 100).toFixed(1)}%`
 											: "0%"}
 									</span>
-									<span className="text-lg tabular-nums">
+									<span className="text-sm tabular-nums sm:text-lg">
 										{new Intl.NumberFormat("pt-BR", {
 											style: "currency",
 											currency: "BRL",
 											maximumFractionDigits: 0,
 										}).format(row.amount)}
 									</span>
-									<TrendIcon trend={row.monthOverMonthTrend} />
+									<div className="sm:justify-self-end">
+										<TrendIcon trend={row.monthOverMonthTrend} />
+									</div>
 								</li>
 							))}
 						</ul>

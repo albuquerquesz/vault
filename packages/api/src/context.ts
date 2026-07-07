@@ -1,17 +1,16 @@
-import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
-import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./auth";
 import { db } from "./db";
 
-export async function createContext({ req }: CreateFastifyContextOptions) {
-	const session = await auth.api.getSession({
-		headers: fromNodeHeaders(req.headers),
-	});
+export interface Context {
+	auth: typeof auth;
+	db: typeof db;
+	session: { user: { id: string; name: string; email: string } } | null;
+}
+
+export async function createContext(): Promise<Context> {
 	return {
 		auth,
 		db,
-		session,
+		session: null,
 	};
 }
-
-export type Context = Awaited<ReturnType<typeof createContext>>;

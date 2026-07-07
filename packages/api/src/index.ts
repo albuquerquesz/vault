@@ -1,25 +1,18 @@
-import { initTRPC, TRPCError } from "@trpc/server";
-
 import type { Context } from "./context";
+import { auth } from "./auth";
+import { fromNodeHeaders } from "better-auth/node";
+import type { IncomingHttpHeaders } from "node:http";
 
-export const t = initTRPC.context<Context>().create();
-
-export const router = t.router;
-
-export const publicProcedure = t.procedure;
-
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-	if (!ctx.session) {
-		throw new TRPCError({
-			code: "UNAUTHORIZED",
-			message: "Authentication required",
-			cause: "No session",
+export async function requireSession(
+	req: { headers: IncomingHttpHeaders },
+): Promise<NonNullable<Context["session"]>> {
+	const session = await auth.api.getSession({
+		headers: fromNodeHeaders(req.headers),
+	});
+	if (!session) {
+		throw Object.assign(new Error("Authentication required"), {
+			statusCode: 401,
 		});
 	}
-	return next({
-		ctx: {
-			...ctx,
-			session: ctx.session,
-		},
-	});
-});
+	return session;
+}
