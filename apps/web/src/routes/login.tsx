@@ -1,10 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Button } from "@vault/ui/components/button";
 import { Input } from "@vault/ui/components/input";
-import { GitHubIcon } from "@/components/github-icon";
 import { GoogleIcon } from "@/components/google-icon";
 import { LogoIcon } from "@/components/logo";
-import { VercelIcon } from "@/components/vercel-icon";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
@@ -45,15 +43,8 @@ function RouteComponent() {
               className="h-9 w-full gap-2 rounded-md border border-zinc-800 bg-zinc-900/50 text-sm text-white/80 hover:bg-zinc-800/50 hover:text-white"
               onClick={handleGoogleSignIn}
             >
-              <GoogleIcon className="size-4" />
+              <GoogleIcon className="size-5 self-center" />
               Continue with Google
-            </Button>
-            <Button
-              variant="outline"
-              className="h-9 w-full gap-2 rounded-md border border-zinc-800 bg-zinc-900/50 text-sm text-white/80 hover:bg-zinc-800/50 hover:text-white"
-            >
-              <GitHubIcon className="size-4" />
-              Continue with GitHub
             </Button>
           </div>
         </div>
