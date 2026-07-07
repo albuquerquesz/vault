@@ -31,7 +31,7 @@ export function MonthlyBillCard() {
 
 	if (billsQuery.isError) {
 		return (
-			<Card className="financial-panel-border ring-0">
+			<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
 				<CardHeader className="border-b">
 					<div className="flex items-center justify-between gap-2">
 						<div className="flex items-center gap-2">
@@ -65,7 +65,7 @@ export function MonthlyBillCard() {
 	const items = bills.items;
 
 	return (
-		<Card className="financial-panel-border ring-0">
+		<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
 			<CardHeader className="border-b">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
