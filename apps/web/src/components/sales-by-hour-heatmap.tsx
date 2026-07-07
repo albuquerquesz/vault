@@ -15,7 +15,7 @@ import { cn } from "@vault/ui/lib/utils";
 import dayjs from "dayjs";
 import { ArrowDownIcon, ArrowUpIcon, Clock3Icon, Info } from "lucide-react";
 import { useMemo } from "react";
-import { HomeCardSkeleton, HeatmapSkeletonContent } from "@/components/home-card-skeleton";
+import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { useFinanceExpenses } from "@/features/finance/sdk";
 import "dayjs/locale/pt-br";
@@ -151,7 +151,11 @@ export function SalesByHourHeatmap({
 		[heatmapData],
 	);
 
-  if (isLoading || !heatmapData.length) {
+  if (isLoading) {
+    return <HomeCardSkeleton variant="heatmap" />;
+  }
+
+  if (!heatmapData.length) {
     return (
       <Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
         <CardHeader className="border-b">
@@ -172,7 +176,9 @@ export function SalesByHourHeatmap({
             </Tooltip>
           </div>
         </CardHeader>
-        <HeatmapSkeletonContent />
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Nenhuma despesa registrada</p>
+        </CardContent>
       </Card>
     );
   }

@@ -93,8 +93,30 @@ export function OrderSourceMixChart({
 			.sort((a, b) => b.amount - a.amount);
 	}, [expenses]);
 
-	if (isLoading || !sourceData.length) {
+	if (isLoading) {
 		return <HomeCardSkeleton variant="mix" />;
+	}
+
+	if (!sourceData.length) {
+		return (
+			<Card className="financial-panel-border ring-0">
+				<CardHeader className="border-b">
+					<div className="flex items-center justify-between gap-2">
+						<div className="flex items-center gap-2">
+							<PieChartIcon className="size-4 text-muted-foreground" />
+							<CardDescription className="text-base">{title}</CardDescription>
+						</div>
+						<Tooltip>
+							<TooltipTrigger render={<Info className="size-4 text-muted-foreground" />} />
+							<TooltipContent>Mostra a distribuição dos seus gastos por categoria</TooltipContent>
+						</Tooltip>
+					</div>
+				</CardHeader>
+				<CardContent>
+					<p className="text-sm text-muted-foreground">Nenhuma despesa registrada</p>
+				</CardContent>
+			</Card>
+		);
 	}
 
 	const totalNetWorth = useMemo(
