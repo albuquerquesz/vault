@@ -31,5 +31,6 @@ export function Dashboard() {
 					<RecentTransactionsTable />
 				</div>
 			</div>
+		</div>
 	);
 }
