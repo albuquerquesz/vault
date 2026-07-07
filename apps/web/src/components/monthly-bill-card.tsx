@@ -61,6 +61,32 @@ export function MonthlyBillCard() {
 		return null;
 	}
 
+	if (bills.bills.length === 0) {
+		return (
+			<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
+				<CardHeader className="border-b">
+					<div className="flex items-center justify-between gap-2">
+						<div className="flex items-center gap-2">
+							<CreditCardIcon className="size-4 text-muted-foreground" />
+							<CardDescription className="text-base">
+								Faturas do mês
+							</CardDescription>
+						</div>
+						<Tooltip>
+							<TooltipTrigger
+								render={<Info className="size-4 text-muted-foreground" />}
+							/>
+							<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
+						</Tooltip>
+					</div>
+				</CardHeader>
+				<CardContent className="py-6 text-sm text-muted-foreground">
+					Nenhuma fatura registrada.
+				</CardContent>
+			</Card>
+		);
+	}
+
 	const bill = bills.bills[0];
 	const items = bills.items;
 
