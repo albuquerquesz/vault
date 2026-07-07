@@ -40,7 +40,8 @@ function RouteComponent() {
           <div className="space-y-2">
             <Button
               variant="outline"
-              className="h-9 w-full gap-2 rounded-md border border-zinc-800 bg-zinc-900/50 text-sm text-white/80 hover:bg-zinc-800/50 hover:text-white"
+              size="lg"
+              className="h-12 w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-6 text-sm text-white/80 hover:bg-zinc-800/50 hover:text-white"
               onClick={handleGoogleSignIn}
             >
               <GoogleIcon className="size-5 self-center" />
