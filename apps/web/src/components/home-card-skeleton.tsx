@@ -108,91 +108,52 @@ function MixSkeleton() {
 	);
 }
 
-function HeatmapSkeleton() {
+export function HeatmapSkeletonContent() {
 	return (
-		<>
-			<HeaderBlock
-				left={
-					<div className="space-y-5">
-						<div className="flex items-center gap-2">
-							<Skeleton className="h-4 w-4" />
-							<Skeleton className="h-4 w-28" />
-						</div>
-						<div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
-							<div className="space-y-2">
-								<Skeleton className="h-10 w-36" />
-								<Skeleton className="h-4 w-28" />
-							</div>
-							<div className="space-y-2 text-right">
-								<Skeleton className="ml-auto h-6 w-20" />
-								<Skeleton className="ml-auto h-4 w-[4.5rem]" />
-							</div>
-						</div>
-					</div>
-				}
-			/>
-			<CardContent className="space-y-4">
-				<div className="space-y-3 md:hidden">
+		<CardContent className="space-y-4">
+			<div className="hidden grid-cols-[1.8rem_minmax(0,1fr)] items-start gap-3 md:grid">
+				<div className="grid gap-2 pt-0.5">
 					{Array.from({ length: 7 }).map((_, index) => (
+						<Skeleton key={`heatmap-label-${index}`} className="h-3 w-5" />
+					))}
+				</div>
+				<div className="grid gap-2">
+					{Array.from({ length: 7 }).map((_, rowIndex) => (
 						<div
-							key={`heatmap-mobile-row-${index}`}
-							className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-3 py-3"
+							key={`heatmap-row-${rowIndex}`}
+							className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-1"
 						>
-							<div className="space-y-2">
-								<Skeleton className="h-4 w-12" />
-								<Skeleton className="h-3 w-24" />
-							</div>
-							<div className="text-right">
-								<Skeleton className="ml-auto h-5 w-24" />
-								<Skeleton className="ml-auto mt-1 h-3 w-16" />
-							</div>
+							{Array.from({ length: 24 }).map((_, colIndex) => (
+								<Skeleton
+									key={`heatmap-cell-${rowIndex}-${colIndex}`}
+									className="h-3 w-full rounded-[2px]"
+								/>
+							))}
 						</div>
 					))}
 				</div>
-				<div className="hidden grid-cols-[1.8rem_minmax(0,1fr)] items-start gap-3 md:grid">
-					<div className="grid gap-2 pt-0.5">
-						{Array.from({ length: 7 }).map((_, index) => (
-							<Skeleton key={`heatmap-label-${index}`} className="h-3 w-5" />
-						))}
-					</div>
-					<div className="grid gap-2">
-						{Array.from({ length: 7 }).map((_, rowIndex) => (
-							<div
-								key={`heatmap-row-${rowIndex}`}
-								className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-1"
-							>
-								{Array.from({ length: 24 }).map((_, colIndex) => (
-									<Skeleton
-										key={`heatmap-cell-${rowIndex}-${colIndex}`}
-										className="h-3 w-full rounded-[2px]"
-									/>
-								))}
-							</div>
-						))}
-					</div>
+			</div>
+			<div className="hidden grid-cols-[1.8rem_minmax(0,1fr)] gap-3 md:grid">
+				<span />
+				<div className="grid grid-cols-5 gap-2">
+					{Array.from({ length: 5 }).map((_, index) => (
+						<Skeleton key={`heatmap-hour-${index}`} className="h-3 w-full" />
+					))}
 				</div>
-				<div className="hidden grid-cols-[1.8rem_minmax(0,1fr)] gap-3 md:grid">
-					<span />
-					<div className="grid grid-cols-5 gap-2">
-						{Array.from({ length: 5 }).map((_, index) => (
-							<Skeleton key={`heatmap-hour-${index}`} className="h-3 w-full" />
-						))}
-					</div>
+			</div>
+			<div className="flex items-center gap-3">
+				<Skeleton className="h-3 w-10" />
+				<div className="flex items-center gap-1.5">
+					{Array.from({ length: 5 }).map((_, index) => (
+						<Skeleton
+							key={`heatmap-legend-${index}`}
+							className="h-2.5 w-3.5"
+						/>
+					))}
 				</div>
-				<div className="flex items-center gap-3">
-					<Skeleton className="h-3 w-10" />
-					<div className="flex items-center gap-1.5">
-						{Array.from({ length: 5 }).map((_, index) => (
-							<Skeleton
-								key={`heatmap-legend-${index}`}
-								className="h-2.5 w-3.5"
-							/>
-						))}
-					</div>
-					<Skeleton className="h-3 w-10" />
-				</div>
-			</CardContent>
-		</>
+				<Skeleton className="h-3 w-10" />
+			</div>
+		</CardContent>
 	);
 }
 
@@ -296,14 +257,7 @@ function InvestmentSkeleton() {
 function SpendingLimitSkeleton() {
 	return (
 		<>
-			<HeaderBlock
-				left={
-					<div className="flex items-center gap-2">
-						<Skeleton className="size-4" />
-						<Skeleton className="h-5 w-28" />
-					</div>
-				}
-			/>
+			<CardHeader className="border-b" />
 			<CardContent className="space-y-4">
 				<Skeleton className="h-10 w-48" />
 				<div className="space-y-2">
@@ -324,7 +278,7 @@ const skeletonByVariant: Record<
 > = {
 	savings: SavingsSkeleton,
 	mix: MixSkeleton,
-	heatmap: HeatmapSkeleton,
+	heatmap: HeatmapSkeletonContent,
 	bills: BillsSkeleton,
 	category: CategorySkeleton,
 	investment: InvestmentSkeleton,

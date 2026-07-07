@@ -12,7 +12,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@vault/ui/components/tooltip";
-import { Info, Wallet, XIcon } from "lucide-react";
+import { Info, Wallet } from "lucide-react";
 import { useState } from "react";
 import {
 	getMonthValue,
@@ -128,22 +128,9 @@ function DailySpendingLimitCard() {
 						<Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs" />
 						<Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 bg-card text-card-foreground shadow-2xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 sm:rounded-xl">
 							<div className="flex flex-col gap-4 p-6">
-								<div className="flex items-center justify-between">
-									<h2 className="text-lg font-semibold tracking-tight">
-										Meta de Economia
-									</h2>
-									<Dialog.Close
-										render={
-											<Button
-												variant="ghost"
-												size="icon-sm"
-												className="h-8 w-8"
-											/>
-										}
-									>
-										<XIcon className="size-4" />
-									</Dialog.Close>
-								</div>
+								<h2 className="text-lg font-semibold tracking-tight">
+									Meta de Economia
+								</h2>
 
 								<div className="flex flex-col gap-4">
 									<div className="flex flex-col gap-1.5">

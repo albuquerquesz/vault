@@ -120,7 +120,7 @@ export function RecentTransactionsTable() {
 	};
 
 	return (
-		<Card className="financial-panel-border w-full min-h-[28rem] ring-0">
+		<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
 			<CardHeader className="border-b">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">

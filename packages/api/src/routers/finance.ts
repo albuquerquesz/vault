@@ -264,7 +264,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 					await db
 						.update(savingsTarget)
 						.set({ savingsPercentage: String(percentage) })
-						.where(eq(savingsTarget.id, existing[0].id));
+						.where(eq(savingsTarget.id, existing[0]!.id!));
 				} else {
 					await db.insert(savingsTarget).values({
 						userId: session.user.id,

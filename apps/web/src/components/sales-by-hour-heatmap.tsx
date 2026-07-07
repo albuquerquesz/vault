@@ -15,7 +15,7 @@ import { cn } from "@vault/ui/lib/utils";
 import dayjs from "dayjs";
 import { ArrowDownIcon, ArrowUpIcon, Clock3Icon, Info } from "lucide-react";
 import { useMemo } from "react";
-import { HomeCardSkeleton } from "@/components/home-card-skeleton";
+import { HomeCardSkeleton, HeatmapSkeletonContent } from "@/components/home-card-skeleton";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { useFinanceExpenses } from "@/features/finance/sdk";
 import "dayjs/locale/pt-br";
@@ -152,7 +152,29 @@ export function SalesByHourHeatmap({
 	);
 
   if (isLoading || !heatmapData.length) {
-    return <HomeCardSkeleton variant="heatmap" />;
+    return (
+      <Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
+        <CardHeader className="border-b">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <CardDescription className="flex items-center gap-2 text-base">
+                <Clock3Icon className="size-4 text-muted-foreground" />
+                <span>{title}</span>
+              </CardDescription>
+            </div>
+            <Tooltip>
+              <TooltipTrigger
+                render={<Info className="mt-0.5 size-4 text-muted-foreground" />}
+              />
+              <TooltipContent>
+                Visualize o volume de transações por dia da semana e hora do dia.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </CardHeader>
+        <HeatmapSkeletonContent />
+      </Card>
+    );
   }
 
   const resolvedPeriodLabel = periodLabel ?? formatTodayLabel(locale);
