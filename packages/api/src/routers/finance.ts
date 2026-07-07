@@ -6,11 +6,6 @@ import { expense, goal, monthlyBill, monthlyBillItem, monthlyBudget, savingsTarg
 import { requireSession } from "../index";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
-const defaultMonthlyBillItems = [
-	{ name: "Gold", paidAmount: 478.36, totalAmount: 550, sortOrder: 1 },
-	{ name: "Streaming", paidAmount: 39.9, totalAmount: 39.9, sortOrder: 2 },
-	{ name: "Cloud", paidAmount: 19.9, totalAmount: 29.9, sortOrder: 3 },
-] as const;
 
 const expenseInput = z.object({
 	date: z.iso.date(),
@@ -190,11 +185,9 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 				const month = (req.query as { month: string }).month;
 				if (!monthPattern.test(month)) return reply.status(400).send({ error: "Invalid month format. Use YYYY-MM" });
 				const bills = await db.select().from(monthlyBill).where(and(eq(monthlyBill.userId, session.user.id), eq(monthlyBill.month, month)));
-				if (bills.length === 0) {
-					const defaultBill = { id: "default", userId: session.user.id, month, totalBill: "0", createdAt: new Date(), updatedAt: new Date() };
-					const items = defaultMonthlyBillItems.map((item, index) => ({ id: `default-${index}`, monthlyBillId: "default" as never, ...item, createdAt: new Date(), updatedAt: new Date() }));
-					return reply.send({ bills: [serializeMonthlyBill(defaultBill)], items });
-				}
+			if (bills.length === 0) {
+				return reply.send({ bills: [], items: [] });
+			}
 				const items = await Promise.all(bills.map(async bill => {
 					const billItems = await db.select().from(monthlyBillItem).where(eq(monthlyBillItem.monthlyBillId, bill.id)).orderBy(asc(monthlyBillItem.sortOrder));
 					return billItems.map(serializeMonthlyBillItem);
