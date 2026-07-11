@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "settings" jsonb DEFAULT '{}' NOT NULL;
