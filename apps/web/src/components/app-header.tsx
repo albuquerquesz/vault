@@ -1,13 +1,11 @@
-import { Separator } from "@vault/ui/components/separator";
 import { cn } from "@vault/ui/lib/utils";
 import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
-import { useNavLinks } from "@/components/app-shared";
+import { useActiveBreadcrumbPage } from "@/components/app-shared";
 import { DecorIcon } from "@/components/decor-icon";
 import { NavUser } from "@/components/nav-user";
 
 export function AppHeader() {
-	const navLinks = useNavLinks();
-	const activeItem = navLinks.find((item) => item.isActive);
+	const activePage = useActiveBreadcrumbPage();
 
 	return (
 		<header
@@ -18,7 +16,7 @@ export function AppHeader() {
 		>
 			<DecorIcon className="hidden md:block" position="bottom-left" />
 			<div className="flex items-center gap-3">
-				<AppBreadcrumbs page={activeItem ?? null} />
+				<AppBreadcrumbs page={activePage} />
 			</div>
 			<div className="flex items-center gap-3">
 				<NavUser />

@@ -12,7 +12,7 @@ export type {
 	PluggyTransaction,
 };
 
-/** Pluggy operations bound to the given BYOK (or platform) credentials. */
+/** Pluggy operations bound to the given user BYOK credentials. */
 export function createPluggyService(creds: PluggyCredentials) {
 	const client = createPluggyClient(creds);
 

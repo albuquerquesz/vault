@@ -38,6 +38,7 @@ import {
 	MaskedMonetaryValue,
 	MonetaryVisibilityProvider,
 } from "@/components/monetary-visibility";
+import { PageContent } from "@/components/page-content";
 import {
 	type FinanceExpense,
 	getMonthValue,
@@ -131,7 +132,10 @@ function TransactionsSkeleton() {
 
 			<div className="grid gap-4 sm:grid-cols-3">
 				{Array.from({ length: 3 }).map((_, index) => (
-					<Card key={`summary-skeleton-${index}`} className="financial-panel-border ring-0">
+					<Card
+						key={`summary-skeleton-${index}`}
+						className="financial-panel-border ring-0"
+					>
 						<CardHeader className="border-b">
 							<div className="h-4 w-28 rounded-md bg-muted/40" />
 						</CardHeader>
@@ -199,7 +203,9 @@ export function TransactionsPage() {
 
 		let filtered = [...data];
 		if (categoryFilter !== "all") {
-			filtered = filtered.filter((expense) => expense.category === categoryFilter);
+			filtered = filtered.filter(
+				(expense) => expense.category === categoryFilter,
+			);
 		}
 
 		if (searchQuery.trim()) {
@@ -232,7 +238,11 @@ export function TransactionsPage() {
 	);
 
 	const totalSpent = useMemo(
-		() => filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0),
+		() =>
+			filteredExpenses.reduce(
+				(sum, expense) => sum + Number(expense.amount),
+				0,
+			),
 		[filteredExpenses],
 	);
 
@@ -268,34 +278,44 @@ export function TransactionsPage() {
 	};
 
 	if (expensesQuery.isPending) {
-		return <TransactionsSkeleton />;
+		return (
+			<PageContent className="pt-6">
+				<TransactionsSkeleton />
+			</PageContent>
+		);
 	}
 
 	if (expensesQuery.isError) {
 		return (
-			<Card className="financial-panel-border ring-0">
-				<CardHeader className="border-b">
-					<CardDescription className="text-base">Erro ao carregar</CardDescription>
-					<CardTitle className="text-2xl">Não foi possível abrir o extrato</CardTitle>
-				</CardHeader>
-				<CardContent className="grid gap-4">
-					<p className="max-w-xl text-sm text-muted-foreground">
-						As transações não puderam ser carregadas agora. Tente novamente para
-						recarregar a lista deste mês.
-					</p>
-					<div>
-						<Button onClick={() => void expensesQuery.refetch()}>
-							Tentar novamente
-						</Button>
-					</div>
-				</CardContent>
-			</Card>
+			<PageContent className="pt-6">
+				<Card className="financial-panel-border ring-0">
+					<CardHeader className="border-b">
+						<CardDescription className="text-base">
+							Erro ao carregar
+						</CardDescription>
+						<CardTitle className="text-2xl">
+							Não foi possível abrir o extrato
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="grid gap-4">
+						<p className="max-w-xl text-sm text-muted-foreground">
+							As transações não puderam ser carregadas agora. Tente novamente
+							para recarregar a lista deste mês.
+						</p>
+						<div>
+							<Button onClick={() => void expensesQuery.refetch()}>
+								Tentar novamente
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+			</PageContent>
 		);
 	}
 
 	return (
 		<MonetaryVisibilityProvider>
-			<div className="grid gap-4 pt-6">
+			<PageContent className="grid gap-4 pt-6">
 				<section className="space-y-2">
 					<h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
 						Extrato e filtros do mês
@@ -386,7 +406,8 @@ export function TransactionsPage() {
 						<CardContent className="grid gap-3 sm:grid-cols-2 sm:items-end">
 							<div className="space-y-1">
 								<p className="text-sm text-muted-foreground">
-									{filteredExpenses.length} {filteredExpenses.length === 1 ? "lançamento" : "lançamentos"}
+									{filteredExpenses.length}{" "}
+									{filteredExpenses.length === 1 ? "lançamento" : "lançamentos"}
 								</p>
 								<p className="text-sm text-muted-foreground">
 									{hasActiveFilters
@@ -448,7 +469,9 @@ export function TransactionsPage() {
 							<div className="space-y-1">
 								<div className="flex items-center gap-2">
 									<ReceiptTextIcon className="size-4 text-muted-foreground" />
-									<CardDescription className="text-base">Extrato</CardDescription>
+									<CardDescription className="text-base">
+										Extrato
+									</CardDescription>
 								</div>
 								<p className="max-w-2xl text-sm text-muted-foreground">
 									Linha do tempo agrupada por dia, com cada lançamento visível
@@ -457,7 +480,9 @@ export function TransactionsPage() {
 							</div>
 							<Tooltip>
 								<TooltipTrigger
-									render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
+									render={() => (
+										<Info className="mt-0.5 size-4 text-muted-foreground" />
+									)}
 								/>
 								<TooltipContent>
 									Despesas registradas no período selecionado
@@ -497,7 +522,9 @@ export function TransactionsPage() {
 												</h2>
 												<p className="text-sm text-muted-foreground">
 													{group.expenses.length}{" "}
-													{group.expenses.length === 1 ? "lançamento" : "lançamentos"}
+													{group.expenses.length === 1
+														? "lançamento"
+														: "lançamentos"}
 												</p>
 											</div>
 											<div className="flex items-center gap-2 text-sm tabular-nums text-muted-foreground">
@@ -541,7 +568,9 @@ export function TransactionsPage() {
 																{formatBRL(Number(expense.amount))}
 															</span>
 															<span className="hidden sm:inline">•</span>
-															<span>{formatFullDateBR(expense.expenseDate)}</span>
+															<span>
+																{formatFullDateBR(expense.expenseDate)}
+															</span>
 														</div>
 													</div>
 													<div className="flex items-start justify-between gap-3 sm:flex-col sm:items-end sm:justify-start">
@@ -562,7 +591,7 @@ export function TransactionsPage() {
 						)}
 					</CardContent>
 				</Card>
-			</div>
+			</PageContent>
 		</MonetaryVisibilityProvider>
 	);
 }

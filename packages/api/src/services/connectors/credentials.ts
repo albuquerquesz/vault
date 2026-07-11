@@ -7,7 +7,6 @@ import {
 } from "../../clients/pluggy";
 import type { PluggyCredentials } from "../../clients/pluggy/types";
 import { db } from "../../db";
-import { env } from "../../db/env";
 import { pluggyCredentials } from "../../db/schema";
 import {
 	decryptSecret,
@@ -28,7 +27,6 @@ export class MissingPluggyCredentialsError extends Error {
 
 export type PluggyCredentialsStatus = {
 	configured: boolean;
-	source: "user" | "platform" | null;
 	clientIdMasked: string | null;
 };
 
@@ -47,26 +45,17 @@ export async function getPluggyCredentialsStatus(
 	if (row) {
 		return {
 			configured: true,
-			source: "user",
 			clientIdMasked: maskClientId(row.clientId),
-		};
-	}
-
-	if (env.PLUGGY_CLIENT_ID && env.PLUGGY_CLIENT_SECRET) {
-		return {
-			configured: true,
-			source: "platform",
-			clientIdMasked: maskClientId(env.PLUGGY_CLIENT_ID),
 		};
 	}
 
 	return {
 		configured: false,
-		source: null,
 		clientIdMasked: null,
 	};
 }
 
+/** Only the user's own BYOK credentials — never shared platform keys. */
 export async function resolvePluggyCredentials(
 	userId: string,
 ): Promise<PluggyCredentials> {
@@ -81,13 +70,6 @@ export async function resolvePluggyCredentials(
 		return {
 			clientId: row.clientId,
 			clientSecret: decryptSecret(row.clientSecretCiphertext),
-		};
-	}
-
-	if (env.PLUGGY_CLIENT_ID && env.PLUGGY_CLIENT_SECRET) {
-		return {
-			clientId: env.PLUGGY_CLIENT_ID,
-			clientSecret: env.PLUGGY_CLIENT_SECRET,
 		};
 	}
 
@@ -138,7 +120,6 @@ export async function savePluggyCredentials(
 
 	return {
 		configured: true,
-		source: "user",
 		clientIdMasked: maskClientId(input.clientId),
 	};
 }

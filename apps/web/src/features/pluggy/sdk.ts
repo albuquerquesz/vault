@@ -48,7 +48,6 @@ export interface PluggyDeleteItemInput {
 
 export interface PluggyCredentialsStatus {
 	configured: boolean;
-	source: "user" | "platform" | null;
 	clientIdMasked: string | null;
 }
 
@@ -93,10 +92,12 @@ export function usePluggyItems() {
 	});
 }
 
-export function usePluggyCredentialsStatus() {
+export function usePluggyCredentialsStatus(options?: { enabled?: boolean }) {
 	return useQuery({
 		...pluggySdk.credentialsStatusOptions(),
 		staleTime: 1000 * 60 * 2,
+		enabled: options?.enabled ?? true,
+		retry: false,
 	});
 }
 

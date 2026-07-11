@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Button } from "@vault/ui/components/button";
 import { Input } from "@vault/ui/components/input";
 import { KeyRound, Loader2, Search, X } from "lucide-react";
@@ -158,15 +159,27 @@ export function PluggyPage() {
 					<div className="rounded-xl border border-border bg-muted/30 p-6">
 						<div className="flex items-start gap-3">
 							<KeyRound className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-							<div className="space-y-1">
+							<div className="space-y-2">
 								<p className="text-sm font-medium">
 									Configure suas chaves Pluggy
 								</p>
 								<p className="text-sm text-muted-foreground">
-									Abra Configurações e informe o Client ID e Client Secret do
-									seu app no dashboard Pluggy (BYOK) para listar bancos e
-									conectar contas.
+									Informe o Client ID e Client Secret do seu app no dashboard
+									Pluggy (BYOK) para listar bancos e conectar contas.
 								</p>
+								<Button
+									variant="outline"
+									size="sm"
+									className="h-8"
+									render={
+										<Link
+											to="/settings"
+											search={{ section: "general" }}
+										/>
+									}
+								>
+									Abrir Configurações
+								</Button>
 							</div>
 						</div>
 					</div>
