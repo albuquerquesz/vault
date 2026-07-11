@@ -15,8 +15,11 @@ export const env = createEnv({
 		CORS_ORIGIN: z.url(),
 		GOOGLE_CLIENT_ID: z.string().min(1),
 		GOOGLE_CLIENT_SECRET: z.string().min(1),
-		PLUGGY_CLIENT_ID: z.string().min(1),
-		PLUGGY_CLIENT_SECRET: z.string().min(1),
+		/** Optional platform fallback when the user has no BYOK credentials. */
+		PLUGGY_CLIENT_ID: z.string().min(1).optional(),
+		PLUGGY_CLIENT_SECRET: z.string().min(1).optional(),
+		/** Optional 32-byte key (base64). Falls back to a hash of BETTER_AUTH_SECRET. */
+		CREDENTIALS_ENCRYPTION_KEY: z.string().min(1).optional(),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),

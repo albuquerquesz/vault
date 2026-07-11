@@ -24,6 +24,11 @@ import {
 import * as React from "react";
 
 import { useTheme } from "@/components/theme-provider";
+import {
+	useDeletePluggyCredentials,
+	usePluggyCredentialsStatus,
+	useSavePluggyCredentials,
+} from "@/features/pluggy/sdk";
 import { authClient } from "@/lib/auth-client";
 
 type SettingsSection = "general" | "account" | "about";
@@ -71,8 +76,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 	const [activeSection, setActiveSection] = React.useState<SettingsSection>("general");
 	const [incomeAmount, setIncomeAmount] = React.useState("5500");
 	const [incomeDay, setIncomeDay] = React.useState("1");
-	const [pluggyApiKey, setPluggyApiKey] = React.useState("");
+	const [pluggyClientId, setPluggyClientId] = React.useState("");
+	const [pluggyClientSecret, setPluggyClientSecret] = React.useState("");
 	const [editEmail, setEditEmail] = React.useState(session?.user.email ?? "");
+	const { data: pluggyStatus, isLoading: isLoadingPluggyStatus } =
+		usePluggyCredentialsStatus();
+	const savePluggyCredentials = useSavePluggyCredentials();
+	const deletePluggyCredentials = useDeletePluggyCredentials();
 
 	React.useEffect(() => {
 		if (!open) {
@@ -250,25 +260,117 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
 											<p className="text-lg font-medium" style={headingStyle}>
-												API key do Pluggy
+												Pluggy (BYOK)
 											</p>
 											<p className="text-sm text-muted-foreground">
-												Este campo está pronto, mas ainda não salva nem ativa a integração.
+												Use o Client ID e Client Secret do seu app em{" "}
+												<a
+													className="underline underline-offset-2 hover:text-foreground"
+													href="https://dashboard.pluggy.ai"
+													rel="noreferrer"
+													target="_blank"
+												>
+													dashboard.pluggy.ai
+												</a>
+												. O secret é criptografado e nunca volta para o navegador.
 											</p>
 										</div>
-										<div className="flex flex-col gap-3 sm:flex-row">
-											<div className="relative flex-1">
-												<KeyRoundIcon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+
+										{isLoadingPluggyStatus ? (
+											<p className="text-sm text-muted-foreground">
+												Carregando status…
+											</p>
+										) : pluggyStatus?.configured ? (
+											<p className="text-sm text-emerald-600 dark:text-emerald-400">
+												Configurado
+												{pluggyStatus.clientIdMasked
+													? ` · ${pluggyStatus.clientIdMasked}`
+													: ""}
+												{pluggyStatus.source === "platform"
+													? " (chaves da plataforma)"
+													: " (suas chaves)"}
+											</p>
+										) : (
+											<p className="text-sm text-muted-foreground">
+												Não configurado — adicione suas chaves para conectar bancos.
+											</p>
+										)}
+
+										<div className="space-y-2">
+											<Label htmlFor="settings-pluggy-client-id">
+												Client ID
+											</Label>
+											<div className="relative">
+												<KeyRoundIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 												<Input
+													id="settings-pluggy-client-id"
 													className="h-9 rounded-md pl-10 pr-3 text-sm"
-													placeholder="Insira sua API key"
-													value={pluggyApiKey}
-													onChange={(event) => setPluggyApiKey(event.target.value)}
+													placeholder="Seu Client ID do Pluggy"
+													autoComplete="off"
+													value={pluggyClientId}
+													onChange={(event) =>
+														setPluggyClientId(event.target.value)
+													}
 												/>
 											</div>
-											<Button className="h-9 rounded-md px-4" disabled type="button" variant="outline">
-												Salvar
+										</div>
+
+										<div className="space-y-2">
+											<Label htmlFor="settings-pluggy-client-secret">
+												Client Secret
+											</Label>
+											<Input
+												id="settings-pluggy-client-secret"
+												className="h-9 rounded-md px-3 text-sm"
+												placeholder="Seu Client Secret do Pluggy"
+												type="password"
+												autoComplete="new-password"
+												value={pluggyClientSecret}
+												onChange={(event) =>
+													setPluggyClientSecret(event.target.value)
+												}
+											/>
+										</div>
+
+										<div className="flex flex-col gap-2 sm:flex-row">
+											<Button
+												className="h-9 rounded-md px-4"
+												type="button"
+												disabled={
+													!pluggyClientId.trim() ||
+													!pluggyClientSecret.trim() ||
+													savePluggyCredentials.isPending
+												}
+												onClick={() => {
+													savePluggyCredentials.mutate(
+														{
+															clientId: pluggyClientId.trim(),
+															clientSecret: pluggyClientSecret.trim(),
+														},
+														{
+															onSuccess: () => {
+																setPluggyClientId("");
+																setPluggyClientSecret("");
+															},
+														},
+													);
+												}}
+											>
+												{savePluggyCredentials.isPending
+													? "Validando…"
+													: "Salvar"}
 											</Button>
+											{pluggyStatus?.source === "user" ? (
+												<Button
+													className="h-9 rounded-md px-4"
+													type="button"
+													variant="outline"
+													disabled={deletePluggyCredentials.isPending}
+													onClick={() => deletePluggyCredentials.mutate()}
+												>
+													Remover
+												</Button>
+											) : null}
 										</div>
 									</SectionCard>
 								</div>

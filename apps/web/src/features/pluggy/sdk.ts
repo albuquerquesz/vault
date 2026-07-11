@@ -46,6 +46,17 @@ export interface PluggyDeleteItemInput {
 	pluggyItemId: string;
 }
 
+export interface PluggyCredentialsStatus {
+	configured: boolean;
+	source: "user" | "platform" | null;
+	clientIdMasked: string | null;
+}
+
+export interface PluggyCredentialsInput {
+	clientId: string;
+	clientSecret: string;
+}
+
 // --- SDK ---
 
 export const pluggySdk = {
@@ -55,10 +66,22 @@ export const pluggySdk = {
 			queryFn: () => apiFetch<PluggyItem[]>("/api/pluggy/items"),
 		} as const;
 	},
+	credentialsStatusOptions() {
+		return {
+			queryKey: ["pluggyCredentials"],
+			queryFn: () =>
+				apiFetch<PluggyCredentialsStatus>("/api/connectors/credentials"),
+		} as const;
+	},
 };
 
 function invalidatePluggyQueries() {
-	return queryClient.invalidateQueries({ queryKey: ["pluggyItems"] });
+	return Promise.all([
+		queryClient.invalidateQueries({ queryKey: ["pluggyItems"] }),
+		queryClient.invalidateQueries({ queryKey: ["pluggyTransactions"] }),
+		queryClient.invalidateQueries({ queryKey: ["pluggyConnectors"] }),
+		queryClient.invalidateQueries({ queryKey: ["pluggyCredentials"] }),
+	]);
 }
 
 // --- Hooks ---
@@ -70,15 +93,23 @@ export function usePluggyItems() {
 	});
 }
 
-export function usePluggyConnectToken() {
+export function usePluggyCredentialsStatus() {
+	return useQuery({
+		...pluggySdk.credentialsStatusOptions(),
+		staleTime: 1000 * 60 * 2,
+	});
+}
+
+export function useSavePluggyCredentials() {
 	return useMutation({
-		mutationFn: (connectorId?: string) =>
-			apiFetch<PluggyConnectTokenOutput>("/api/connectors/token", {
-				method: "POST",
-				body: connectorId ? { connectorId } : undefined,
+		mutationFn: (input: PluggyCredentialsInput) =>
+			apiFetch<PluggyCredentialsStatus>("/api/connectors/credentials", {
+				method: "PUT",
+				body: input,
 			}),
-		onSuccess: () => {
-			toast.success("Token gerado com sucesso");
+		onSuccess: async () => {
+			await invalidatePluggyQueries();
+			toast.success("Credenciais Pluggy salvas");
 		},
 		onError: (error: Error) => {
 			toast.error(error.message);
@@ -86,11 +117,42 @@ export function usePluggyConnectToken() {
 	});
 }
 
-export function usePluggyConnectors() {
+export function useDeletePluggyCredentials() {
+	return useMutation({
+		mutationFn: () =>
+			apiFetch<unknown>("/api/connectors/credentials", {
+				method: "DELETE",
+			}),
+		onSuccess: async () => {
+			await invalidatePluggyQueries();
+			toast.success("Credenciais Pluggy removidas");
+		},
+		onError: (error: Error) => {
+			toast.error(error.message);
+		},
+	});
+}
+
+export function usePluggyConnectToken() {
+	return useMutation({
+		mutationFn: (connectorId?: string) =>
+			apiFetch<PluggyConnectTokenOutput>("/api/connectors/token", {
+				method: "POST",
+				body: connectorId ? { connectorId } : undefined,
+			}),
+		onError: (error: Error) => {
+			toast.error(error.message);
+		},
+	});
+}
+
+export function usePluggyConnectors(enabled = true) {
 	return useQuery({
 		queryKey: ["pluggyConnectors"],
 		queryFn: () => apiFetch<PluggyConnector[]>("/api/connectors"),
 		staleTime: 1000 * 60 * 30,
+		enabled,
+		retry: false,
 	});
 }
 

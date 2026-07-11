@@ -1,10 +1,11 @@
 import { Button } from "@vault/ui/components/button";
 import { Input } from "@vault/ui/components/input";
-import { Loader2, Search, X } from "lucide-react";
+import { KeyRound, Loader2, Search, X } from "lucide-react";
 import { useState } from "react";
 import {
 	usePluggyConnectors,
 	usePluggyConnectToken,
+	usePluggyCredentialsStatus,
 	usePluggyDeleteItem,
 	usePluggyItems,
 } from "@/features/pluggy/sdk";
@@ -87,8 +88,11 @@ function BankGrid({
 
 export function PluggyPage() {
 	const { data: items, isLoading: isLoadingItems } = usePluggyItems();
+	const { data: credentialsStatus, isLoading: isLoadingCredentials } =
+		usePluggyCredentialsStatus();
+	const credentialsReady = credentialsStatus?.configured === true;
 	const { data: connectors, isLoading: isLoadingConnectors } =
-		usePluggyConnectors();
+		usePluggyConnectors(credentialsReady);
 	const connectTokenMutation = usePluggyConnectToken();
 	const deleteItemMutation = usePluggyDeleteItem();
 	const [connectingId, setConnectingId] = useState<string | null>(null);
@@ -96,6 +100,7 @@ export function PluggyPage() {
 	const [search, setSearch] = useState("");
 
 	const handleConnect = async (connectorId: string) => {
+		if (!credentialsReady) return;
 		setConnectingId(connectorId);
 		try {
 			const token = await connectTokenMutation.mutateAsync(connectorId);
@@ -145,55 +150,79 @@ export function PluggyPage() {
 					</span>
 				</div>
 
-				<div className="mb-3">
-					<div className="relative">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-						<Input
-							placeholder="Buscar banco..."
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-							className="pl-9 rounded-md"
-						/>
-					</div>
-				</div>
-
-				{isLoadingConnectors ? (
+				{isLoadingCredentials ? (
 					<div className="flex items-center justify-center py-12">
 						<Loader2 className="size-5 animate-spin text-muted-foreground" />
 					</div>
-				) : filteredConnectors.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
-						Nenhum banco encontrado.
-					</p>
+				) : !credentialsReady ? (
+					<div className="rounded-xl border border-border bg-muted/30 p-6">
+						<div className="flex items-start gap-3">
+							<KeyRound className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+							<div className="space-y-1">
+								<p className="text-sm font-medium">
+									Configure suas chaves Pluggy
+								</p>
+								<p className="text-sm text-muted-foreground">
+									Abra Configurações e informe o Client ID e Client Secret do
+									seu app no dashboard Pluggy (BYOK) para listar bancos e
+									conectar contas.
+								</p>
+							</div>
+						</div>
+					</div>
 				) : (
 					<>
-						{popularConnectors.length > 0 && (
-							<BankGrid
-								connectors={popularConnectors}
-								onConnect={handleConnect}
-								connectingId={connectingId}
-							/>
-						)}
-						{otherConnectors.length > 0 && (
+						<div className="mb-3">
+							<div className="relative">
+								<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+								<Input
+									placeholder="Buscar banco..."
+									value={search}
+									onChange={(e) => setSearch(e.target.value)}
+									className="pl-9 rounded-md"
+								/>
+							</div>
+						</div>
+
+						{isLoadingConnectors ? (
+							<div className="flex items-center justify-center py-12">
+								<Loader2 className="size-5 animate-spin text-muted-foreground" />
+							</div>
+						) : filteredConnectors.length === 0 ? (
+							<p className="text-sm text-muted-foreground">
+								Nenhum banco encontrado.
+							</p>
+						) : (
 							<>
-								{!showAll && (
-									<Button
-										variant="ghost"
-										size="sm"
-										className="mt-3"
-										onClick={() => setShowAll(true)}
-									>
-										Ver mais {otherConnectors.length} bancos
-									</Button>
+								{popularConnectors.length > 0 && (
+									<BankGrid
+										connectors={popularConnectors}
+										onConnect={handleConnect}
+										connectingId={connectingId}
+									/>
 								)}
-								{showAll && (
+								{otherConnectors.length > 0 && (
 									<>
-										<div className="my-4 h-px bg-border" />
-										<BankGrid
-											connectors={otherConnectors}
-											onConnect={handleConnect}
-											connectingId={connectingId}
-										/>
+										{!showAll && (
+											<Button
+												variant="ghost"
+												size="sm"
+												className="mt-3"
+												onClick={() => setShowAll(true)}
+											>
+												Ver mais {otherConnectors.length} bancos
+											</Button>
+										)}
+										{showAll && (
+											<>
+												<div className="my-4 h-px bg-border" />
+												<BankGrid
+													connectors={otherConnectors}
+													onConnect={handleConnect}
+													connectingId={connectingId}
+												/>
+											</>
+										)}
 									</>
 								)}
 							</>

@@ -1,13 +1,39 @@
 import type { FastifyInstance } from "fastify";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
+import { PluggyAuthError } from "../clients/pluggy";
 import { db } from "../db";
 import { pluggyItems, pluggyTransactions } from "../db/schema";
 import { requireSession } from "../index";
-import { type PluggyTransaction, pluggyService } from "../services/pluggy";
+import {
+	MissingPluggyCredentialsError,
+	resolvePluggyCredentials,
+} from "../services/connectors/credentials";
+import {
+	createPluggyService,
+	type PluggyTransaction,
+} from "../services/pluggy";
+
+function sendKnownError(
+	reply: { status: (code: number) => { send: (body: unknown) => unknown } },
+	error: unknown,
+) {
+	if ((error as { statusCode?: number }).statusCode === 401) {
+		return reply.status(401).send({ error: "Authentication required" });
+	}
+	if (error instanceof MissingPluggyCredentialsError) {
+		return reply.status(error.statusCode).send({ error: error.message });
+	}
+	if (error instanceof PluggyAuthError) {
+		return reply.status(error.statusCode).send({ error: error.message });
+	}
+	if (error instanceof z.ZodError) {
+		return reply.status(400).send({ error: error.message });
+	}
+	throw error;
+}
 
 export function registerPluggyRoutes(server: FastifyInstance) {
-
 	server.route({
 		method: "GET",
 		url: "/items",
@@ -20,9 +46,7 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					.where(eq(pluggyItems.userId, session.user.id));
 				return reply.send(items);
 			} catch (error) {
-				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
-				throw error;
+				return sendKnownError(reply, error);
 			}
 		},
 	});
@@ -52,8 +76,11 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					.limit(1)
 					.then((r) => r[0]);
 				if (!item) return reply.status(404).send({ error: "Item not found" });
+
+				const creds = await resolvePluggyCredentials(session.user.id);
+				const pluggy = createPluggyService(creds);
 				const transactions: PluggyTransaction[] =
-					await pluggyService.getTransactions({
+					await pluggy.getTransactions({
 						itemId: item.pluggyItemId,
 						startDate,
 						endDate,
@@ -90,11 +117,7 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					total: transactions.length,
 				});
 			} catch (error) {
-				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
-				if (error instanceof z.ZodError)
-					return reply.status(400).send({ error: error.message });
-				throw error;
+				return sendKnownError(reply, error);
 			}
 		},
 	});
@@ -120,18 +143,17 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					.limit(1)
 					.then((r) => r[0]);
 				if (!item) return reply.status(404).send({ error: "Item not found" });
-				await pluggyService.deleteItem(item.pluggyItemId);
+
+				const creds = await resolvePluggyCredentials(session.user.id);
+				const pluggy = createPluggyService(creds);
+				await pluggy.deleteItem(item.pluggyItemId);
 				await db
 					.delete(pluggyTransactions)
 					.where(eq(pluggyTransactions.pluggyItemId, item.id));
 				await db.delete(pluggyItems).where(eq(pluggyItems.id, item.id));
 				return reply.code(204).send();
 			} catch (error) {
-				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
-				if (error instanceof z.ZodError)
-					return reply.status(400).send({ error: error.message });
-				throw error;
+				return sendKnownError(reply, error);
 			}
 		},
 	});
@@ -173,9 +195,7 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					.limit(limit);
 				return reply.send(transactions);
 			} catch (error) {
-				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
-				throw error;
+				return sendKnownError(reply, error);
 			}
 		},
 	});

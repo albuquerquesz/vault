@@ -1,3 +1,8 @@
+export interface PluggyCredentials {
+	clientId: string;
+	clientSecret: string;
+}
+
 export interface PluggyConnectToken {
 	accessToken: string;
 }
