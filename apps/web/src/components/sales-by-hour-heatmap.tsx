@@ -168,7 +168,7 @@ export function SalesByHourHeatmap({
             </div>
             <Tooltip>
               <TooltipTrigger
-                render={<Info className="mt-0.5 size-4 text-muted-foreground" />}
+                render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
               />
               <TooltipContent>
                 Visualize o volume de transações por dia da semana e hora do dia.
@@ -234,7 +234,7 @@ export function SalesByHourHeatmap({
           </div>
           <Tooltip>
             <TooltipTrigger
-              render={<Info className="mt-0.5 size-4 text-muted-foreground" />}
+              render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
             />
             <TooltipContent>
               Mapa de calor das despesas por dia e hora

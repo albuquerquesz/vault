@@ -61,6 +61,11 @@ export interface PluggyConnectToken {
 	accessToken: string;
 }
 
+export interface CreatePluggyConnectTokenInput {
+	itemId?: string;
+	clientUserId?: string;
+}
+
 export interface PluggyTransaction {
 	id: string;
 	date: string;
@@ -70,10 +75,23 @@ export interface PluggyTransaction {
 }
 
 export const pluggyService = {
-	async createConnectToken(): Promise<PluggyConnectToken> {
+	async createConnectToken(
+		input: CreatePluggyConnectTokenInput = {},
+	): Promise<PluggyConnectToken> {
+		const body: Record<string, unknown> = {};
+
+		if (input.itemId) {
+			body.itemId = input.itemId;
+		}
+
+		if (input.clientUserId) {
+			body.options = { clientUserId: input.clientUserId };
+		}
+
+	
 		const data = await pluggyFetch("/connect_token", {
 			method: "POST",
-			body: JSON.stringify({}),
+			body: JSON.stringify(body),
 		});
 		return data as PluggyConnectToken;
 	},
@@ -131,4 +149,5 @@ export const pluggyService = {
 	async deleteWebhook(webhookId: string) {
 		await pluggyFetch(`/webhooks/${webhookId}`, { method: "DELETE" });
 	},
+
 };

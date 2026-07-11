@@ -457,7 +457,7 @@ export function TransactionsPage() {
 							</div>
 							<Tooltip>
 								<TooltipTrigger
-									render={<Info className="mt-0.5 size-4 text-muted-foreground" />}
+									render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
 								/>
 								<TooltipContent>
 									Despesas registradas no período selecionado

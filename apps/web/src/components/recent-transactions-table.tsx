@@ -132,7 +132,7 @@ export function RecentTransactionsTable() {
 					<Tooltip>
 						<TooltipTrigger
 							delay={800}
-							render={<Info className="mt-0.5 size-4 text-muted-foreground" />}
+							render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
 						/>
 						<TooltipContent>
 							Últimas transações bancárias sincronizadas

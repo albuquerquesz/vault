@@ -27,7 +27,14 @@ function formatMonth(date: Date) {
 }
 
 function shiftMonth(month: string, offset: number) {
-	const [year, monthNumber] = month.split("-").map(Number);
+	const [yearRaw, monthRaw] = month.split("-");
+	const year = Number(yearRaw);
+	const monthNumber = Number(monthRaw);
+
+	if (!Number.isFinite(year) || !Number.isFinite(monthNumber)) {
+		throw new Error(`Invalid month value: ${month}`);
+	}
+
 	return formatMonth(new Date(Date.UTC(year, monthNumber - 1 + offset, 1)));
 }
 
@@ -44,7 +51,6 @@ async function main() {
 	const currentMonth = formatMonth(today);
 	const previousMonth = shiftMonth(currentMonth, -1);
 	const twoMonthsAgo = shiftMonth(currentMonth, -2);
-	const nextMonth = shiftMonth(currentMonth, 1);
 
 	const currentBillId = randomUUID();
 	const previousBillId = randomUUID();

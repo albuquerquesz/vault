@@ -42,13 +42,13 @@ export function MonthlyBillCard() {
 						</div>
 						<Tooltip>
 							<TooltipTrigger
-								render={<Info className="size-4 text-muted-foreground" />}
+								render={() => <Info className="size-4 text-muted-foreground" />}
 							/>
 							<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
 						</Tooltip>
 					</div>
 				</CardHeader>
-				<CardContent className="py-6 text-sm text-muted-foreground">
+				<CardContent className="flex items-center justify-center text-sm text-muted-foreground">
 					Não foi possível carregar as faturas do mês.
 				</CardContent>
 			</Card>
@@ -74,13 +74,13 @@ export function MonthlyBillCard() {
 						</div>
 						<Tooltip>
 							<TooltipTrigger
-								render={<Info className="size-4 text-muted-foreground" />}
+								render={() => <Info className="size-4 text-muted-foreground" />}
 							/>
 							<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
 						</Tooltip>
 					</div>
 				</CardHeader>
-				<CardContent className="py-6 text-sm text-muted-foreground">
+				<CardContent className="flex items-center justify-center text-sm text-muted-foreground">
 					Nenhuma fatura registrada.
 				</CardContent>
 			</Card>
@@ -102,7 +102,7 @@ export function MonthlyBillCard() {
 					</div>
 					<Tooltip>
 						<TooltipTrigger
-							render={<Info className="size-4 text-muted-foreground" />}
+							render={() => <Info className="size-4 text-muted-foreground" />}
 						/>
 						<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
 					</Tooltip>

@@ -28,6 +28,14 @@ export interface PluggyConnectTokenOutput {
 	accessToken: string;
 }
 
+export interface PluggyConnector {
+	id: string;
+	name: string;
+	imageUrl: string;
+	type: string;
+	isOpenFinance: boolean;
+}
+
 export interface PluggySyncInput {
 	pluggyItemId: string;
 	startDate: string;
@@ -64,9 +72,10 @@ export function usePluggyItems() {
 
 export function usePluggyConnectToken() {
 	return useMutation({
-		mutationFn: () =>
-			apiFetch<PluggyConnectTokenOutput>("/api/pluggy/connect-token", {
+		mutationFn: (connectorId?: string) =>
+			apiFetch<PluggyConnectTokenOutput>("/api/connectors/token", {
 				method: "POST",
+				body: connectorId ? { connectorId } : undefined,
 			}),
 		onSuccess: () => {
 			toast.success("Token gerado com sucesso");
@@ -77,13 +86,21 @@ export function usePluggyConnectToken() {
 	});
 }
 
+export function usePluggyConnectors() {
+	return useQuery({
+		queryKey: ["pluggyConnectors"],
+		queryFn: () => apiFetch<PluggyConnector[]>("/api/connectors"),
+		staleTime: 1000 * 60 * 30,
+	});
+}
+
 export function usePluggySync(input: PluggySyncInput) {
 	return useMutation({
 		mutationFn: () =>
-			apiFetch<{ synced: number; total: number }>(
-				"/api/pluggy/sync",
-				{ method: "POST", body: input },
-			),
+			apiFetch<{ synced: number; total: number }>("/api/pluggy/sync", {
+				method: "POST",
+				body: input,
+			}),
 		onSuccess: async () => {
 			await invalidatePluggyQueries();
 			toast.success("Transações sincronizadas");
@@ -108,9 +125,7 @@ export function usePluggyTransactions(limit = 20) {
 	return useQuery({
 		queryKey: ["pluggyTransactions", limit],
 		queryFn: () =>
-			apiFetch<PluggyTransaction[]>(
-				`/api/pluggy/transactions?limit=${limit}`,
-			),
+			apiFetch<PluggyTransaction[]>(`/api/pluggy/transactions?limit=${limit}`),
 		staleTime: 1000 * 60 * 5,
 	});
 }

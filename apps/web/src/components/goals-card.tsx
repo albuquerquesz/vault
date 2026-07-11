@@ -47,7 +47,7 @@ function GoalsCard() {
 	};
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[24rem] w-full">
+		<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
 			<CardHeader className="border-b">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ function GoalsCard() {
 					</div>
 					<Tooltip>
 						<TooltipTrigger
-							render={<Info className="mt-0.5 size-4 text-muted-foreground" />}
+							render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
 						/>
 						<TooltipContent>
 							Acompanhe o progresso das suas metas financeiras

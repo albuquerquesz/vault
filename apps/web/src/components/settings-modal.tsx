@@ -53,7 +53,12 @@ function SectionCard({
 	className?: string;
 }) {
 	return (
-		<div className={cn("rounded-3xl border border-border/70 bg-muted/20 p-5", className)}>
+		<div
+			className={cn(
+				"rounded-2xl border border-border/70 bg-background/60 p-4",
+				className,
+			)}
+		>
 			{children}
 		</div>
 	);
@@ -107,20 +112,23 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
 			<Dialog.Portal>
-				<Dialog.Backdrop className="fixed inset-0 z-50 bg-black/70 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-sm" />
-				<Dialog.Popup className="fixed left-1/2 top-1/2 z-50 h-[min(92vh,60rem)] w-[min(calc(100vw-2rem),64rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[2rem] border border-border/70 bg-card text-card-foreground shadow-2xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0">
-					<div className="grid h-full min-h-0 md:grid-cols-[16rem_minmax(0,1fr)]">
-						<aside className="flex min-h-0 flex-col border-b border-border/70 p-7 md:border-b-0 md:border-r">
-							<div>
+				<Dialog.Backdrop className="fixed inset-0 z-50 bg-black/55 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs" />
+				<Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-1.5rem)] w-[min(calc(100vw-1.5rem),62rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xl transition duration-200 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0">
+					<div className="grid min-h-0 w-full md:grid-cols-[14rem_minmax(0,1fr)]">
+						<aside className="flex min-h-0 flex-col border-b border-border/70 bg-muted/25 p-5 md:border-b-0 md:border-r">
+							<div className="space-y-1.5">
 								<h2
-									className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+									className="text-xl font-semibold tracking-tight md:text-2xl"
 									style={headingStyle}
 								>
 									Configurações
 								</h2>
+								<p className="text-sm text-muted-foreground">
+									Ajustes da conta e preferências do app.
+								</p>
 							</div>
 
-							<nav className="mt-8 flex flex-col gap-2">
+							<nav className="mt-6 flex flex-col gap-1.5">
 								{settingsSections.map((section) => {
 									const Icon = section.icon;
 									const isActive = activeSection === section.id;
@@ -130,13 +138,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 											key={section.id}
 											type="button"
 											className={cn(
-												"flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-base font-medium transition-colors",
+												"flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors",
 												isActive
 													? "bg-muted text-foreground"
-													: "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+													: "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
 											)}
 											onClick={() => setActiveSection(section.id)}
-											style={headingStyle}
 										>
 											<Icon className="size-5" />
 											<span>{section.label}</span>
@@ -146,23 +153,25 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 							</nav>
 						</aside>
 
-						<div className="min-h-0 overflow-y-auto p-7">
+						<div className="min-h-0 overflow-y-auto p-5 md:p-6">
 							{activeSection === "general" ? (
-								<div className="space-y-5">
+								<div className="space-y-4">
 									<div>
 										<h3
-											className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+											className="text-xl font-semibold tracking-tight md:text-[2rem]"
 											style={headingStyle}
 										>
 											Geral
 										</h3>
 									</div>
 
-									<SectionCard className="space-y-4">
+									<SectionCard className="space-y-3">
 										<div>
-											<p className="text-2xl font-medium" style={headingStyle}>Tema</p>
+											<p className="text-lg font-medium" style={headingStyle}>
+												Tema
+											</p>
 										</div>
-										<div className="grid grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/50 p-2 sm:grid-cols-3">
+										<div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
 											{[
 												{ value: "light", label: "Claro", icon: SunIcon },
 												{ value: "system", label: "Sistema", icon: MonitorIcon },
@@ -175,7 +184,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 													<Button
 														key={option.value}
 														className={cn(
-															"h-12 rounded-xl text-base",
+															"h-10 rounded-xl text-sm",
 															isSelected
 																? "bg-primary text-primary-foreground hover:bg-primary/90"
 																: "text-muted-foreground hover:bg-muted",
@@ -194,7 +203,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium" style={headingStyle}>Quanto você recebe?</p>
+											<p className="text-lg font-medium" style={headingStyle}>
+												Quanto você recebe?
+											</p>
 											<p className="text-sm text-muted-foreground">
 												Preencha o valor mensal para futuras automações.
 											</p>
@@ -207,14 +218,16 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 												placeholder="R$ 0,00"
 												value={incomeAmount}
 												onChange={(event) => setIncomeAmount(event.target.value)}
-												className="h-11 rounded-2xl px-4 text-base"
+												className="h-9 rounded-md px-3 text-sm"
 											/>
 										</div>
 									</SectionCard>
 
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium" style={headingStyle}>Quando você recebe?</p>
+											<p className="text-lg font-medium" style={headingStyle}>
+												Quando você recebe?
+											</p>
 											<p className="text-sm text-muted-foreground">
 												Escolha o dia do mês em que o salário cai na conta.
 											</p>
@@ -229,14 +242,16 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 												type="number"
 												value={incomeDay}
 												onChange={(event) => setIncomeDay(event.target.value)}
-												className="h-11 rounded-2xl px-4 text-base"
+												className="h-9 rounded-md px-3 text-sm"
 											/>
 										</div>
 									</SectionCard>
 
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium" style={headingStyle}>API key do Pluggy</p>
+											<p className="text-lg font-medium" style={headingStyle}>
+												API key do Pluggy
+											</p>
 											<p className="text-sm text-muted-foreground">
 												Este campo está pronto, mas ainda não salva nem ativa a integração.
 											</p>
@@ -245,13 +260,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 											<div className="relative flex-1">
 												<KeyRoundIcon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 												<Input
-													className="h-11 rounded-2xl pl-10 pr-4 text-base"
+													className="h-9 rounded-md pl-10 pr-3 text-sm"
 													placeholder="Insira sua API key"
 													value={pluggyApiKey}
 													onChange={(event) => setPluggyApiKey(event.target.value)}
 												/>
 											</div>
-											<Button className="h-11 rounded-2xl px-6" disabled type="button" variant="outline">
+											<Button className="h-9 rounded-md px-4" disabled type="button" variant="outline">
 												Salvar
 											</Button>
 										</div>
@@ -260,28 +275,30 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 							) : null}
 
 							{activeSection === "account" ? (
-								<div className="space-y-5">
+								<div className="space-y-4">
 									<div>
 										<h3
-											className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+											className="text-xl font-semibold tracking-tight md:text-[2rem]"
 											style={headingStyle}
 										>
 											Conta
 										</h3>
 									</div>
 
-									<SectionCard className="space-y-5">
-										<div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+									<SectionCard className="space-y-4">
+										<div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 											<Avatar className="size-20" size="lg">
 												{image ? <AvatarImage src={image} /> : null}
 												<AvatarFallback className="text-xl">{initials}</AvatarFallback>
 											</Avatar>
 											<div className="space-y-1">
-												<p className="text-2xl font-medium" style={headingStyle}>{name || "Sua conta"}</p>
+												<p className="text-lg font-medium" style={headingStyle}>
+													{name || "Sua conta"}
+												</p>
 												<p className="text-sm text-muted-foreground">{email || "Sem e-mail cadastrado"}</p>
 											</div>
 											<div className="sm:ml-auto">
-												<Button className="rounded-2xl" disabled type="button" variant="outline">
+												<Button className="rounded-md" disabled type="button" variant="outline">
 													<CameraIcon className="size-4" />
 													Alterar foto de perfil
 												</Button>
@@ -297,14 +314,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 													<MailIcon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 													<Input
 														id="settings-account-email"
-														className="h-11 rounded-2xl pl-10 pr-4 text-base"
+														className="h-9 rounded-md pl-10 pr-3 text-sm"
 														placeholder="voce@email.com"
 														type="email"
 														value={editEmail}
 														onChange={(event) => setEditEmail(event.target.value)}
 													/>
 												</div>
-												<Button className="h-11 rounded-2xl px-6" disabled type="button">
+												<Button className="h-9 rounded-md px-4" disabled type="button">
 													Salvar email
 												</Button>
 											</div>
@@ -316,12 +333,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium" style={headingStyle}>Sessão</p>
+											<p className="text-lg font-medium" style={headingStyle}>
+												Sessão
+											</p>
 											<p className="text-sm text-muted-foreground">
 												Encerrar a sessão atual neste dispositivo.
 											</p>
 										</div>
-										<Button className="rounded-2xl" onClick={handleSignOut} type="button" variant="destructive">
+										<Button className="rounded-md" onClick={handleSignOut} type="button" variant="destructive">
 											<LogOutIcon className="size-4" />
 											Fazer logout
 										</Button>
@@ -330,10 +349,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 							) : null}
 
 							{activeSection === "about" ? (
-								<div className="space-y-5">
+								<div className="space-y-4">
 									<div>
 										<h3
-											className="text-2xl font-semibold tracking-tight md:text-[2rem]"
+											className="text-xl font-semibold tracking-tight md:text-[2rem]"
 											style={headingStyle}
 										>
 											Sobre
@@ -342,17 +361,19 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
 									<SectionCard className="space-y-4">
 										<div className="space-y-1">
-											<p className="text-2xl font-medium" style={headingStyle}>Documentos legais</p>
+											<p className="text-lg font-medium" style={headingStyle}>
+												Documentos legais
+											</p>
 											<p className="text-sm text-muted-foreground">
 												Os links existem no layout, mas ainda não possuem conteúdo publicado.
 											</p>
 										</div>
 										<div className="grid gap-3">
-											<Button className="h-12 justify-start rounded-2xl text-base" disabled type="button" variant="outline">
+											<Button className="h-9 justify-start rounded-md text-sm" disabled type="button" variant="outline">
 												<CircleHelpIcon className="size-4" />
 												Termos de uso
 											</Button>
-											<Button className="h-12 justify-start rounded-2xl text-base" disabled type="button" variant="outline">
+											<Button className="h-9 justify-start rounded-md text-sm" disabled type="button" variant="outline">
 												<InfoIcon className="size-4" />
 												Política de privacidade
 											</Button>

@@ -68,7 +68,7 @@ export function LastTransactionsTable() {
 							<CardDescription className="text-base">Últimas transações</CardDescription>
 						</div>
 						<Tooltip>
-							<TooltipTrigger render={<Info className="size-4 text-muted-foreground" />} />
+							<TooltipTrigger render={() => <Info className="size-4 text-muted-foreground" />} />
 							<TooltipContent>Últimas transações registradas</TooltipContent>
 						</Tooltip>
 					</div>
@@ -98,7 +98,7 @@ export function LastTransactionsTable() {
 						<CardDescription className="text-base">Últimas transações</CardDescription>
 					</div>
 					<Tooltip>
-						<TooltipTrigger delay={800} render={<Info className="mt-0.5 size-4 text-muted-foreground" />} />
+						<TooltipTrigger delay={800} render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />} />
 						<TooltipContent>Últimas transações registradas</TooltipContent>
 					</Tooltip>
 				</div>

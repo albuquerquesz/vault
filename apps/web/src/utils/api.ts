@@ -75,14 +75,13 @@ export async function apiFetch<T>(
 	},
 ): Promise<T> {
 	const url = `${env.VITE_SERVER_URL}${path}`;
+	const hasBody = options?.body !== undefined;
 
 	const response = await fetch(url, {
 		method: options?.method ?? "GET",
-		headers: {
-			"Content-Type": "application/json",
-		},
+		headers: hasBody ? { "Content-Type": "application/json" } : undefined,
 		credentials: "include",
-		body: options?.body ? JSON.stringify(options.body) : undefined,
+		body: hasBody ? JSON.stringify(options.body) : undefined,
 	});
 
 	if (!response.ok) {
