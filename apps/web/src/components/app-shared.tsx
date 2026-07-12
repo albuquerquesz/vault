@@ -39,10 +39,6 @@ const breadcrumbOnlyPages: SidebarNavItem[] = [
     path: "/settings",
     icon: <Settings2Icon className="size-4" />,
   },
-  {
-    title: "Conectar conta",
-    path: "/pluggy",
-  },
 ];
 
 function useActivePath(): string {

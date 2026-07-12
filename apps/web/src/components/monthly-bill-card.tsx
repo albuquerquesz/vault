@@ -21,9 +21,9 @@ const fmt = (value: number) =>
 		currency: "BRL",
 	}).format(value);
 
-export function MonthlyBillCard() {
-	const month = getMonthValue();
-	const billsQuery = useFinanceMonthlyBills(month);
+export function MonthlyBillCard({ month }: { month?: string }) {
+	const currentMonth = month ?? getMonthValue();
+	const billsQuery = useFinanceMonthlyBills(currentMonth);
 
 	if (billsQuery.isPending) {
 		return <HomeCardSkeleton variant="bills" />;
@@ -31,7 +31,7 @@ export function MonthlyBillCard() {
 
 	if (billsQuery.isError) {
 		return (
-			<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
+			<Card className="financial-panel-border flex h-full min-h-[24rem] w-full flex-col ring-0">
 				<CardHeader className="border-b">
 					<div className="flex items-center justify-between gap-2">
 						<div className="flex items-center gap-2">
@@ -44,11 +44,13 @@ export function MonthlyBillCard() {
 							<TooltipTrigger
 								render={() => <Info className="size-4 text-muted-foreground" />}
 							/>
-							<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
+							<TooltipContent>
+								Resumo das faturas e pagamentos do mês
+							</TooltipContent>
 						</Tooltip>
 					</div>
 				</CardHeader>
-				<CardContent className="flex items-center justify-center text-sm text-muted-foreground">
+				<CardContent className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
 					Não foi possível carregar as faturas do mês.
 				</CardContent>
 			</Card>
@@ -63,7 +65,7 @@ export function MonthlyBillCard() {
 
 	if (bills.bills.length === 0) {
 		return (
-			<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
+			<Card className="financial-panel-border flex h-full min-h-[24rem] w-full flex-col ring-0">
 				<CardHeader className="border-b">
 					<div className="flex items-center justify-between gap-2">
 						<div className="flex items-center gap-2">
@@ -76,11 +78,13 @@ export function MonthlyBillCard() {
 							<TooltipTrigger
 								render={() => <Info className="size-4 text-muted-foreground" />}
 							/>
-							<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
+							<TooltipContent>
+								Resumo das faturas e pagamentos do mês
+							</TooltipContent>
 						</Tooltip>
 					</div>
 				</CardHeader>
-				<CardContent className="flex items-center justify-center text-sm text-muted-foreground">
+				<CardContent className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
 					Nenhuma fatura registrada.
 				</CardContent>
 			</Card>
@@ -91,7 +95,7 @@ export function MonthlyBillCard() {
 	const items = bills.items;
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
+		<Card className="financial-panel-border flex h-full min-h-[24rem] w-full flex-col ring-0">
 			<CardHeader className="border-b">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
@@ -104,11 +108,13 @@ export function MonthlyBillCard() {
 						<TooltipTrigger
 							render={() => <Info className="size-4 text-muted-foreground" />}
 						/>
-						<TooltipContent>Resumo das faturas e pagamentos do mês</TooltipContent>
+						<TooltipContent>
+							Resumo das faturas e pagamentos do mês
+						</TooltipContent>
 					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent className="flex flex-col gap-6">
+			<CardContent className="flex flex-1 flex-col gap-6">
 				<div className="text-3xl font-semibold tabular-nums">
 					{bill ? fmt(bill.totalBill) : fmt(0)}
 				</div>

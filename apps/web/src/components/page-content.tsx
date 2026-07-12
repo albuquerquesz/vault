@@ -3,9 +3,9 @@ import type * as React from "react";
 
 /**
  * Shared content column cap for `/settings` and `/transactions`.
- * Fixed at 1320px within the PRD 06 band (1200–1400px).
+ * Fixed at 1200px.
  */
-export const PAGE_CONTENT_MAX_WIDTH_CLASS = "max-w-[1320px]";
+export const PAGE_CONTENT_MAX_WIDTH_CLASS = "max-w-[1200px]";
 
 export function PageContent({
 	className,

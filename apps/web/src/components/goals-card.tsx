@@ -47,7 +47,7 @@ function GoalsCard() {
 	};
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
+		<Card className="financial-panel-border flex h-full min-h-[24rem] w-full flex-col ring-0">
 			<CardHeader className="border-b">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
@@ -58,7 +58,9 @@ function GoalsCard() {
 					</div>
 					<Tooltip>
 						<TooltipTrigger
-							render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
+							render={() => (
+								<Info className="mt-0.5 size-4 text-muted-foreground" />
+							)}
 						/>
 						<TooltipContent>
 							Acompanhe o progresso das suas metas financeiras
@@ -66,11 +68,11 @@ function GoalsCard() {
 					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-3">
+			<CardContent className="flex flex-1 flex-col space-y-3">
 				{isLoading ? (
 					<div className="text-sm text-muted-foreground">Carregando...</div>
 				) : goals?.length === 0 ? (
-					<div className="text-sm text-muted-foreground">
+					<div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
 						Nenhuma meta definida
 					</div>
 				) : (

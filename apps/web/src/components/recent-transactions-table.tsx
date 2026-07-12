@@ -57,13 +57,13 @@ function SkeletonRow() {
 }
 
 export function RecentTransactionsTable() {
-	const transactionsQuery = usePluggyTransactions(5);
+	const transactionsQuery = usePluggyTransactions({ limit: 5 });
 	const transactions = transactionsQuery.data ?? [];
 
 	const renderContent = () => {
 		if (transactions.length === 0) {
 			return (
-				<div className="py-8 text-center text-sm text-muted-foreground">
+				<div className="flex flex-1 items-center justify-center text-center text-sm text-muted-foreground">
 					Nenhuma transação bancária encontrada
 				</div>
 			);
@@ -120,7 +120,7 @@ export function RecentTransactionsTable() {
 	};
 
 	return (
-		<Card className="financial-panel-border h-full min-h-[24rem] w-full ring-0">
+		<Card className="financial-panel-border flex h-full min-h-[24rem] w-full flex-col ring-0">
 			<CardHeader className="border-b">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
@@ -132,7 +132,9 @@ export function RecentTransactionsTable() {
 					<Tooltip>
 						<TooltipTrigger
 							delay={800}
-							render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
+							render={() => (
+								<Info className="mt-0.5 size-4 text-muted-foreground" />
+							)}
 						/>
 						<TooltipContent>
 							Últimas transações bancárias sincronizadas
@@ -140,7 +142,7 @@ export function RecentTransactionsTable() {
 					</Tooltip>
 				</div>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="flex flex-1 flex-col">
 				{transactionsQuery.isPending ? (
 					<div className="divide-y">
 						<SkeletonRow />
