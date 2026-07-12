@@ -11,7 +11,8 @@ import {
 } from "../services/connectors/credentials";
 import {
 	createPluggyService,
-	type PluggyTransaction,
+	persistPluggyItemAndSync,
+	syncTransactionsForItem,
 } from "../services/pluggy";
 
 function sendKnownError(
@@ -34,6 +35,27 @@ function sendKnownError(
 }
 
 export function registerPluggyRoutes(server: FastifyInstance) {
+	// POST /api/pluggy/connect - create a connect token and return the Pluggy Connect URL
+	server.route({
+		method: "POST",
+		url: "/connect",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const creds = await resolvePluggyCredentials(session.user.id);
+				const pluggy = createPluggyService(creds);
+				const token = await pluggy.createConnectToken({
+					clientUserId: session.user.id,
+				});
+				return reply.send({
+					url: `https://connect.pluggy.ai/connect?token=${token.accessToken}`,
+				});
+			} catch (error) {
+				return sendKnownError(reply, error);
+			}
+		},
+	});
+
 	server.route({
 		method: "GET",
 		url: "/items",
@@ -51,71 +73,67 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 		},
 	});
 
+	// POST /api/pluggy/items - register a Pluggy item and sync initial transactions
 	server.route({
 		method: "POST",
-		url: "/sync",
+		url: "/items",
 		async handler(req, reply) {
 			try {
 				const session = await requireSession(req.raw);
-				const { pluggyItemId, startDate, endDate } = z
+				const { pluggyItemId } = z
 					.object({
 						pluggyItemId: z.string(),
-						startDate: z.string(),
-						endDate: z.string(),
 					})
 					.parse(req.body);
+				const creds = await resolvePluggyCredentials(session.user.id);
+				const result = await persistPluggyItemAndSync({
+					userId: session.user.id,
+					pluggyItemId,
+					creds,
+				});
+
+				return reply.status(201).send(result);
+			} catch (error) {
+				return sendKnownError(reply, error);
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/sync/:itemId",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { itemId } = z
+					.object({ itemId: z.string() })
+					.parse(req.params);
+
 				const item = await db
 					.select()
 					.from(pluggyItems)
 					.where(
 						and(
+							eq(pluggyItems.id, itemId),
 							eq(pluggyItems.userId, session.user.id),
-							eq(pluggyItems.id, pluggyItemId),
 						),
 					)
 					.limit(1)
 					.then((r) => r[0]);
-				if (!item) return reply.status(404).send({ error: "Item not found" });
+
+				if (!item) {
+					return reply.status(404).send({ error: "Item not found" });
+				}
 
 				const creds = await resolvePluggyCredentials(session.user.id);
-				const pluggy = createPluggyService(creds);
-				const transactions: PluggyTransaction[] =
-					await pluggy.getTransactions({
-						itemId: item.pluggyItemId,
-						startDate,
-						endDate,
-					});
-				const results: (typeof pluggyTransactions.$inferInsert)[] = [];
-				for (const tx of transactions) {
-					const existing = await db
-						.select({ id: pluggyTransactions.id })
-						.from(pluggyTransactions)
-						.where(
-							and(
-								eq(pluggyTransactions.pluggyItemId, item.id),
-								eq(pluggyTransactions.pluggyTransactionId, tx.id),
-							),
-						)
-						.limit(1);
-					if (existing.length === 0) {
-						const result = await db
-							.insert(pluggyTransactions)
-							.values({
-								pluggyItemId: item.id,
-								pluggyTransactionId: tx.id,
-								date: tx.date,
-								amount: tx.amount.toString(),
-								description: tx.description ?? null,
-								category: tx.category ?? null,
-							})
-							.returning();
-						results.push(result[0]!);
-					}
-				}
-				return reply.send({
-					synced: results.length,
-					total: transactions.length,
+				const service = createPluggyService(creds);
+				const sync = await syncTransactionsForItem({
+					service,
+					localItemId: item.id,
+					pluggyItemId: item.pluggyItemId,
 				});
+
+				return reply.send({ itemId: item.id, sync });
 			} catch (error) {
 				return sendKnownError(reply, error);
 			}
@@ -164,35 +182,73 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 		async handler(req, reply) {
 			try {
 				const session = await requireSession(req.raw);
-				const query = req.query as { limit?: string };
+				const query = req.query as { limit?: string; itemId?: string };
 				const limit = Number(query.limit) ?? 20;
-				const userItems = await db
-					.select({
-						id: pluggyItems.id,
-						pluggyItemId: pluggyItems.pluggyItemId,
-						provider: pluggyItems.provider,
-					})
-					.from(pluggyItems)
-					.where(eq(pluggyItems.userId, session.user.id));
-				if (userItems.length === 0) return reply.send([]);
-				const transactions = await db
-					.select({
-						id: pluggyTransactions.id,
-						pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
-						date: pluggyTransactions.date,
-						amount: pluggyTransactions.amount,
-						description: pluggyTransactions.description,
-						category: pluggyTransactions.category,
-						provider: pluggyItems.provider,
-					})
-					.from(pluggyTransactions)
-					.innerJoin(
-						pluggyItems,
-						eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
-					)
-					.where(eq(pluggyItems.userId, session.user.id))
-					.orderBy(desc(pluggyTransactions.date))
-					.limit(limit);
+
+				let transactions;
+				if (query.itemId) {
+					const item = await db
+						.select()
+						.from(pluggyItems)
+						.where(
+							and(
+								eq(pluggyItems.id, query.itemId),
+								eq(pluggyItems.userId, session.user.id),
+							),
+						)
+						.limit(1)
+						.then((r) => r[0]);
+
+					if (!item) return reply.send([]);
+
+					transactions = await db
+						.select({
+							id: pluggyTransactions.id,
+							pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
+							date: pluggyTransactions.date,
+							amount: pluggyTransactions.amount,
+							description: pluggyTransactions.description,
+							category: pluggyTransactions.category,
+							provider: pluggyItems.provider,
+						})
+						.from(pluggyTransactions)
+						.innerJoin(
+							pluggyItems,
+							eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
+						)
+						.where(eq(pluggyItems.id, item.id))
+						.orderBy(desc(pluggyTransactions.date))
+						.limit(limit);
+				} else {
+					const userItems = await db
+						.select({
+							id: pluggyItems.id,
+							pluggyItemId: pluggyItems.pluggyItemId,
+							provider: pluggyItems.provider,
+						})
+						.from(pluggyItems)
+						.where(eq(pluggyItems.userId, session.user.id));
+					if (userItems.length === 0) return reply.send([]);
+
+					transactions = await db
+						.select({
+							id: pluggyTransactions.id,
+							pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
+							date: pluggyTransactions.date,
+							amount: pluggyTransactions.amount,
+							description: pluggyTransactions.description,
+							category: pluggyTransactions.category,
+							provider: pluggyItems.provider,
+						})
+						.from(pluggyTransactions)
+						.innerJoin(
+							pluggyItems,
+							eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
+						)
+						.where(eq(pluggyItems.userId, session.user.id))
+						.orderBy(desc(pluggyTransactions.date))
+						.limit(limit);
+				}
 				return reply.send(transactions);
 			} catch (error) {
 				return sendKnownError(reply, error);

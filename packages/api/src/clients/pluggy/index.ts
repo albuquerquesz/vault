@@ -10,5 +10,6 @@ export type {
 	PluggyConnectToken,
 	PluggyConnector,
 	PluggyCredentials,
+	PluggyItem,
 	PluggyTransaction,
 } from "./types";

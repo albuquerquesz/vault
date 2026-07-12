@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { index, pgTable, text, timestamp, uuid, varchar, unique } from "drizzle-orm/pg-core";
 import { user } from "./user";
 
 export const pluggyItems = pgTable(
@@ -18,6 +18,7 @@ export const pluggyItems = pgTable(
 	(table) => [
 		index("pluggy_items_user_id_idx").on(table.userId),
 		index("pluggy_items_pluggy_id_idx").on(table.pluggyItemId),
+		unique("pluggy_items_user_pluggy_id_unique").on(table.userId, table.pluggyItemId),
 	],
 );
 

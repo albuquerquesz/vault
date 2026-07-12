@@ -26,8 +26,8 @@ import {
   CameraIcon,
   CircleHelpIcon,
   InfoIcon,
-  KeyRoundIcon,
   LogOutIcon,
+  Loader2,
   MonitorIcon,
   MoonIcon,
   SunIcon,
@@ -37,10 +37,16 @@ import * as React from "react";
 import { PageContent } from "@/components/page-content";
 import { useTheme } from "@/components/theme-provider";
 import {
-  useDeletePluggyCredentials,
+  usePluggyItems,
+  usePluggyDeleteItem,
+  useRegisterPluggyItem,
+} from "@/features/pluggy/sdk";
+import {
   usePluggyCredentialsStatus,
   useSavePluggyCredentials,
-} from "@/features/pluggy/sdk";
+  useDeletePluggyCredentials,
+} from "@/features/settings/sdk";
+import { PluggyConnectWidget } from "@/components/pluggy-connect-widget";
 import {
   useUpdatePreferences,
   useUpdateProfile,
@@ -136,6 +142,59 @@ const THEME_OPTIONS = [
   { value: "dark", label: "Escuro", icon: MoonIcon },
 ] as const;
 
+function ConnectedAccountsList() {
+  const { data: items, isLoading } = usePluggyItems();
+  const deleteItem = usePluggyDeleteItem();
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+
+  if (isLoading) {
+    return <p className="text-sm text-muted-foreground">Carregando contas…</p>;
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Nenhuma conta conectada ainda.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3"
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium truncate">{item.provider}</p>
+            <p className="text-xs text-muted-foreground capitalize">
+              {item.status}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={async () => {
+              setDeletingId(item.pluggyItemId);
+              await deleteItem.mutateAsync(item.id);
+              setDeletingId(null);
+            }}
+            disabled={deletingId !== null}
+            className="shrink-0"
+          >
+            {deletingId === item.pluggyItemId ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              "Remover"
+            )}
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function GeneralSettings() {
   const { theme, setTheme } = useTheme();
   const { data: session } = authClient.useSession();
@@ -154,6 +213,10 @@ function GeneralSettings() {
   } = usePluggyCredentialsStatus({ enabled: Boolean(session?.user) });
   const savePluggyCredentials = useSavePluggyCredentials();
   const deletePluggyCredentials = useDeletePluggyCredentials();
+  const registerItem = useRegisterPluggyItem();
+  const [pluggyConnectError, setPluggyConnectError] = React.useState<
+    string | null
+  >(null);
 
   // Sync income/day from API prefs
   React.useEffect(() => {
@@ -165,27 +228,31 @@ function GeneralSettings() {
 
   // Apply saved theme from API on first load
   React.useEffect(() => {
-    if (prefs && prefs.theme && prefs.theme !== "system") {
+    if (prefs?.theme) {
       setTheme(prefs.theme);
     }
-  }, []); // only on mount
+  }, [prefs?.theme, setTheme]);
 
   const selectedTheme = theme ?? "system";
 
   const handleSaveIncome = () => {
-    const monthlyIncome = incomeAmount
+    const monthlyIncomeValue = incomeAmount
       ? parseFloat(incomeAmount.replace(",", "."))
       : null;
-    const incomeDay = incomeDay ? parseInt(incomeDay, 10) : null;
+    const incomeDayValue = incomeDay ? parseInt(incomeDay, 10) : null;
 
     updatePreferences.mutate({
-      monthlyIncome: isNaN(monthlyIncome as number) ? null : monthlyIncome,
-      incomeDay:
-        isNaN(incomeDay as number) ||
-          (incomeDay as number) < 1 ||
-          (incomeDay as number) > 28
+      monthlyIncome:
+        monthlyIncomeValue === null || Number.isNaN(monthlyIncomeValue)
           ? null
-          : incomeDay,
+          : monthlyIncomeValue,
+      incomeDay:
+        incomeDayValue === null ||
+          Number.isNaN(incomeDayValue) ||
+          incomeDayValue < 1 ||
+          incomeDayValue > 28
+          ? null
+          : incomeDayValue,
     });
   };
 
@@ -319,7 +386,7 @@ function GeneralSettings() {
       <SettingsSectionCard className="min-h-48">
         <div className="flex items-center justify-between gap-3">
           <p className="text-lg font-medium" style={headingStyle}>
-            Pluggy (BYOK)
+            Pluggy
           </p>
           <Tooltip>
             <TooltipTrigger
@@ -338,27 +405,22 @@ function GeneralSettings() {
 
         <form className="space-y-4" onSubmit={handleSavePluggyCredentials}>
           <div className="space-y-2">
-            <Label htmlFor="settings-pluggy-client-id">PLUGGY_CLIENT_ID</Label>
-            <div className="relative">
-              <KeyRoundIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="settings-pluggy-client-id"
-                name="pluggyClientId"
-                className="h-9 rounded-md pl-10 pr-3 font-mono text-sm"
-                placeholder="f47ac10b-58cc-4372-a567-0e02b2c3d479"
-                autoComplete="off"
-                spellCheck={false}
-                value={pluggyClientId}
-                onChange={(event) => setPluggyClientId(event.target.value)}
-                required
-              />
-            </div>
+            <Label htmlFor="settings-pluggy-client-id">Client ID</Label>
+            <Input
+              id="settings-pluggy-client-id"
+              name="pluggyClientId"
+              className="h-9 rounded-md px-3 font-mono text-sm"
+              placeholder="f47ac10b-58cc-4372-a567-0e02b2c3d479"
+              autoComplete="off"
+              spellCheck={false}
+              value={pluggyClientId}
+              onChange={(event) => setPluggyClientId(event.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="settings-pluggy-client-secret">
-              PLUGGY_CLIENT_SECRET
-            </Label>
+            <Label htmlFor="settings-pluggy-client-secret">Client Secret</Label>
             <Input
               id="settings-pluggy-client-secret"
               name="pluggyClientSecret"
@@ -404,6 +466,73 @@ function GeneralSettings() {
             ) : null}
           </div>
         </form>
+      </SettingsSectionCard>
+
+      {/* Bank connectors */}
+      <SettingsSectionCard className="min-h-48">
+        <div className="space-y-1">
+          <p className="text-lg font-medium" style={headingStyle}>
+            Bancos disponíveis
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Conecte sua conta bancária para importar transações automaticamente.
+          </p>
+        </div>
+
+        {!pluggyStatus?.configured && !isLoadingPluggyStatus ? (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">
+            Configure suas chaves Pluggy acima para conectar seus bancos.
+          </div>
+        ) : (
+          <div className="pt-4">
+            <PluggyConnectWidget
+              onSuccess={({ item }) => {
+                setPluggyConnectError(null);
+                registerItem.mutate(
+                  { pluggyItemId: item.id },
+                  {
+                    onError: (error) => {
+                      setPluggyConnectError(error.message);
+                    },
+                    onSuccess: (result) => {
+                      if (result.sync.status === "failed") {
+                        setPluggyConnectError(
+                          "Conta conectada, mas a sincronização inicial falhou.",
+                        );
+                        return;
+                      }
+
+                      setPluggyConnectError(null);
+                    },
+                  },
+                );
+              }}
+              onError={(error) => {
+                setPluggyConnectError(error.message);
+              }}
+            />
+            {pluggyConnectError ? (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
+                {pluggyConnectError}
+              </div>
+            ) : null}
+          </div>
+        )}
+      </SettingsSectionCard>
+
+      {/* Connected accounts */}
+      <SettingsSectionCard className="min-h-48">
+        <div className="space-y-1">
+          <p className="text-lg font-medium" style={headingStyle}>
+            Contas conectadas
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Gerencie suas contas bancárias conectadas.
+          </p>
+        </div>
+        <div className="pt-4">
+          <ConnectedAccountsList />
+        </div>
       </SettingsSectionCard>
     </div>
   );

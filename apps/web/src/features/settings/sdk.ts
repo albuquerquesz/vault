@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/utils/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/components/theme-provider";
+import { apiFetch, queryClient } from "@/utils/api";
 import { toast } from "sonner";
+import dayjs from "dayjs";
 
 // Types
 
@@ -28,10 +29,21 @@ export interface UpdateProfileInput {
 	email?: string | null;
 }
 
+export interface PluggyCredentialsStatus {
+	configured: boolean;
+	clientIdMasked: string | null;
+}
+
+export interface PluggyCredentialsInput {
+	clientId: string;
+	clientSecret: string;
+}
+
 // Query keys
 
 const PREFERENCES_KEY = ["settings", "preferences"] as const;
 const PROFILE_KEY = ["settings", "profile"] as const;
+const PLUGGY_CREDENTIALS_KEY = ["settings", "pluggy-credentials"] as const;
 
 // SDK
 
@@ -61,9 +73,9 @@ export const settingsSdk = {
 			mutationFn: (data: UpdatePreferencesInput) =>
 				apiFetch<UserPreferences>("/api/settings/preferences", {
 					method: "PATCH",
-					body: JSON.stringify(data),
+					body: data,
 				}),
-			onSuccess: (_data, _variables, queryClient) => {
+			onSuccess: () => {
 				queryClient.invalidateQueries({ queryKey: PREFERENCES_KEY });
 				toast.success("Preferências salvas");
 			},
@@ -78,9 +90,9 @@ export const settingsSdk = {
 			mutationFn: (data: UpdateProfileInput) =>
 				apiFetch<UserProfile>("/api/settings/profile", {
 					method: "PATCH",
-					body: JSON.stringify(data),
+					body: data,
 				}),
-			onSuccess: (_data, _variables, queryClient) => {
+			onSuccess: () => {
 				queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
 				toast.success("Perfil atualizado");
 			},
@@ -95,9 +107,9 @@ export const settingsSdk = {
 			mutationFn: (dataUrl: string) =>
 				apiFetch<{ image: string | null }>("/api/settings/avatar", {
 					method: "POST",
-					body: JSON.stringify({ dataUrl }),
+					body: { dataUrl },
 				}),
-			onSuccess: (_data, _variables, queryClient) => {
+			onSuccess: () => {
 				queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
 				toast.success("Avatar atualizado");
 			},
@@ -110,9 +122,25 @@ export const settingsSdk = {
 
 // Helpers
 
-export function invalidateSettingsQueries(queryClient: ReturnType<typeof useQueryClient>) {
+export function invalidateSettingsQueries() {
 	queryClient.invalidateQueries({ queryKey: PREFERENCES_KEY });
 	queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
+}
+
+/** Returns the current month as YYYY-MM using dayjs. */
+export function getMonthValue(date = dayjs()) {
+	return date.format("YYYY-MM");
+}
+
+/** Returns today as YYYY-MM-DD using dayjs. */
+export function getTodayValue(date = dayjs()) {
+	return date.format("YYYY-MM-DD");
+}
+
+/** Computes the next income date given an income day and the current month. */
+export function nextIncomeDate(incomeDay: number, month = getMonthValue()) {
+	const d = dayjs(month).date(incomeDay);
+	return d.isBefore(dayjs()) ? d.add(1, "month") : d;
 }
 
 // Hooks
@@ -132,8 +160,8 @@ export function useUpdatePreferences() {
 	const opts = settingsSdk.updatePreferencesMutationOptions();
 	return useMutation({
 		...opts,
-		onSuccess: (data, variables, qc) => {
-			opts.onSuccess(data, variables, qc);
+		onSuccess: (_data, variables) => {
+			opts.onSuccess?.();
 			if (variables.theme) {
 				setTheme(variables.theme);
 			}
@@ -149,4 +177,56 @@ export function useUpdateProfile() {
 export function useUpdateAvatar() {
 	const opts = settingsSdk.updateAvatarMutationOptions();
 	return useMutation(opts);
+}
+
+// --- Pluggy Credentials ---
+
+export function usePluggyCredentialsStatus(options?: {
+	enabled?: boolean;
+}) {
+	return useQuery({
+		queryKey: PLUGGY_CREDENTIALS_KEY,
+		queryFn: () =>
+			apiFetch<PluggyCredentialsStatus>(
+				"/api/settings/pluggy/credentials/status",
+			),
+		...(options ?? {}),
+	});
+}
+
+export function useSavePluggyCredentials() {
+	return useMutation({
+		mutationFn: (data: PluggyCredentialsInput) =>
+			apiFetch<PluggyCredentialsStatus>(
+				"/api/settings/pluggy/credentials",
+				{
+					method: "POST",
+					body: data,
+				},
+			),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: PLUGGY_CREDENTIALS_KEY });
+			toast.success("Chaves Pluggy salvas com sucesso");
+		},
+		onError: () => {
+			toast.error("Falha ao salvar chaves Pluggy");
+		},
+	});
+}
+
+export function useDeletePluggyCredentials() {
+	return useMutation({
+		mutationFn: () =>
+			apiFetch<PluggyCredentialsStatus>(
+				"/api/settings/pluggy/credentials",
+				{ method: "DELETE" },
+			),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: PLUGGY_CREDENTIALS_KEY });
+			toast.success("Chaves Pluggy removidas");
+		},
+		onError: () => {
+			toast.error("Falha ao remover chaves Pluggy");
+		},
+	});
 }

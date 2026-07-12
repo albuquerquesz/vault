@@ -36,6 +36,20 @@
       "when": 1783382508945,
       "tag": "0004_needy_yellow_claw",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783866990501,
+      "tag": "0005_material_lilith",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783890000000,
+      "tag": "0006_lush_wolfsbane",
+      "breakpoints": true
     }
   ]
 }

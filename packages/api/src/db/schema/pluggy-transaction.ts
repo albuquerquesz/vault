@@ -5,6 +5,7 @@ import {
 	numeric,
 	pgTable,
 	timestamp,
+	unique,
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
@@ -29,6 +30,10 @@ export const pluggyTransactions = pgTable(
 	(table) => [
 		index("pluggy_tx_item_id_idx").on(table.pluggyItemId),
 		index("pluggy_tx_pluggy_id_idx").on(table.pluggyTransactionId),
+		unique("pluggy_transactions_item_transaction_unique").on(
+			table.pluggyItemId,
+			table.pluggyTransactionId,
+		),
 	],
 );
 

@@ -21,6 +21,16 @@ export interface PluggyTransaction {
 	category?: string;
 }
 
+export interface PluggyItem {
+	id: string;
+	status: string;
+	connector?: {
+		id: number;
+		name?: string;
+	};
+	connectorId?: number;
+}
+
 export interface PluggyConnector {
 	id: string;
 	name: string;

@@ -3,6 +3,7 @@ import type {
 	PluggyConnectToken,
 	PluggyConnector,
 	PluggyCredentials,
+	PluggyItem,
 	PluggyTransaction,
 } from "./types";
 
@@ -151,6 +152,11 @@ export function createPluggyClient(creds: PluggyCredentials) {
 			);
 			const result = (response as { data?: unknown[] }).data ?? [];
 			return result as PluggyTransaction[];
+		},
+
+		async getItem(itemId: string): Promise<PluggyItem> {
+			const response = await pluggyFetch(creds, `/items/${itemId}`);
+			return response as PluggyItem;
 		},
 
 		async deleteItem(itemId: string) {

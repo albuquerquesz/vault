@@ -1,200 +1,182 @@
 "use client";
 
-import { AlertTriangle, Loader2, ShieldCheck } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { Button } from "@vault/ui/components/button";
+import { Loader2 } from "lucide-react";
 
-import { usePluggyConnectToken } from "@/features/pluggy/sdk";
-import { queryClient } from "@/utils/api";
+const PLUGGY_CONNECT_SCRIPT_SRC =
+	"https://cdn.pluggy.ai/pluggy-connect/v1.3.1/pluggy-connect.js";
 
-type PluggyConnectInstance = {
-	init: (containerElement?: HTMLElement) => Promise<void>;
-	destroy: () => Promise<void> | void;
-};
+interface PluggyConnectItem {
+	id: string;
+}
 
-type PluggyConnectOptions = {
+interface PluggyConnectSuccessPayload {
+	item: PluggyConnectItem;
+}
+
+interface PluggyConnectErrorPayload {
+	message?: string;
+}
+
+interface PluggyConnectInstance {
+	init: () => void;
+}
+
+interface PluggyConnectConfig {
 	connectToken: string;
 	includeSandbox?: boolean;
-	allowFullscreen?: boolean;
-	theme?: "light" | "dark";
-	onSuccess?: (payload: unknown) => void;
-	onError?: (error: unknown) => void;
-};
+	onSuccess?: (data: PluggyConnectSuccessPayload) => void;
+	onError?: (error: PluggyConnectErrorPayload) => void;
+	onClose?: () => void;
+}
 
-type WindowWithPluggy = Window &
-	typeof globalThis & {
-		PluggyConnect?: new (options: PluggyConnectOptions) => PluggyConnectInstance;
-	};
+declare global {
+	interface Window {
+		PluggyConnect?: new (config: PluggyConnectConfig) => PluggyConnectInstance;
+	}
+}
 
-const PLUGGY_CONNECT_SCRIPT =
-	"https://cdn.pluggy.ai/pluggy-connect/v2.7.0/pluggy-connect.js";
-
-let pluggyScriptPromise: Promise<void> | null = null;
+let pluggyConnectScriptPromise: Promise<void> | null = null;
 
 function loadPluggyConnectScript() {
 	if (typeof window === "undefined") {
-		return Promise.reject(new Error("Pluggy Connect só pode carregar no browser"));
+		return Promise.reject(new Error("Pluggy Connect is only available in the browser"));
 	}
 
-	const win = window as WindowWithPluggy;
-	if (win.PluggyConnect) {
+	if (window.PluggyConnect) {
 		return Promise.resolve();
 	}
 
-	if (!pluggyScriptPromise) {
-		pluggyScriptPromise = new Promise<void>((resolve, reject) => {
-			const existingScript = document.querySelector<HTMLScriptElement>(
-				`script[src="${PLUGGY_CONNECT_SCRIPT}"]`,
-			);
-
-			if (existingScript) {
-				existingScript.addEventListener("load", () => resolve(), { once: true });
-				existingScript.addEventListener("error", () => {
-					reject(new Error("Falha ao carregar o script do Pluggy Connect"));
-				}, { once: true });
-				return;
-			}
-
-			const script = document.createElement("script");
-			script.src = PLUGGY_CONNECT_SCRIPT;
-			script.async = true;
-			script.onload = () => resolve();
-			script.onerror = () =>
-				reject(new Error("Falha ao carregar o script do Pluggy Connect"));
-			document.head.appendChild(script);
-		});
+	if (pluggyConnectScriptPromise) {
+		return pluggyConnectScriptPromise;
 	}
 
-	return pluggyScriptPromise;
-}
+	pluggyConnectScriptPromise = new Promise<void>((resolve, reject) => {
+		const existing = document.querySelector<HTMLScriptElement>(
+			`script[src="${PLUGGY_CONNECT_SCRIPT_SRC}"]`,
+		);
 
-export function PluggyConnectWidget() {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const widgetRef = useRef<PluggyConnectInstance | null>(null);
-	const [status, setStatus] = useState<"loading" | "ready" | "error">(
-		"loading",
-	);
-	const [error, setError] = useState<string | null>(null);
-	const { mutateAsync: getConnectToken } = usePluggyConnectToken();
-
-	useEffect(() => {
-		let cancelled = false;
-
-		async function boot() {
-			try {
-				setStatus("loading");
-				setError(null);
-
-				const [{ accessToken }, container] = await Promise.all([
-					getConnectToken(undefined),
-					Promise.resolve(containerRef.current),
-				]);
-
-				if (cancelled) return;
-				if (!container) {
-					throw new Error("Container do Pluggy não foi encontrado");
-				}
-
-				await loadPluggyConnectScript();
-
-				if (cancelled) return;
-
-				const win = window as WindowWithPluggy;
-				if (!win.PluggyConnect) {
-					throw new Error("Pluggy Connect não foi inicializado corretamente");
-				}
-
-				widgetRef.current?.destroy();
-				const widget = new win.PluggyConnect({
-					connectToken: accessToken,
-					allowFullscreen: true,
-					includeSandbox: import.meta.env.DEV,
-					onSuccess: async () => {
-						await queryClient.invalidateQueries({
-							queryKey: ["pluggyItems"],
-						});
-						await queryClient.invalidateQueries({
-							queryKey: ["pluggyTransactions"],
-						});
-					},
-					onError: (widgetError) => {
-						console.error("Pluggy Connect error:", widgetError);
-						setError(
-							widgetError instanceof Error
-								? widgetError.message
-								: "O Pluggy Connect não conseguiu abrir",
-						);
-						setStatus("error");
-					},
-				});
-
-				widgetRef.current = widget;
-				await widget.init(container);
-				if (!cancelled) {
-					setStatus("ready");
-				}
-			} catch (err) {
-				if (cancelled) return;
-				const message =
-					err instanceof Error ? err.message : "Falha ao abrir o Pluggy Connect";
-				setError(message);
-				setStatus("error");
-			}
+		if (existing) {
+			existing.addEventListener("load", () => resolve(), { once: true });
+			existing.addEventListener(
+				"error",
+				() => reject(new Error("Failed to load Pluggy Connect")),
+				{ once: true },
+			);
+			return;
 		}
 
-		void boot();
+		const script = document.createElement("script");
+		script.src = PLUGGY_CONNECT_SCRIPT_SRC;
+		script.async = true;
+		script.onload = () => resolve();
+		script.onerror = () => reject(new Error("Failed to load Pluggy Connect"));
+		document.head.appendChild(script);
+	});
 
-		return () => {
-			cancelled = true;
-			widgetRef.current?.destroy();
-			widgetRef.current = null;
-		};
-	}, [getConnectToken]);
+	return pluggyConnectScriptPromise;
+}
 
-	if (status === "loading") {
-		return (
-			<div className="rounded-2xl border border-border/70 bg-card/60 px-5 py-6">
-				<div className="flex items-center gap-3 text-sm text-muted-foreground">
-					<Loader2 className="size-4 animate-spin" />
-					<span>Iniciando o Connect do Pluggy...</span>
-				</div>
-				<div
-					ref={containerRef}
-					className="mt-5 min-h-[560px] rounded-[1.5rem] border border-border/60 bg-background/70"
-				/>
-			</div>
-		);
-	}
+interface PluggyConnectWidgetProps {
+	onSuccess?: (data: PluggyConnectSuccessPayload) => void;
+	onError?: (error: Error) => void;
+	onClose?: () => void;
+	className?: string;
+}
 
-	if (status === "error") {
-		return (
-			<div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-5 py-6">
-				<div className="flex items-start gap-3">
-					<AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-					<div className="space-y-1">
-						<p className="text-sm font-medium text-foreground">
-							Não foi possível abrir o Pluggy Connect
-						</p>
-						<p className="text-sm text-muted-foreground">{error}</p>
-					</div>
-				</div>
-				<div
-					ref={containerRef}
-					className="mt-5 min-h-[560px] rounded-[1.5rem] border border-border/60 bg-background/70"
-				/>
-			</div>
-		);
-	}
+export function PluggyConnectWidget({
+	onSuccess,
+	onError,
+	onClose,
+	className,
+}: PluggyConnectWidgetProps) {
+	const [isConnecting, setIsConnecting] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const handleConnect = async () => {
+		setError(null);
+		setIsConnecting(true);
+
+		try {
+			const tokenResponse = await fetch("/api/connectors/token", {
+				method: "POST",
+				credentials: "include",
+			});
+
+			if (!tokenResponse.ok) {
+				const body = await tokenResponse.text().catch(() => "");
+				throw new Error(body || "Failed to create Pluggy connect token");
+			}
+
+			const { accessToken } = (await tokenResponse.json()) as {
+				accessToken?: string;
+			};
+
+			if (!accessToken) {
+				throw new Error("Missing Pluggy connect token");
+			}
+
+			await loadPluggyConnectScript();
+
+			if (!window.PluggyConnect) {
+				throw new Error("Pluggy Connect SDK unavailable");
+			}
+
+			const widget = new window.PluggyConnect({
+				connectToken: accessToken,
+				onSuccess: (data) => {
+					setIsConnecting(false);
+					onSuccess?.(data);
+				},
+				onError: (sdkError) => {
+					const nextError = new Error(
+						sdkError.message || "Failed to connect account with Pluggy",
+					);
+					setIsConnecting(false);
+					setError(nextError.message);
+					onError?.(nextError);
+				},
+				onClose: () => {
+					setIsConnecting(false);
+					onClose?.();
+				},
+			});
+
+			widget.init();
+		} catch (caughtError) {
+			const nextError =
+				caughtError instanceof Error
+					? caughtError
+					: new Error("Failed to initialize Pluggy Connect");
+			setIsConnecting(false);
+			setError(nextError.message);
+			onError?.(nextError);
+		}
+	};
 
 	return (
-		<div className="rounded-2xl border border-border/70 bg-card/60 px-5 py-6">
-			<div className="flex items-center gap-3 text-sm text-emerald-400">
-				<ShieldCheck className="size-4" />
-				<span>Pluggy Connect ativo</span>
-			</div>
-			<div
-				ref={containerRef}
-				className="mt-5 min-h-[560px] rounded-[1.5rem] border border-border/60 bg-background/70"
-			/>
+		<div className="space-y-4">
+			<Button
+				onClick={handleConnect}
+				disabled={isConnecting}
+				className={className}
+			>
+				{isConnecting ? (
+					<>
+						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						Conectando...
+					</>
+				) : (
+					"Conectar Banco"
+				)}
+			</Button>
+
+			{error ? (
+				<div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
+					{error}
+				</div>
+			) : null}
 		</div>
 	);
 }
