@@ -1,10 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PluggyPage } from "@/components/pluggy-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/pluggy")({
-	component: RouteComponent,
+  beforeLoad: () => {
+    throw redirect({ to: "/settings", search: { section: "general" } });
+  },
 });
-
-function RouteComponent() {
-	return <PluggyPage />;
-}
