@@ -9,6 +9,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
+import { pluggyAccounts } from "./pluggy-account";
 import { pluggyItems } from "./pluggy-item";
 
 export const pluggyTransactions = pgTable(
@@ -18,6 +19,8 @@ export const pluggyTransactions = pgTable(
 		pluggyItemId: uuid("pluggy_item_id")
 			.references(() => pluggyItems.id, { onDelete: "cascade" })
 			.notNull(),
+		pluggyAccountId: uuid("pluggy_account_id")
+			.references(() => pluggyAccounts.id, { onDelete: "cascade" }),
 		pluggyTransactionId: varchar("pluggy_transaction_id", {
 			length: 255,
 		}).notNull(),
@@ -29,6 +32,7 @@ export const pluggyTransactions = pgTable(
 	},
 	(table) => [
 		index("pluggy_tx_item_id_idx").on(table.pluggyItemId),
+		index("pluggy_tx_account_id_idx").on(table.pluggyAccountId),
 		index("pluggy_tx_pluggy_id_idx").on(table.pluggyTransactionId),
 		unique("pluggy_transactions_item_transaction_unique").on(
 			table.pluggyItemId,
@@ -43,6 +47,10 @@ export const pluggyTransactionsRelations = relations(
 		item: one(pluggyItems, {
 			fields: [pluggyTransactions.pluggyItemId],
 			references: [pluggyItems.id],
+		}),
+		account: one(pluggyAccounts, {
+			fields: [pluggyTransactions.pluggyAccountId],
+			references: [pluggyAccounts.id],
 		}),
 	}),
 );

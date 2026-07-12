@@ -19,6 +19,64 @@ export interface PluggyTransaction {
 	amount: number;
 	description?: string;
 	category?: string;
+	accountId: string;
+}
+
+export interface PluggyRemoteTransaction {
+	id: string;
+	date: string;
+	amount: number;
+	description?: string;
+	category?: string;
+	accountId: string;
+}
+
+export interface PluggyTransactionsPage {
+	results: PluggyRemoteTransaction[];
+	next?: string | null;
+}
+
+export interface PluggyAccount {
+	id: string;
+	itemId: string;
+	type: "BANK" | "CREDIT";
+	subtype?: string;
+	name?: string;
+	balance?: number;
+	availableBalance?: number;
+	currency?: string;
+	transferNumber?: string;
+	brand?: string;
+	status?: string;
+}
+
+export interface PluggyRemoteAccount {
+	id: string;
+	itemId: string;
+	type: "BANK" | "CREDIT";
+	subtype?: string;
+	name?: string;
+	balance?: number;
+	currencyCode?: string;
+	number?: string;
+	createdAt?: string;
+	updatedAt?: string;
+	bankData?: {
+		transferNumber?: string;
+		closingBalance?: number;
+		availableBalance?: number;
+	};
+	creditData?: {
+		availableCreditLimit?: number;
+	};
+	status?: string;
+}
+
+export interface PluggyAccountsPage {
+	page: number;
+	total: number;
+	totalPages: number;
+	results: PluggyRemoteAccount[];
 }
 
 export interface PluggyItem {

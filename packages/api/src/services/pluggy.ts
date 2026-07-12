@@ -1,8 +1,14 @@
-import { createPluggyClient } from "../clients/pluggy";
+import { sql } from "drizzle-orm";
+import { createPluggyClient, PluggyApiError } from "../clients/pluggy";
 import { db } from "../db";
-import { pluggyItems, pluggyTransactions } from "../db/schema";
+import {
+	pluggyAccounts,
+	pluggyItems,
+	pluggyTransactions,
+} from "../db/schema";
 import type {
 	CreatePluggyConnectTokenInput,
+	PluggyAccount,
 	PluggyConnectToken,
 	PluggyCredentials,
 	PluggyItem as RemotePluggyItem,
@@ -17,6 +23,21 @@ export type {
 };
 
 const INITIAL_SYNC_WINDOW_DAYS = 90;
+
+export type PluggySyncResult = {
+	total: number;
+	synced: number;
+	status: "success" | "failed";
+	error?: string;
+};
+
+export type PluggyAccountSyncResult = {
+	total: number;
+	synced: number;
+	status: "success" | "failed";
+	error?: string;
+	accountIdsByRemoteId: Map<string, string>;
+};
 
 /** Pluggy operations bound to the given user BYOK credentials. */
 export function createPluggyService(creds: PluggyCredentials) {
@@ -33,16 +54,20 @@ export function createPluggyService(creds: PluggyCredentials) {
 			return client.deleteItem(itemId);
 		},
 
-		getTransactions({
-			itemId,
+		listAccounts(itemId: string): Promise<PluggyAccount[]> {
+			return client.listAccounts(itemId);
+		},
+
+		getTransactionsByAccount({
+			accountId,
 			startDate,
 			endDate,
 		}: {
-			itemId: string;
+			accountId: string;
 			startDate: string;
 			endDate: string;
 		}): Promise<PluggyTransaction[]> {
-			return client.getTransactions(itemId, startDate, endDate);
+			return client.getTransactionsByAccount(accountId, startDate, endDate);
 		},
 
 		getItem(itemId: string): Promise<RemotePluggyItem> {
@@ -88,20 +113,90 @@ function buildInitialSyncWindow() {
 	);
 
 	return {
-		startDate: startDate.toISOString().split("T")[0]!,
-		endDate: now.toISOString().split("T")[0]!,
+		startDate: startDate.toISOString().split("T")[0] ?? "",
+		endDate: now.toISOString().split("T")[0] ?? "",
 	};
 }
 
-export async function syncTransactionsForItem(params: {
+/** Sync accounts from Pluggy for a given item. */
+export async function syncAccountsForItem(params: {
 	service: ReturnType<typeof createPluggyService>;
 	localItemId: string;
 	pluggyItemId: string;
-}) {
+}): Promise<PluggyAccountSyncResult> {
 	const { service, localItemId, pluggyItemId } = params;
-	const { startDate, endDate } = buildInitialSyncWindow();
-	const transactions = await service.getTransactions({
-		itemId: pluggyItemId,
+	const accounts = await service.listAccounts(pluggyItemId);
+
+	const insertable = accounts.map((acc) => ({
+		pluggyItemId: localItemId,
+		pluggyAccountId: acc.id,
+		type: acc.type,
+		subtype: acc.subtype ?? null,
+		name: acc.name ?? null,
+		balance: acc.balance?.toString() ?? null,
+		availableBalance: acc.availableBalance?.toString() ?? null,
+		currency: acc.currency ?? "BRL",
+		transferNumber: acc.transferNumber ?? null,
+		brand: acc.brand ?? null,
+		status: acc.status ?? null,
+	}));
+
+	if (insertable.length === 0) {
+		return {
+			total: accounts.length,
+			synced: 0,
+			status: "success" as const,
+			accountIdsByRemoteId: new Map(),
+		};
+	}
+
+	const upserted = await db
+		.insert(pluggyAccounts)
+		.values(insertable)
+		.onConflictDoUpdate({
+			target: [pluggyAccounts.pluggyItemId, pluggyAccounts.pluggyAccountId],
+			set: {
+				type: sql.raw(`EXCLUDED.type`),
+				subtype: sql.raw(`EXCLUDED.subtype`),
+				name: sql.raw(`EXCLUDED.name`),
+				balance: sql.raw(`EXCLUDED.balance`),
+				availableBalance: sql.raw(`EXCLUDED.available_balance`),
+				currency: sql.raw(`EXCLUDED.currency`),
+				transferNumber: sql.raw(`EXCLUDED.transfer_number`),
+				brand: sql.raw(`EXCLUDED.brand`),
+				status: sql.raw(`EXCLUDED.status`),
+				updatedAt: new Date(),
+			},
+		})
+		.returning({
+			id: pluggyAccounts.id,
+			pluggyAccountId: pluggyAccounts.pluggyAccountId,
+		});
+
+	const accountIdsByRemoteId = new Map(
+		upserted.map((account) => [account.pluggyAccountId, account.id]),
+	);
+
+	return {
+		total: accounts.length,
+		synced: upserted.length,
+		status: "success" as const,
+		accountIdsByRemoteId,
+	};
+}
+
+/** Sync transactions for a single account. */
+async function syncTransactionsForAccount(params: {
+	service: ReturnType<typeof createPluggyService>;
+	localItemId: string;
+	localAccountId: string;
+	pluggyAccountId: string;
+	startDate: string;
+	endDate: string;
+}): Promise<PluggySyncResult> {
+	const { service, localItemId, localAccountId, pluggyAccountId, startDate, endDate } = params;
+	const transactions = await service.getTransactionsByAccount({
+		accountId: pluggyAccountId,
 		startDate,
 		endDate,
 	});
@@ -110,6 +205,7 @@ export async function syncTransactionsForItem(params: {
 		.filter((tx) => Boolean(tx.date))
 		.map((tx) => ({
 			pluggyItemId: localItemId,
+			pluggyAccountId: localAccountId,
 			pluggyTransactionId: tx.id,
 			date: tx.date,
 			amount: tx.amount.toString(),
@@ -139,6 +235,57 @@ export async function syncTransactionsForItem(params: {
 	return {
 		total: transactions.length,
 		synced: inserted.length,
+		status: "success" as const,
+	};
+}
+
+/** Sync transactions for all accounts of an item. */
+export async function syncTransactionsForItem(params: {
+	service: ReturnType<typeof createPluggyService>;
+	localItemId: string;
+	pluggyItemId: string;
+}): Promise<PluggySyncResult> {
+	const { service, localItemId, pluggyItemId } = params;
+	const { startDate, endDate } = buildInitialSyncWindow();
+
+	// Fetch accounts from Pluggy
+	const accounts = await service.listAccounts(pluggyItemId);
+
+	if (accounts.length === 0) {
+		return { total: 0, synced: 0, status: "success" };
+	}
+
+	const accountSync = await syncAccountsForItem({
+		service,
+		localItemId,
+		pluggyItemId,
+	});
+	const accountMap = accountSync.accountIdsByRemoteId;
+
+	// Sync transactions per account
+	let totalTransactions = 0;
+	let syncedTransactions = 0;
+
+	for (const acc of accounts) {
+		const localAccountId = accountMap.get(acc.id);
+		if (!localAccountId) continue;
+
+		const result = await syncTransactionsForAccount({
+			service,
+			localItemId,
+			localAccountId,
+			pluggyAccountId: acc.id,
+			startDate,
+			endDate,
+		});
+
+		totalTransactions += result.total;
+		syncedTransactions += result.synced;
+	}
+
+	return {
+		total: totalTransactions,
+		synced: syncedTransactions,
 		status: "success" as const,
 	};
 }
@@ -182,13 +329,17 @@ export async function persistPluggyItemAndSync(params: {
 		});
 
 		return { item, sync };
-	} catch {
+	} catch (error) {
 		return {
 			item,
 			sync: {
 				total: 0,
 				synced: 0,
 				status: "failed" as const,
+				error:
+					error instanceof PluggyApiError
+						? error.message
+						: "Falha ao sincronizar transacoes com a Pluggy.",
 			},
 		};
 	}
@@ -204,15 +355,6 @@ export const pluggyService = {
 		);
 	},
 	async deleteItem(_itemId: string) {
-		throw new Error(
-			"pluggyService requires per-user credentials — use createPluggyService(creds)",
-		);
-	},
-	async getTransactions(_args: {
-		itemId: string;
-		startDate: string;
-		endDate: string;
-	}): Promise<PluggyTransaction[]> {
 		throw new Error(
 			"pluggyService requires per-user credentials — use createPluggyService(creds)",
 		);

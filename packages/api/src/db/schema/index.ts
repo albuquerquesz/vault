@@ -5,6 +5,7 @@ export * from "./goal";
 export * from "./monthly-bill";
 export * from "./monthly-bill-item";
 export * from "./monthly-budget";
+export * from "./pluggy-account";
 export * from "./pluggy-credentials";
 export * from "./pluggy-item";
 export * from "./pluggy-transaction";
