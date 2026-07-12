@@ -1,6 +1,6 @@
 CREATE TABLE "pluggy_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
 	"pluggy_item_id" varchar(255) NOT NULL,
 	"provider" varchar(100) NOT NULL,
 	"status" varchar(50) DEFAULT 'active' NOT NULL,

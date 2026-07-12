@@ -21,5 +21,4 @@ CREATE INDEX "pluggy_accounts_item_id_idx" ON "pluggy_accounts" USING btree ("pl
 CREATE INDEX "pluggy_accounts_pluggy_id_idx" ON "pluggy_accounts" USING btree ("pluggy_account_id");--> statement-breakpoint
 ALTER TABLE "pluggy_accounts" ADD CONSTRAINT "pluggy_accounts_item_account_unique" UNIQUE("pluggy_item_id","pluggy_account_id");--> statement-breakpoint
 ALTER TABLE "pluggy_transactions" ADD CONSTRAINT "pluggy_transactions_pluggy_account_id_pluggy_accounts_id_fk" FOREIGN KEY ("pluggy_account_id") REFERENCES "public"."pluggy_accounts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "pluggy_tx_account_id_idx" ON "pluggy_transactions" USING btree ("pluggy_account_id");--> statement-breakpoint
-ALTER TABLE "pluggy_transactions" ADD CONSTRAINT "pluggy_transactions_item_transaction_unique" UNIQUE("pluggy_item_id","pluggy_transaction_id");
+CREATE INDEX "pluggy_tx_account_id_idx" ON "pluggy_transactions" USING btree ("pluggy_account_id");

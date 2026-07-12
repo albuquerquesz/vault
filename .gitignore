@@ -3,6 +3,10 @@ node_modules
 .pnp
 .pnp.js
 docs/
+!docs/
+docs/*
+!docs/agents/
+!docs/agents/*.md
 
 # Build outputs
 dist
