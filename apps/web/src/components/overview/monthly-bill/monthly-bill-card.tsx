@@ -3,7 +3,7 @@
 import { CreditCardIcon } from "lucide-react";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { MonthlyBillContent } from "@/components/overview/monthly-bill/monthly-bill-content";
-import { useMonthlyBillCard } from "@/components/overview/monthly-bill/use-monthly-bill-card";
+import { useMonthlyBillCard } from "@/components/overview/monthly-bill/hooks/use-monthly-bill-card";
 import {
 	OverviewCardEmptyState,
 	OverviewCardErrorState,

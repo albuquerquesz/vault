@@ -5,7 +5,7 @@ import { Skeleton } from "@vault/ui/components/skeleton";
 import { Target } from "lucide-react";
 import { GoalList } from "@/components/overview/goals/goal-list";
 import { CreateGoalDialog } from "@/components/overview/goals/create-goal-dialog";
-import { useGoalsCard } from "@/components/overview/goals/use-goals-card";
+import { useGoalsCard } from "@/components/overview/goals/hooks/use-goals-card";
 import {
 	OverviewCardEmptyState,
 	OverviewCardErrorState,

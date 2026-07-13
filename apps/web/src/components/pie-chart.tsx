@@ -1,56 +1,21 @@
-"use client";
+export {
+	PieChart,
+	DEFAULT_HOVER_OFFSET,
+} from "@/components/charts/pie-chart";
+export type { PieChartProps } from "@/components/charts/pie-chart";
+export { PieSlice } from "@/components/charts/pie-slice";
+export type { PieSliceProps, PieSliceHoverEffect } from "@/components/charts/pie-slice";
+export { PieCenter } from "@/components/charts/pie-center";
+export type { PieCenterProps } from "@/components/charts/pie-center";
+export { PatternLines } from "@/components/charts/pattern-lines";
+export type { PatternLinesProps } from "@/components/charts/pattern-lines";
+export type { PieData, PieArcData } from "@/components/charts/pie-context";
 
-import { type ChartConfig, ChartContainer } from "@vault/ui/components/chart";
-import { cn } from "@vault/ui/lib/utils";
-import { Cell, Pie, PieChart as RechartsPieChart } from "recharts";
-
+/** Shared chart palette for pie slices and legends */
 export const slicePalette = [
-	"color-mix(in oklab, var(--foreground) 70%, transparent)",
-	"color-mix(in oklab, var(--foreground) 55%, transparent)",
-	"color-mix(in oklab, var(--foreground) 40%, transparent)",
-	"color-mix(in oklab, var(--foreground) 30%, transparent)",
-	"color-mix(in oklab, var(--foreground) 20%, transparent)",
-] as const;
-
-const chartConfig = {
-	orders: {
-		label: "Pedidos",
-		color: "var(--chart-1)",
-	},
-} satisfies ChartConfig;
-
-type PieChartProps = {
-	data: readonly { source: string; orders: number }[];
-	className?: string;
-};
-
-export function PieChart({ data, className }: PieChartProps) {
-	return (
-		<ChartContainer
-			className={cn("h-[28rem] w-full lg:h-[24rem]", className)}
-			config={chartConfig}
-		>
-			<RechartsPieChart accessibilityLayer>
-				<Pie
-					cx="50%"
-					cy="50%"
-					data={data}
-					dataKey="orders"
-					innerRadius={0}
-					nameKey="source"
-					outerRadius="90%"
-					paddingAngle={0}
-					stroke="var(--background)"
-					strokeWidth={1}
-				>
-					{data.map((entry, index) => (
-						<Cell
-							key={entry.source}
-							fill={slicePalette[index % slicePalette.length]}
-						/>
-					))}
-				</Pie>
-			</RechartsPieChart>
-		</ChartContainer>
-	);
-}
+	"var(--chart-1)",
+	"var(--chart-2)",
+	"var(--chart-3)",
+	"var(--chart-4)",
+	"var(--chart-5)",
+];

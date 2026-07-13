@@ -1,9 +1,49 @@
 "use client";
 
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
-import { DonutChart } from "@/components/donut-chart";
-import { slicePalette } from "@/components/pie-chart";
-import type { OrderSourceDatum } from "./use-order-source-mix";
+import { useMemo } from "react";
+import {
+	PatternLines,
+	PieCenter,
+	PieChart,
+	PieSlice,
+	slicePalette,
+	type PieData,
+} from "@/components/pie-chart";
+import type { OrderSourceDatum } from "./hooks/use-order-source-mix";
+
+const PATTERN_PRESETS = [
+	{ height: 6, width: 6, orientation: ["diagonal"] as const },
+	{ height: 6, width: 6, orientation: ["horizontal"] as const },
+	{ height: 6, width: 6, orientation: ["vertical"] as const },
+	{ height: 8, width: 8, orientation: ["diagonalRightToLeft"] as const },
+] as const;
+
+function patternIdForIndex(index: number) {
+	return `dp-${index + 1}`;
+}
+
+function patternFillForIndex(index: number) {
+	// PatternLines registers SVG ids as `pattern-${id}`
+	return `url(#pattern-${patternIdForIndex(index)})`;
+}
+
+function patternPresetForIndex(index: number) {
+	return PATTERN_PRESETS[index % PATTERN_PRESETS.length]!;
+}
+
+function formatMonthLabel(month: string) {
+	const [year, monthNumber] = month.split("-").map(Number);
+	if (!year || !monthNumber) {
+		return month;
+	}
+
+	const label = new Date(year, monthNumber - 1, 1).toLocaleDateString("pt-BR", {
+		month: "long",
+	});
+
+	return label.charAt(0).toUpperCase() + label.slice(1);
+}
 
 function TrendIcon({
 	trend,
@@ -37,24 +77,66 @@ function TrendIcon({
 }
 
 export function OrderSourceMixContent({
+	month,
 	sourceData,
 }: {
+	month: string;
 	sourceData: OrderSourceDatum[];
 }) {
+	const monthLabel = useMemo(() => formatMonthLabel(month), [month]);
+
+	const pieData = useMemo<PieData[]>(
+		() =>
+			sourceData.map((datum, index) => ({
+				label: datum.source,
+				value: datum.amount,
+				color: slicePalette[index % slicePalette.length],
+				fill: patternFillForIndex(index),
+			})),
+		[sourceData],
+	);
+
 	return (
 		<div className="flex flex-1 items-center justify-center gap-8">
-			<div className="relative h-[180px] w-[180px] shrink-0">
-				<DonutChart
-					data={sourceData.map((datum) => ({
-						source: datum.source,
-						orders: datum.orders,
-					}))}
-					totalValue={sourceData.reduce((sum, datum) => sum + datum.orders, 0)}
-					className="h-[180px] w-[180px]"
-				/>
+			<div className="relative flex h-[200px] w-[200px] shrink-0 items-center justify-center">
+				<PieChart data={pieData} innerRadius={55} size={200}>
+					{sourceData.map((datum, index) => {
+						const preset = patternPresetForIndex(index);
+						const stroke =
+							slicePalette[index % slicePalette.length] ?? "var(--chart-1)";
+
+						return (
+							<PatternLines
+								key={`${datum.source}-pattern`}
+								background="transparent"
+								height={preset.height}
+								id={patternIdForIndex(index)}
+								orientation={[...preset.orientation]}
+								stroke={stroke}
+								strokeWidth={1}
+								width={preset.width}
+							/>
+						);
+					})}
+					{sourceData.map((datum, index) => (
+						<PieSlice
+							fill={patternFillForIndex(index)}
+							index={index}
+							key={datum.source}
+						/>
+					))}
+					<PieCenter
+						defaultLabel={monthLabel}
+						formatOptions={{
+							style: "currency",
+							currency: "BRL",
+							maximumFractionDigits: 0,
+						}}
+					/>
+				</PieChart>
 			</div>
 
-			<div className="flex h-[180px] flex-col justify-evenly">
+			<div className="flex h-[200px] flex-col justify-evenly">
 				{sourceData.map((datum, index) => (
 					<div key={datum.source} className="flex items-center gap-3">
 						<div className="flex items-center gap-2">

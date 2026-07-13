@@ -3,8 +3,6 @@
 import {
 	HeatmapChart,
 	HeatmapCells,
-	HeatmapXAxis,
-	HeatmapYAxis,
 	HeatmapLegend,
 	HeatmapTooltip,
 } from "@/components/charts/heatmap";
@@ -16,7 +14,6 @@ type DailyExpensesHeatmapContentProps = {
 	total: number;
 	currency: string;
 	locale: string;
-	periodLabel: string;
 };
 
 function formatCurrency(
@@ -37,28 +34,26 @@ export function DailyExpensesHeatmapContent({
 	total,
 	currency,
 	locale,
-	periodLabel,
 }: DailyExpensesHeatmapContentProps) {
 	return (
 		<div className="flex flex-1 flex-col space-y-6">
-			<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-				<div className="space-y-2">
-					<p className="text-3xl font-semibold tracking-tight sm:text-4xl">
-						<MaskedMonetaryValue
-							format={(value) => formatCurrency(value, currency)}
-							value={total}
-						/>
-					</p>
-					<p className="text-sm text-muted-foreground sm:pt-1">
-						{periodLabel}
-					</p>
-				</div>
+			<div className="flex flex-col gap-3">
+				<p className="text-3xl font-semibold tracking-tight sm:text-4xl">
+					<MaskedMonetaryValue
+						format={(value) => formatCurrency(value, currency)}
+						value={total}
+					/>
+				</p>
 			</div>
 
-			<HeatmapChart data={heatmapData} gap={3} status="ready">
+			<HeatmapChart
+				binSize={16}
+				data={heatmapData}
+				gap={3}
+				margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
+				status="ready"
+			>
 				<HeatmapCells cornerRadius={3} />
-				<HeatmapXAxis />
-				<HeatmapYAxis labelFormat="initial" tickFilter="odd" />
 				<HeatmapTooltip
 					showDelay={300}
 					formatLabel={(count: number, date: Date) =>
@@ -73,7 +68,7 @@ export function DailyExpensesHeatmapContent({
 			</HeatmapChart>
 
 			<div className="flex justify-start md:justify-end">
-				<HeatmapLegend lessLabel="Menor" moreLabel="Maior" cellSize={10} />
+				<HeatmapLegend lessLabel="Menor" moreLabel="Maior" cellSize={8} />
 			</div>
 		</div>
 	);

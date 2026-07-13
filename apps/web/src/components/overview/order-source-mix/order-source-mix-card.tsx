@@ -9,7 +9,7 @@ import {
 } from "@/components/overview/shared/overview-card-state";
 import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 import { OrderSourceMixContent } from "./order-source-mix-content";
-import { useOrderSourceMix } from "./use-order-source-mix";
+import { useOrderSourceMix } from "./hooks/use-order-source-mix";
 
 type OrderSourceMixCardProps = {
 	month: string;
@@ -40,7 +40,7 @@ export function OrderSourceMixCard({
 			) : sourceData.length === 0 ? (
 				<OverviewCardEmptyState message="Nenhuma despesa registrada" />
 			) : (
-				<OrderSourceMixContent sourceData={sourceData} />
+				<OrderSourceMixContent month={month} sourceData={sourceData} />
 			)}
 		</OverviewCardShell>
 	);

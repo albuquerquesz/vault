@@ -16,6 +16,8 @@ export interface HeatmapChartLoadingProps {
   xDomain?: [Date, Date];
   /** Chart margins */
   margin?: Partial<Margin>;
+  /** Fixed cell size in pixels. When 0, cells are square and sized to fit the plot. Default: 0 */
+  binSize?: number;
   /** Gap between cells in pixels. Default: 2 */
   gap?: number;
   /** Corner radius for each cell. Default: 2 */
@@ -30,6 +32,7 @@ export function HeatmapChartLoading({
   data,
   xDomain,
   margin,
+  binSize = 0,
   gap = 2,
   cornerRadius = 2,
   label = "Loading",
@@ -42,6 +45,7 @@ export function HeatmapChartLoading({
 
   return (
     <HeatmapChart
+      binSize={binSize}
       className={className}
       data={skeletonData}
       gap={gap}

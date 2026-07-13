@@ -6,56 +6,41 @@ import { useFinanceExpenses } from "@/features/finance/sdk";
 import type { HeatmapColumn } from "@/components/charts/heatmap";
 import "dayjs/locale/pt-br";
 
+const DAILY_EXPENSES_COLUMN_COUNT = 3;
+
 function buildHeatmapSkeleton(month: string): HeatmapColumn[] {
 	const [year, monthNum] = month.split("-").map(Number);
 	if (!year || !monthNum) return [];
 
 	const firstDay = new Date(year, monthNum - 1, 1);
 	const lastDay = new Date(year, monthNum, 0);
-
-	const startDate = new Date(firstDay);
-	startDate.setDate(startDate.getDate() - startDate.getDay());
-
-	const endDate = new Date(lastDay);
-	if (endDate.getDay() !== 6) {
-		endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
-	}
-
 	const columns: HeatmapColumn[] = [];
-	const current = new Date(startDate);
-	let colIndex = 0;
+	const daysInMonth = lastDay.getDate();
+	const rowsPerColumn = Math.ceil(daysInMonth / DAILY_EXPENSES_COLUMN_COUNT);
 
-	while (current <= endDate) {
+	for (let columnIndex = 0; columnIndex < DAILY_EXPENSES_COLUMN_COUNT; columnIndex++) {
 		const bins = [];
-		for (let dow = 0; dow < 7; dow++) {
+
+		for (let rowIndex = 0; rowIndex < rowsPerColumn; rowIndex++) {
+			const dayOfMonth = columnIndex * rowsPerColumn + rowIndex + 1;
+			if (dayOfMonth > daysInMonth) {
+				break;
+			}
+
 			bins.push({
-				bin: dow,
+				bin: rowIndex,
 				count: 0,
-				date: new Date(current),
+				date: new Date(year, monthNum - 1, dayOfMonth),
 			});
-			current.setDate(current.getDate() + 1);
 		}
-		columns.push({ bin: colIndex, bins });
-		colIndex++;
+
+		columns.push({ bin: columnIndex, bins });
 	}
 
 	return columns;
 }
 
-function formatPeriodLabel(month: string, locale: string) {
-	const [year, monthValue] = month.split("-").map(Number);
-	if (!year || !monthValue) {
-		return month;
-	}
-
-	const label = dayjs(new Date(year, monthValue - 1, 1))
-		.locale(locale.toLowerCase() === "pt-br" ? "pt-br" : locale.toLowerCase())
-		.format("MMMM [de] YYYY");
-
-	return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-export function useDailyExpensesHeatmap(month: string, locale = "pt-BR") {
+export function useDailyExpensesHeatmap(month: string) {
 	const expensesQuery = useFinanceExpenses(month);
 
 	const skeletonColumns = useMemo(() => buildHeatmapSkeleton(month), [month]);
@@ -94,7 +79,6 @@ export function useDailyExpensesHeatmap(month: string, locale = "pt-BR") {
 	return {
 		heatmapData,
 		total,
-		resolvedPeriodLabel: formatPeriodLabel(month, locale),
 		isLoading: expensesQuery.isPending,
 		isError: expensesQuery.isError,
 	};

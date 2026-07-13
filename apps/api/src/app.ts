@@ -1,8 +1,8 @@
 import fastifyCors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
-import { auth } from "../../../packages/api/src/auth";
-import { env } from "../../../packages/api/src/common/env";
-import { registerRoutes } from "../../../packages/api/src/routers/index";
+import { auth } from "./auth.js";
+import { env } from "./common/env.js";
+import { registerRoutes } from "./routers/index.js";
 
 const baseCorsConfig = {
 	origin: env.CORS_ORIGIN,

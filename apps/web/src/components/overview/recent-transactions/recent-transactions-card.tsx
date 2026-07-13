@@ -10,7 +10,7 @@ import {
 	RecentTransactionsList,
 	RecentTransactionsLoadingList,
 } from "./recent-transactions-list";
-import { useRecentTransactionsCard } from "./use-recent-transactions-card";
+import { useRecentTransactionsCard } from "./hooks/use-recent-transactions-card";
 
 export function RecentTransactionsCard() {
 	const { transactions, isError, isLoading } = useRecentTransactionsCard();
