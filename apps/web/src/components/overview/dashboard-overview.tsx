@@ -1,10 +1,10 @@
 "use client";
 
+import { DailySpendBarCard } from "@/components/overview/daily-spend-bar/daily-spend-bar-card";
 import { GoalsCard } from "@/components/overview/goals/goals-card";
 import { useDashboardOverview } from "@/components/overview/hooks/use-dashboard-overview";
 import { MonthlyBillCard } from "@/components/overview/monthly-bill/monthly-bill-card";
 import { OrderSourceMixCard } from "@/components/overview/order-source-mix/order-source-mix-card";
-import { RecentTransactionsCard } from "@/components/overview/recent-transactions/recent-transactions-card";
 import { OverviewMonthSelect } from "@/components/overview/shared/overview-month-select";
 
 export function DashboardOverview() {
@@ -32,7 +32,7 @@ export function DashboardOverview() {
           <GoalsCard />
         </div>
         <div className="xl:col-span-6">
-          <RecentTransactionsCard />
+          <DailySpendBarCard month={selectedMonth} />
         </div>
       </div>
     </div>
