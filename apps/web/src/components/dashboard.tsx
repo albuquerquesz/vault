@@ -9,7 +9,6 @@ import {
 } from "@vault/ui/components/select";
 import { CalendarIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { GoalsCard } from "@/components/goals-card";
 import { MonthlyBillCard } from "@/components/monthly-bill-card";
 import { OrderSourceMixChart } from "@/components/order-source-mix-chart";
 import { RecentTransactionsTable } from "@/components/recent-transactions-table";
@@ -74,13 +73,10 @@ export function Dashboard() {
 				<MonthlyBillCard month={selectedMonth} />
 			</div>
 			<div className="grid grid-cols-1 gap-4 xl:grid-cols-10">
-				<div className="xl:col-span-3">
+				<div className="xl:col-span-4">
 					<SalesByHourHeatmap month={selectedMonth} />
 				</div>
-				<div className="xl:col-span-3">
-					<GoalsCard />
-				</div>
-				<div className="xl:col-span-4">
+				<div className="xl:col-span-6">
 					<RecentTransactionsTable />
 				</div>
 			</div>

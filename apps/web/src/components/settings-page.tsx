@@ -75,6 +75,23 @@ function isSettingsSection(value: unknown): value is SettingsSection {
 }
 
 const headingStyle = { fontFamily: '"Space Grotesk", sans-serif' } as const;
+const PLUGGY_ORPHANED_STATUS = "ITEM_NOT_FOUND";
+
+function getPluggyStatusLabel(status: string) {
+	if (status === PLUGGY_ORPHANED_STATUS) {
+		return "Conexao perdida";
+	}
+
+	return status;
+}
+
+function getPluggyStatusHint(status: string) {
+	if (status === PLUGGY_ORPHANED_STATUS) {
+		return "Esse item nao existe mais na Pluggy para essas chaves. Remova e conecte novamente.";
+	}
+
+	return null;
+}
 
 function SettingsSectionCard({
 	children,
@@ -167,8 +184,13 @@ function ConnectedAccountsList() {
 					<div className="min-w-0 flex-1">
 						<p className="text-sm font-medium truncate">{item.provider}</p>
 						<p className="text-xs text-muted-foreground capitalize">
-							{item.status}
+							{getPluggyStatusLabel(item.status)}
 						</p>
+						{getPluggyStatusHint(item.status) ? (
+							<p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+								{getPluggyStatusHint(item.status)}
+							</p>
+						) : null}
 					</div>
 					<Button
 						size="sm"

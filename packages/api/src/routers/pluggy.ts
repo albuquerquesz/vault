@@ -16,8 +16,11 @@ import {
 import {
 	createPluggyService,
 	deleteDerivedExpensesForItem,
+	isPluggyItemMissing,
+	markPluggyItemAsOrphaned,
 	persistPluggyItemAndSync,
 	syncTransactionsForItem,
+	toPluggyUserMessage,
 } from "../services/pluggy";
 
 function sendKnownError(
@@ -191,6 +194,16 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 
 				return reply.send({ itemId: item.id, sync });
 			} catch (error) {
+				const { itemId } = z
+					.object({ itemId: z.string() })
+					.parse(req.params);
+				if (isPluggyItemMissing(error)) {
+					await markPluggyItemAsOrphaned(itemId);
+					return reply.status(409).send({
+						error: toPluggyUserMessage(error),
+						code: "PLUGGY_ITEM_ORPHANED",
+					});
+				}
 				return sendKnownError(reply, error);
 			}
 		},
@@ -220,7 +233,13 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 
 				const creds = await resolvePluggyCredentials(session.user.id);
 				const pluggy = createPluggyService(creds);
-				await pluggy.deleteItem(item.pluggyItemId);
+				try {
+					await pluggy.deleteItem(item.pluggyItemId);
+				} catch (error) {
+					if (!isPluggyItemMissing(error)) {
+						throw error;
+					}
+				}
 				await deleteDerivedExpensesForItem(item.id);
 				await db
 					.delete(pluggyTransactions)

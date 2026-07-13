@@ -24,6 +24,14 @@ export type {
 };
 
 const INITIAL_SYNC_WINDOW_DAYS = 90;
+export const PLUGGY_ORPHANED_STATUS = "ITEM_NOT_FOUND";
+export const PLUGGY_IGNORED_EXPENSE_CATEGORIES = [
+	"Transfer - Internal",
+	"Transfers",
+	"Transfer - PIX",
+	"Credit card payment",
+	"Same person transfer",
+] as const;
 
 export type PluggySyncResult = {
 	total: number;
@@ -41,6 +49,43 @@ export type PluggyAccountSyncResult = {
 };
 
 const PLUGGY_EXPENSE_SOURCE = "pluggy";
+
+function isIgnoredPluggyExpenseCategory(category?: string | null) {
+	if (!category) {
+		return false;
+	}
+
+	return PLUGGY_IGNORED_EXPENSE_CATEGORIES.includes(
+		category.trim() as (typeof PLUGGY_IGNORED_EXPENSE_CATEGORIES)[number],
+	);
+}
+
+function isPluggyItemNotFoundError(error: unknown) {
+	if (!(error instanceof PluggyApiError)) {
+		return false;
+	}
+
+	if (error.statusCode !== 404) {
+		return false;
+	}
+
+	if (error.message.includes("item not found")) {
+		return true;
+	}
+
+	try {
+		const details = JSON.parse(error.details) as {
+			codeDescription?: string;
+			message?: string;
+		};
+		return (
+			details.codeDescription === "ITEM_NOT_FOUND" ||
+			details.message === "item not found"
+		);
+	} catch {
+		return false;
+	}
+}
 
 /** Pluggy operations bound to the given user BYOK credentials. */
 export function createPluggyService(creds: PluggyCredentials) {
@@ -191,7 +236,6 @@ export async function syncAccountsForItem(params: {
 /** Sync transactions for a single account. */
 async function syncTransactionsForAccount(params: {
 	service: ReturnType<typeof createPluggyService>;
-	userId: string;
 	localItemId: string;
 	localAccountId: string;
 	pluggyAccountId: string;
@@ -200,7 +244,6 @@ async function syncTransactionsForAccount(params: {
 }): Promise<PluggySyncResult> {
 	const {
 		service,
-		userId,
 		localItemId,
 		localAccountId,
 		pluggyAccountId,
@@ -251,12 +294,6 @@ async function syncTransactionsForAccount(params: {
 		})
 		.returning({ id: pluggyTransactions.id });
 
-	await syncExpensesFromPluggyTransactions({
-		userId,
-		localItemId,
-		transactions,
-	});
-
 	return {
 		total: transactions.length,
 		synced: upserted.length,
@@ -264,14 +301,19 @@ async function syncTransactionsForAccount(params: {
 	};
 }
 
-async function syncExpensesFromPluggyTransactions(params: {
+function mapPluggyTransactionsToExpenses(params: {
 	userId: string;
 	localItemId: string;
 	transactions: PluggyTransaction[];
 }) {
 	const { userId, localItemId, transactions } = params;
-	const outgoing = transactions
-		.filter((tx) => Boolean(tx.date) && tx.amount < 0)
+	return transactions
+		.filter(
+			(tx) =>
+				Boolean(tx.date) &&
+				tx.amount < 0 &&
+				!isIgnoredPluggyExpenseCategory(tx.category),
+		)
 		.map((tx) => ({
 			userId,
 			expenseDate: tx.date,
@@ -282,29 +324,60 @@ async function syncExpensesFromPluggyTransactions(params: {
 			sourceExternalId: tx.id,
 			sourceItemId: localItemId,
 		}));
+}
 
-	if (outgoing.length === 0) {
-		return;
-	}
+export async function rebuildExpensesFromStoredTransactions(params: {
+	userId: string;
+	localItemId: string;
+}) {
+	const { userId, localItemId } = params;
+	const storedTransactions = await db
+		.select({
+			pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
+			date: pluggyTransactions.date,
+			amount: pluggyTransactions.amount,
+			description: pluggyTransactions.description,
+			category: pluggyTransactions.category,
+		})
+		.from(pluggyTransactions)
+		.where(eq(pluggyTransactions.pluggyItemId, localItemId));
 
-	await db
-		.insert(expense)
-		.values(outgoing)
-		.onConflictDoUpdate({
-			target: [
-				expense.userId,
-				expense.source,
-				expense.sourceExternalId,
-			],
-			set: {
-				expenseDate: sql.raw(`EXCLUDED.expense_date`),
-				amount: sql.raw(`EXCLUDED.amount`),
-				category: sql.raw(`EXCLUDED.category`),
-				note: sql.raw(`EXCLUDED.note`),
-				sourceItemId: sql.raw(`EXCLUDED.source_item_id`),
-				updatedAt: new Date(),
-			},
-		});
+	const transactions: PluggyTransaction[] = storedTransactions.map((tx) => ({
+		id: tx.pluggyTransactionId,
+		date: tx.date,
+		amount: Number(tx.amount),
+		description: tx.description ?? undefined,
+		category: tx.category ?? undefined,
+		accountId: "",
+	}));
+	const outgoing = mapPluggyTransactionsToExpenses({
+		userId,
+		localItemId,
+		transactions,
+	});
+
+	await db.transaction(async (tx) => {
+		await tx
+			.delete(expense)
+			.where(
+				and(
+					eq(expense.userId, userId),
+					eq(expense.source, PLUGGY_EXPENSE_SOURCE),
+					eq(expense.sourceItemId, localItemId),
+				),
+			);
+
+		if (outgoing.length === 0) {
+			return;
+		}
+
+		await tx.insert(expense).values(outgoing);
+	});
+
+	return {
+		total: transactions.length,
+		inserted: outgoing.length,
+	};
 }
 
 /** Sync transactions for all accounts of an item. */
@@ -341,7 +414,6 @@ export async function syncTransactionsForItem(params: {
 
 		const result = await syncTransactionsForAccount({
 			service,
-			userId,
 			localItemId,
 			localAccountId,
 			pluggyAccountId: acc.id,
@@ -352,6 +424,11 @@ export async function syncTransactionsForItem(params: {
 		totalTransactions += result.total;
 		syncedTransactions += result.synced;
 	}
+
+	await rebuildExpensesFromStoredTransactions({
+		userId,
+		localItemId,
+	});
 
 	return {
 		total: totalTransactions,
@@ -414,6 +491,32 @@ export async function persistPluggyItemAndSync(params: {
 			},
 		};
 	}
+}
+
+export async function markPluggyItemAsOrphaned(localItemId: string) {
+	await db
+		.update(pluggyItems)
+		.set({
+			status: PLUGGY_ORPHANED_STATUS,
+			updatedAt: new Date(),
+		})
+		.where(eq(pluggyItems.id, localItemId));
+}
+
+export function toPluggyUserMessage(error: unknown) {
+	if (isPluggyItemNotFoundError(error)) {
+		return "A conexao Pluggy nao existe mais para essas chaves. Remova este item e conecte a conta novamente.";
+	}
+
+	if (error instanceof PluggyApiError) {
+		return error.message;
+	}
+
+	return "Falha ao comunicar com a Pluggy.";
+}
+
+export function isPluggyItemMissing(error: unknown) {
+	return isPluggyItemNotFoundError(error);
 }
 
 export async function deleteDerivedExpensesForItem(localItemId: string) {

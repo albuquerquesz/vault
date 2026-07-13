@@ -88,10 +88,6 @@ export function MonthlySavingsInsightCard({
 	baselineSeries = DEFAULT_BASELINE_SERIES,
 	loading = false,
 }: MonthlySavingsInsightCardProps) {
-	if (loading) {
-		return <HomeCardSkeleton variant="savings" />;
-	}
-
 	const chart = useMemo(() => {
 		const safeActual =
 			actualSeries.length > 1 ? actualSeries : DEFAULT_ACTUAL_SERIES;
@@ -126,6 +122,10 @@ export function MonthlySavingsInsightCard({
 			})),
 		};
 	}, [actualSeries, baselineSeries, dayLabels]);
+
+	if (loading) {
+		return <HomeCardSkeleton variant="savings" />;
+	}
 
 	return (
 		<Card className="financial-panel-border h-full min-h-[32rem] ring-0">

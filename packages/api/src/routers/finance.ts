@@ -1,9 +1,12 @@
 import type { FastifyInstance } from "fastify";
-import { and, asc, desc, eq, gte, lte, sum } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, not, or, sum } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db";
 import { expense, goal, monthlyBill, monthlyBillItem, monthlyBudget, savingsTarget } from "../db/schema";
 import { requireSession } from "../index";
+import {
+	PLUGGY_IGNORED_EXPENSE_CATEGORIES,
+} from "../services/pluggy";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -20,6 +23,24 @@ function getMonthBounds(month: string) {
 	endDate.setUTCMonth(endDate.getUTCMonth() + 1);
 	endDate.setUTCDate(0);
 	return { start, end: endDate.toISOString().slice(0, 10) };
+}
+
+function buildVisibleExpensesWhere(params: {
+	userId: string;
+	start: string;
+	end: string;
+}) {
+	const { userId, start, end } = params;
+
+	return and(
+		eq(expense.userId, userId),
+		gte(expense.expenseDate, start),
+		lte(expense.expenseDate, end),
+		or(
+			not(eq(expense.source, "pluggy")),
+			not(inArray(expense.category, [...PLUGGY_IGNORED_EXPENSE_CATEGORIES])),
+		),
+	);
 }
 
 function serializeExpense(r: typeof expense.$inferSelect) { return { ...r, amount: Number(r.amount) }; }
@@ -41,7 +62,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 				if (!monthPattern.test(month)) return reply.status(400).send({ error: "Invalid month format. Use YYYY-MM" });
 				const { start, end } = getMonthBounds(month);
 				const records = await db.select().from(expense)
-					.where(and(eq(expense.userId, session.user.id), gte(expense.expenseDate, start), lte(expense.expenseDate, end)))
+					.where(buildVisibleExpensesWhere({ userId: session.user.id, start, end }))
 					.orderBy(desc(expense.expenseDate), desc(expense.createdAt));
 				return reply.send(records.map(serializeExpense));
 			} catch (error) {
@@ -105,7 +126,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 				if (!budget) return reply.send({ month: query.month, income: 0, spent: 0, spentPercentage: 0, remainingBudget: 0, remainingDays: 0, dailyCap: 0 });
 				const income = Number(budget.income);
 				const result = await db.select({ totalSpent: sum(expense.amount).mapWith(Number) })
-					.from(expense).where(and(eq(expense.userId, session.user.id), gte(expense.expenseDate, start), lte(expense.expenseDate, end)))
+					.from(expense).where(buildVisibleExpensesWhere({ userId: session.user.id, start, end }))
 					.limit(1).then(r => r[0]);
 				const spent = result?.totalSpent ?? 0;
 				const remainingBudget = Math.max(0, income - spent);
