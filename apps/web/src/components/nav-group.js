@@ -1,0 +1,8 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { Link } from "@tanstack/react-router";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger, } from "@vault/ui/components/collapsible";
+import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, } from "@vault/ui/components/sidebar";
+import { ChevronRightIcon } from "lucide-react";
+export function NavGroup({ label, items }) {
+    return (_jsxs(SidebarGroup, { children: [label && _jsx(SidebarGroupLabel, { children: label }), _jsx(SidebarMenu, { children: items.map((item) => (_jsx(Collapsible, { className: "group/collapsible", defaultOpen: !!item.isActive || item.subItems?.some((i) => !!i.isActive), render: _jsx(SidebarMenuItem, {}), children: item.subItems?.length ? (_jsxs(_Fragment, { children: [_jsxs(CollapsibleTrigger, { render: _jsx(SidebarMenuButton, { isActive: item.isActive }), children: [item.icon, _jsx("span", { children: item.title }), _jsx(ChevronRightIcon, { className: "ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" })] }), _jsx(CollapsibleContent, { children: _jsx(SidebarMenuSub, { children: item.subItems?.map((subItem) => (_jsx(SidebarMenuSubItem, { children: _jsxs(SidebarMenuSubButton, { isActive: subItem.isActive, render: _jsx(Link, { to: subItem.path ?? "#" }), children: [subItem.icon, _jsx("span", { children: subItem.title })] }) }, subItem.title))) }) })] })) : (_jsxs(SidebarMenuButton, { isActive: item.isActive, render: _jsx(Link, { to: item.path ?? "#" }), children: [item.icon, _jsx("span", { children: item.title })] })) }, item.title))) })] }));
+}

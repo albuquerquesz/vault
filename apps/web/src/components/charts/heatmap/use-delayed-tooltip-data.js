@@ -1,0 +1,52 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+export function useDelayedTooltipData(tooltipData, showDelay, hideDelay) {
+    const [displayData, setDisplayData] = useState(null);
+    const isShowingRef = useRef(false);
+    const showTimerRef = useRef(undefined);
+    const hideTimerRef = useRef(undefined);
+    useEffect(() => {
+        if (showTimerRef.current) {
+            clearTimeout(showTimerRef.current);
+            showTimerRef.current = undefined;
+        }
+        if (hideTimerRef.current) {
+            clearTimeout(hideTimerRef.current);
+            hideTimerRef.current = undefined;
+        }
+        if (tooltipData) {
+            if (isShowingRef.current) {
+                setDisplayData(tooltipData);
+                return;
+            }
+            if (showDelay === 0) {
+                isShowingRef.current = true;
+                setDisplayData(tooltipData);
+                return;
+            }
+            showTimerRef.current = setTimeout(() => {
+                isShowingRef.current = true;
+                setDisplayData(tooltipData);
+            }, showDelay);
+            return;
+        }
+        if (hideDelay === 0) {
+            isShowingRef.current = false;
+            setDisplayData(null);
+            return;
+        }
+        hideTimerRef.current = setTimeout(() => {
+            isShowingRef.current = false;
+            setDisplayData(null);
+        }, hideDelay);
+    }, [tooltipData, showDelay, hideDelay]);
+    useEffect(() => () => {
+        if (showTimerRef.current) {
+            clearTimeout(showTimerRef.current);
+        }
+        if (hideTimerRef.current) {
+            clearTimeout(hideTimerRef.current);
+        }
+    }, []);
+    return displayData;
+}

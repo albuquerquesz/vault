@@ -4,6 +4,7 @@ import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
+	type RowSelectionState,
 	useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -19,20 +20,29 @@ interface DataTableProps<TData, TValue> {
 	data: TData[];
 	/** How many rows to reveal per scroll batch. */
 	pageSize?: number;
+	/** Stable row id for selection across infinite-scroll batches. */
+	getRowId?: (originalRow: TData, index: number) => string;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
 	pageSize = 10,
+	getRowId,
 }: DataTableProps<TData, TValue>) {
 	const [visibleCount, setVisibleCount] = useState(pageSize);
+	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 	const sentinelRef = useRef<HTMLDivElement>(null);
 
 	// Reset batch when filters / month change the dataset.
 	useEffect(() => {
 		setVisibleCount(pageSize);
 	}, [data, pageSize]);
+
+	// Clear selection when the underlying dataset identity changes (month/filters).
+	useEffect(() => {
+		setRowSelection({});
+	}, [data]);
 
 	const visibleData = useMemo(
 		() => data.slice(0, visibleCount),
@@ -65,10 +75,12 @@ export function DataTable<TData, TValue>({
 	const table = useReactTable({
 		data: visibleData,
 		columns,
+		state: { rowSelection },
+		onRowSelectionChange: setRowSelection,
+		enableRowSelection: true,
 		getCoreRowModel: getCoreRowModel(),
+		getRowId,
 	});
-
-	const shown = visibleData.length;
 
 	return (
 		<div className="w-full space-y-2">
@@ -109,17 +121,7 @@ export function DataTable<TData, TValue>({
 
 			{total > 0 ? (
 				<div className="flex flex-col items-center gap-2 px-0.5">
-					<p className="w-full text-xs text-muted-foreground tabular-nums">
-						Mostrando {shown} de {total}{" "}
-						{total === 1 ? "item" : "itens"}
-						{hasMore ? " · role para carregar mais" : null}
-					</p>
-					{/* Sentinel: when visible, load the next batch */}
-					<div
-						aria-hidden
-						className="h-1 w-full"
-						ref={sentinelRef}
-					/>
+					<div aria-hidden className="h-1 w-full" ref={sentinelRef} />
 				</div>
 			) : null}
 		</div>

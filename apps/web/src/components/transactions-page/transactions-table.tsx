@@ -56,6 +56,7 @@ export function TransactionsTable({
 		<DataTable
 			columns={transactionsColumns}
 			data={orderedExpenses}
+			getRowId={(row) => row.id}
 			pageSize={10}
 		/>
 	);

@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@vault/ui/components/badge";
+import { Checkbox } from "@vault/ui/components/checkbox";
 import { cn } from "@vault/ui/lib/utils";
 import { InstitutionMark } from "@/components/institution-mark";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
@@ -22,6 +23,15 @@ export const transactionsColumns: ColumnDef<FinanceExpense>[] = [
 		enableSorting: false,
 		cell: ({ row }) => (
 			<div className="flex min-w-0 max-w-md items-center gap-2.5">
+				<Checkbox
+					aria-label="Selecionar transação"
+					checked={row.getIsSelected()}
+					className="size-4 shrink-0 rounded-sm"
+					onCheckedChange={(checked) => {
+						row.toggleSelected(checked === true);
+					}}
+					onClick={(event) => event.stopPropagation()}
+				/>
 				<InstitutionMark
 					name={row.original.sourceAccountName}
 					provider={row.original.sourceProvider}
