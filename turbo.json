@@ -5,7 +5,17 @@
 		"build": {
 			"dependsOn": ["^build"],
 			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": ["dist/**"]
+			"outputs": ["dist/**"],
+			"env": [
+				"BETTER_AUTH_SECRET",
+				"BETTER_AUTH_URL",
+				"CORS_ORIGIN",
+				"CREDENTIALS_ENCRYPTION_KEY",
+				"DATABASE_URL",
+				"GOOGLE_CLIENT_ID",
+				"GOOGLE_CLIENT_SECRET",
+				"NODE_ENV"
+			]
 		},
 		"lint": {
 			"dependsOn": ["^lint"]
@@ -18,21 +28,24 @@
 			"persistent": true
 		},
 		"db:push": {
-			"cache": false
+			"cache": false,
+			"env": ["DATABASE_URL"]
 		},
 		"db:generate": {
 			"cache": false
 		},
 		"db:migrate": {
 			"cache": false,
-			"persistent": true
+			"env": ["DATABASE_URL"]
 		},
 		"db:seed": {
-			"cache": false
+			"cache": false,
+			"env": ["DATABASE_URL"]
 		},
 		"db:studio": {
 			"cache": false,
-			"persistent": true
+			"persistent": true,
+			"env": ["DATABASE_URL"]
 		},
 		"db:start": {
 			"cache": false,
