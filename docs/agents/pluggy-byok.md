@@ -2,11 +2,12 @@
 
 Leia este documento antes de alterar:
 
-- rotas `packages/api/src/routers/pluggy.ts`
-- client `packages/api/src/clients/pluggy/*`
-- service `packages/api/src/services/pluggy.ts`
+- rotas `apps/api/src/routers/pluggy.ts` e `apps/api/src/routers/webhooks.ts`
+- client `apps/api/src/clients/pluggy/*`
+- service `apps/api/src/services/pluggy.ts` e `apps/api/src/services/pluggy-webhooks.ts`
 - schema/migrations Pluggy
 - UI de settings e hooks `apps/web/src/features/pluggy/*`
+- mirror em `packages/api` quando aplicável
 
 ## Modelo do módulo
 
@@ -34,6 +35,43 @@ Leia este documento antes de alterar:
 - Transações vêm de `GET /v2/transactions?accountId=...&dateFrom=...&dateTo=...`.
 - A paginação de transações usa `results` e `next`. Não assuma `data`, `pageSize` ou endpoint por item.
 
+## Webhooks (push sync)
+
+A Pluggy faz auto-sync diário e notifica via HTTPS. Nós **não** fazemos polling contínuo.
+
+### Endpoint público
+
+- `POST /api/webhooks/pluggy` — **sem sessão**
+- URL de produção: `https://<HOST_DA_API>/api/webhooks/pluggy`
+- Fallback da URL: `PLUGGY_WEBHOOK_URL` ou `${BETTER_AUTH_URL}/api/webhooks/pluggy`
+- Secret opcional: `PLUGGY_WEBHOOK_SECRET` (header `X-Vault-Webhook-Secret`)
+
+### Eventos tratados
+
+| Evento | Ação |
+|---|---|
+| `item/created`, `item/updated` | Atualiza status + `syncTransactionsForItem` (contas, txs, expenses) |
+| `transactions/created\|updated\|deleted` | Full item sync (idempotente) |
+| `item/error`, `item/waiting_*`, `item/login_succeeded` | Atualiza `pluggy_items.status` |
+| `item/deleted` | Remove expenses derivadas, txs e item local |
+| demais | `ignored` (200) |
+
+### Resolução BYOK no webhook
+
+1. `itemId` remoto → `pluggy_items.pluggyItemId`
+2. se `clientUserId` vier no payload, filtrar por `userId`
+3. `resolvePluggyCredentials(userId)` → sync
+
+Item desconhecido localmente → `200 unknown_item` (não 404, evita retry infinito).
+
+### Registro
+
+1. **Manual no dashboard Pluggy** (testes): colar a URL HTTPS pública
+2. **Auto** ao salvar credenciais BYOK (`ensurePluggyWebhookRegistered`, event `all`) — só se URL for `https://`
+3. **Connect token** envia `options.webhookUrl` quando HTTPS
+
+Event names usam `/` (`item/updated`), nunca `item.synced`.
+
 ## Regras de persistência
 
 - `pluggy_items` deve permanecer idempotente por `userId + pluggyItemId`.
@@ -56,6 +94,7 @@ Leia este documento antes de alterar:
 - Valide mudanças com cURL direto:
   - na Pluggy: `/auth`, `/accounts`, `/v2/transactions`
   - na API local: `/api/pluggy/items`, `/api/pluggy/accounts`, `/api/pluggy/transactions`, `/api/pluggy/sync/:id`
+  - webhook: `POST /api/webhooks/pluggy` com payload `{ "event":"item/updated", "itemId":"..." }`
 
 ## Checklist mínimo antes de encerrar uma mudança
 

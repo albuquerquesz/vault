@@ -14,7 +14,9 @@
 				"DATABASE_URL",
 				"GOOGLE_CLIENT_ID",
 				"GOOGLE_CLIENT_SECRET",
-				"NODE_ENV"
+				"NODE_ENV",
+				"PLUGGY_WEBHOOK_URL",
+				"PLUGGY_WEBHOOK_SECRET"
 			]
 		},
 		"lint": {

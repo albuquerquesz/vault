@@ -22,6 +22,7 @@ import {
 	syncTransactionsForItem,
 	toPluggyUserMessage,
 } from "../services/pluggy.js";
+import { getPluggyWebhookUrl } from "../services/pluggy-webhook-config.js";
 
 function sendKnownError(
 	reply: { status: (code: number) => { send: (body: unknown) => unknown } },
@@ -55,8 +56,13 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 				const session = await requireSession(req.raw);
 				const creds = await resolvePluggyCredentials(session.user.id);
 				const pluggy = createPluggyService(creds);
+				const webhookUrl = getPluggyWebhookUrl();
 				const token = await pluggy.createConnectToken({
 					clientUserId: session.user.id,
+					// Only attach a public HTTPS webhook; Pluggy rejects localhost.
+					...(webhookUrl.startsWith("https://")
+						? { webhookUrl }
+						: {}),
 				});
 				return reply.send({
 					url: `https://connect.pluggy.ai/connect?token=${token.accessToken}`,
@@ -263,7 +269,36 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					itemId?: string;
 					accountId?: string;
 				};
-				const limit = Number(query.limit) ?? 20;
+				const limit = Number(query.limit) || 20;
+
+				const transactionSelect = {
+					id: pluggyTransactions.id,
+					pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
+					date: pluggyTransactions.date,
+					amount: pluggyTransactions.amount,
+					description: pluggyTransactions.description,
+					category: pluggyTransactions.category,
+					provider: pluggyItems.provider,
+					pluggyAccountId: pluggyTransactions.pluggyAccountId,
+					accountName: pluggyAccounts.name,
+					accountType: pluggyAccounts.type,
+					accountSubtype: pluggyAccounts.subtype,
+					accountBrand: pluggyAccounts.brand,
+					remoteAccountId: pluggyAccounts.pluggyAccountId,
+				};
+
+				const transactionsBase = () =>
+					db
+						.select(transactionSelect)
+						.from(pluggyTransactions)
+						.innerJoin(
+							pluggyItems,
+							eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
+						)
+						.leftJoin(
+							pluggyAccounts,
+							eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
+						);
 
 				let transactions;
 				if (query.itemId) {
@@ -281,22 +316,7 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 
 					if (!item) return reply.send([]);
 
-					transactions = await db
-						.select({
-							id: pluggyTransactions.id,
-							pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
-							date: pluggyTransactions.date,
-							amount: pluggyTransactions.amount,
-							description: pluggyTransactions.description,
-							category: pluggyTransactions.category,
-							provider: pluggyItems.provider,
-							pluggyAccountId: pluggyTransactions.pluggyAccountId,
-						})
-						.from(pluggyTransactions)
-						.innerJoin(
-							pluggyItems,
-							eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
-						)
+					transactions = await transactionsBase()
 						.where(eq(pluggyItems.id, item.id))
 						.orderBy(desc(pluggyTransactions.date))
 						.limit(limit);
@@ -324,22 +344,7 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 
 					if (!item) return reply.send([]);
 
-					transactions = await db
-						.select({
-							id: pluggyTransactions.id,
-							pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
-							date: pluggyTransactions.date,
-							amount: pluggyTransactions.amount,
-							description: pluggyTransactions.description,
-							category: pluggyTransactions.category,
-							provider: pluggyItems.provider,
-							pluggyAccountId: pluggyTransactions.pluggyAccountId,
-						})
-						.from(pluggyTransactions)
-						.innerJoin(
-							pluggyItems,
-							eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
-						)
+					transactions = await transactionsBase()
 						.where(
 							and(
 								eq(pluggyTransactions.pluggyAccountId, account.id),
@@ -352,29 +357,12 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					const userItems = await db
 						.select({
 							id: pluggyItems.id,
-							pluggyItemId: pluggyItems.pluggyItemId,
-							provider: pluggyItems.provider,
 						})
 						.from(pluggyItems)
 						.where(eq(pluggyItems.userId, session.user.id));
 					if (userItems.length === 0) return reply.send([]);
 
-					transactions = await db
-						.select({
-							id: pluggyTransactions.id,
-							pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
-							date: pluggyTransactions.date,
-							amount: pluggyTransactions.amount,
-							description: pluggyTransactions.description,
-							category: pluggyTransactions.category,
-							provider: pluggyItems.provider,
-							pluggyAccountId: pluggyTransactions.pluggyAccountId,
-						})
-						.from(pluggyTransactions)
-						.innerJoin(
-							pluggyItems,
-							eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
-						)
+					transactions = await transactionsBase()
 						.where(eq(pluggyItems.userId, session.user.id))
 						.orderBy(desc(pluggyTransactions.date))
 						.limit(limit);

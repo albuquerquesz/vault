@@ -15,6 +15,11 @@ export interface FinanceExpense {
 	source: string;
 	sourceExternalId?: string | null;
 	sourceItemId?: string | null;
+	sourceProvider?: string | null;
+	sourceAccountName?: string | null;
+	sourceAccountType?: string | null;
+	sourceAccountSubtype?: string | null;
+	sourceAccountBrand?: string | null;
 	createdAt: Date;
 	updatedAt: Date;
 }

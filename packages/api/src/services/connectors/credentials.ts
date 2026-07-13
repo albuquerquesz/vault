@@ -118,6 +118,23 @@ export async function savePluggyCredentials(
 
 	clearPluggyApiKeyCache(input.clientId);
 
+	// Best-effort: register client-level webhook so auto-sync pushes to us.
+	// Failures must not block credential save (localhost / duplicate / Pluggy down).
+	try {
+		const { ensurePluggyWebhookRegistered } = await import(
+			"../pluggy-webhook-config"
+		);
+		const registration = await ensurePluggyWebhookRegistered(input);
+		if (!registration.registered && registration.error) {
+			console.warn(
+				"[pluggy] webhook auto-register skipped:",
+				registration.error,
+			);
+		}
+	} catch (error) {
+		console.warn("[pluggy] webhook auto-register failed:", error);
+	}
+
 	return {
 		configured: true,
 		clientIdMasked: maskClientId(input.clientId),

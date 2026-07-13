@@ -19,6 +19,16 @@ export const env = createEnv({
 		GOOGLE_CLIENT_SECRET: z.string().min(1),
 		/** Optional 32-byte key (base64). Falls back to a hash of BETTER_AUTH_SECRET. */
 		CREDENTIALS_ENCRYPTION_KEY: z.string().min(1).optional(),
+		/**
+		 * Public HTTPS URL for Pluggy webhooks.
+		 * Defaults to `${BETTER_AUTH_URL}/api/webhooks/pluggy`.
+		 */
+		PLUGGY_WEBHOOK_URL: z.url().optional(),
+		/**
+		 * Shared secret sent as `X-Vault-Webhook-Secret` when registering
+		 * webhooks via API and validated on receive when set.
+		 */
+		PLUGGY_WEBHOOK_SECRET: z.string().min(8).optional(),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),

@@ -9,6 +9,8 @@ import type {
 	PluggyRemoteAccount,
 	PluggyTransaction,
 	PluggyTransactionsPage,
+	RegisterPluggyWebhookInput,
+	PluggyWebhookRegistration,
 } from "./types";
 
 const PLUGGY_API = "https://api.pluggy.ai";
@@ -153,12 +155,19 @@ export function createPluggyClient(creds: PluggyCredentials) {
 				body.itemId = input.itemId;
 			}
 
-			if (input.clientUserId) {
-				body.options = { clientUserId: input.clientUserId };
-			}
-
 			if (input.connectorId) {
 				body.connectorId = input.connectorId;
+			}
+
+			const options: Record<string, unknown> = {};
+			if (input.clientUserId) {
+				options.clientUserId = input.clientUserId;
+			}
+			if (input.webhookUrl) {
+				options.webhookUrl = input.webhookUrl;
+			}
+			if (Object.keys(options).length > 0) {
+				body.options = options;
 			}
 
 			const data = await pluggyFetch(creds, "/connect_token", {
@@ -235,12 +244,31 @@ export function createPluggyClient(creds: PluggyCredentials) {
 			await pluggyFetch(creds, `/items/${itemId}`, { method: "DELETE" });
 		},
 
-		async registerWebhook(url: string) {
+		async registerWebhook(
+			input: RegisterPluggyWebhookInput,
+		): Promise<PluggyWebhookRegistration> {
+			const body: Record<string, unknown> = {
+				url: input.url,
+				event: input.event,
+			};
+			if (input.headers && Object.keys(input.headers).length > 0) {
+				body.headers = input.headers;
+			}
+
 			const data = await pluggyFetch(creds, "/webhooks", {
 				method: "POST",
-				body: JSON.stringify({ url, events: ["item.synced"] }),
+				body: JSON.stringify(body),
 			});
-			return data as { id: string };
+			return data as PluggyWebhookRegistration;
+		},
+
+		async listWebhooks(): Promise<PluggyWebhookRegistration[]> {
+			const response = await pluggyFetch(creds, "/webhooks");
+			const page = response as {
+				results?: PluggyWebhookRegistration[];
+				data?: PluggyWebhookRegistration[];
+			};
+			return page.results ?? page.data ?? [];
 		},
 
 		async deleteWebhook(webhookId: string) {

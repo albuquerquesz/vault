@@ -14,4 +14,7 @@ export type {
 	PluggyCredentials,
 	PluggyItem,
 	PluggyTransaction,
+	PluggyWebhookEvent,
+	PluggyWebhookRegistration,
+	RegisterPluggyWebhookInput,
 } from "./types.js";

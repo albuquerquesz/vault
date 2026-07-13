@@ -33,7 +33,7 @@ export function OrderSourceMixCard({
 			title={title}
 			icon={<PieChartIcon className="size-4 text-muted-foreground" />}
 			tooltip="Resumo da distribuição dos gastos por categoria"
-			contentClassName="flex flex-1 items-center justify-center"
+			contentClassName="flex flex-1 p-4"
 		>
 			{isError ? (
 				<OverviewCardErrorState message="Não foi possível carregar as despesas do mês." />

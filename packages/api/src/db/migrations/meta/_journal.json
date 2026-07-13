@@ -64,6 +64,13 @@
       "when": 1783903500000,
       "tag": "0008_blue_hustler",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783980000000,
+      "tag": "0009_pluggy_expense_source_meta",
+      "breakpoints": true
     }
   ]
 }

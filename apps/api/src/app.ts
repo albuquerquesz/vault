@@ -53,15 +53,6 @@ export async function registerServer(fastify: FastifyInstance) {
 	await registerRoutes(fastify);
 
 	fastify.get("/", async () => "OK");
-
-	fastify.post("/api/webhooks/pluggy", async (req, reply) => {
-		const body = req.body as { event?: string } | undefined;
-		if (body?.event === "item.synced") {
-			// Trigger transaction sync for the item
-		}
-		reply.code(200).send({ received: true });
-	});
-
 }
 
 export async function createServer() {

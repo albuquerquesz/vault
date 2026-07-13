@@ -28,6 +28,11 @@ export const expense = pgTable(
 		sourceItemId: uuid("source_item_id").references(() => pluggyItems.id, {
 			onDelete: "cascade",
 		}),
+		sourceProvider: text("source_provider"),
+		sourceAccountName: text("source_account_name"),
+		sourceAccountType: text("source_account_type"),
+		sourceAccountSubtype: text("source_account_subtype"),
+		sourceAccountBrand: text("source_account_brand"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()

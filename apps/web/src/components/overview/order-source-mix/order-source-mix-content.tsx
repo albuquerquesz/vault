@@ -97,51 +97,53 @@ export function OrderSourceMixContent({
 	);
 
 	return (
-		<div className="flex flex-1 items-center justify-center gap-8">
-			<div className="relative flex h-[200px] w-[200px] shrink-0 items-center justify-center">
-				<PieChart data={pieData} innerRadius={55} size={200}>
-					{sourceData.map((datum, index) => {
-						const preset = patternPresetForIndex(index);
-						const stroke =
-							slicePalette[index % slicePalette.length] ?? "var(--chart-1)";
+		<div className="flex flex-1 items-center gap-12">
+			<div className="flex min-w-0 flex-[2] items-center justify-center">
+				<div className="relative flex h-[300px] w-[300px] shrink-0 items-center justify-center">
+					<PieChart data={pieData} innerRadius={82} size={300}>
+						{sourceData.map((datum, index) => {
+							const preset = patternPresetForIndex(index);
+							const stroke =
+								slicePalette[index % slicePalette.length] ?? "var(--chart-1)";
 
-						return (
-							<PatternLines
-								key={`${datum.source}-pattern`}
-								background="transparent"
-								height={preset.height}
-								id={patternIdForIndex(index)}
-								orientation={[...preset.orientation]}
-								stroke={stroke}
-								strokeWidth={1}
-								width={preset.width}
+							return (
+								<PatternLines
+									key={`${datum.source}-pattern`}
+									background="transparent"
+									height={preset.height}
+									id={patternIdForIndex(index)}
+									orientation={[...preset.orientation]}
+									stroke={stroke}
+									strokeWidth={1}
+									width={preset.width}
+								/>
+							);
+						})}
+						{sourceData.map((datum, index) => (
+							<PieSlice
+								fill={patternFillForIndex(index)}
+								index={index}
+								key={datum.source}
 							/>
-						);
-					})}
-					{sourceData.map((datum, index) => (
-						<PieSlice
-							fill={patternFillForIndex(index)}
-							index={index}
-							key={datum.source}
+						))}
+						<PieCenter
+							defaultLabel={monthLabel}
+							formatOptions={{
+								style: "currency",
+								currency: "BRL",
+								maximumFractionDigits: 0,
+							}}
 						/>
-					))}
-					<PieCenter
-						defaultLabel={monthLabel}
-						formatOptions={{
-							style: "currency",
-							currency: "BRL",
-							maximumFractionDigits: 0,
-						}}
-					/>
-				</PieChart>
+					</PieChart>
+				</div>
 			</div>
 
-			<div className="flex h-[200px] flex-col justify-evenly">
+			<div className="flex min-w-0 flex-[3] flex-col gap-4 pr-8">
 				{sourceData.map((datum, index) => (
 					<div key={datum.source} className="flex items-center gap-3">
 						<div className="flex items-center gap-2">
 							<span
-								className="size-3 rounded-full"
+								className="size-3 shrink-0"
 								style={{
 									backgroundColor: slicePalette[index % slicePalette.length],
 								}}

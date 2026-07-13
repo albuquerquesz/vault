@@ -23,7 +23,7 @@ export function DashboardOverview() {
           value={selectedMonth}
         />
       </div>
-      <div className="grid grid-cols-1 gap-4 h-131.25 xl:grid-cols-[2fr_1fr]">
+      <div className="grid grid-cols-1 gap-4 h-118 xl:grid-cols-[2fr_1fr]">
         <OrderSourceMixCard month={selectedMonth} />
         <MonthlyBillCard month={selectedMonth} />
       </div>

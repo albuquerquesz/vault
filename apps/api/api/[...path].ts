@@ -6,6 +6,14 @@ const appPromise = createServer().then(async (app) => {
 	return app;
 });
 
+/**
+ * Pluggy webhooks can trigger a full item sync (accounts + transactions).
+ * Give the function enough time; upserts are idempotent if Pluggy retries.
+ */
+export const config = {
+	maxDuration: 60,
+};
+
 export default async function handler(
 	req: IncomingMessage,
 	res: ServerResponse,

@@ -20,10 +20,20 @@ function formatBRLSigned(value: number) {
 	return value >= 0 ? formatted : `-${formatted}`;
 }
 
+function formatOrigin(transaction: PluggyTransaction) {
+	const parts = [transaction.provider, transaction.accountName].filter(
+		(part): part is string => Boolean(part?.trim()),
+	);
+	return parts.join(" · ");
+}
+
 function SkeletonRow() {
 	return (
 		<div className="flex items-center justify-between gap-4 py-3">
-			<Skeleton className="h-4 w-24 flex-1" />
+			<div className="min-w-0 flex-1 space-y-1.5">
+				<Skeleton className="h-4 w-40" />
+				<Skeleton className="h-3 w-24" />
+			</div>
 			<Skeleton className="h-4 w-16 shrink-0" />
 			<Skeleton className="h-5 w-20 shrink-0" />
 			<Skeleton className="h-4 w-20 shrink-0" />
@@ -53,15 +63,23 @@ export function RecentTransactionsList({
 			<div className="divide-y">
 				{transactions.map((transaction) => {
 					const amount = Number(transaction.amount);
+					const origin = formatOrigin(transaction);
 
 					return (
 						<div
 							key={transaction.id}
 							className="flex items-center justify-between gap-4 py-3"
 						>
-							<span className="min-w-0 flex-1 truncate text-sm">
-								{transaction.description ?? "—"}
-							</span>
+							<div className="min-w-0 flex-1">
+								<span className="block truncate text-sm">
+									{transaction.description ?? "—"}
+								</span>
+								{origin ? (
+									<span className="mt-0.5 block truncate text-xs text-muted-foreground">
+										{origin}
+									</span>
+								) : null}
+							</div>
 
 							<span className="shrink-0 text-sm text-muted-foreground tabular-nums">
 								{formatDate(transaction.date, "day-month")}

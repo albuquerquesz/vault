@@ -36,7 +36,14 @@ export interface PluggyTransaction {
 	description?: string | null;
 	category?: string | null;
 	provider: string;
+	/** Local UUID of pluggy_accounts row; not for display. */
 	pluggyAccountId?: string | null;
+	accountName?: string | null;
+	accountType?: string | null;
+	accountSubtype?: string | null;
+	accountBrand?: string | null;
+	/** Remote Pluggy account id from pluggy_accounts.pluggyAccountId. */
+	remoteAccountId?: string | null;
 }
 
 export interface PluggySyncResult {

@@ -14,6 +14,7 @@ import type {
 	PluggyCredentials,
 	PluggyItem as RemotePluggyItem,
 	PluggyTransaction,
+	RegisterPluggyWebhookInput,
 } from "../clients/pluggy/types.js";
 
 export type {
@@ -21,6 +22,7 @@ export type {
 	PluggyConnectToken,
 	RemotePluggyItem as PluggyItem,
 	PluggyTransaction,
+	RegisterPluggyWebhookInput,
 };
 
 const INITIAL_SYNC_WINDOW_DAYS = 90;
@@ -126,8 +128,12 @@ export function createPluggyService(creds: PluggyCredentials) {
 			return client.listConnectors();
 		},
 
-		registerWebhook(url: string) {
-			return client.registerWebhook(url);
+		registerWebhook(input: RegisterPluggyWebhookInput) {
+			return client.registerWebhook(input);
+		},
+
+		listWebhooks() {
+			return client.listWebhooks();
 		},
 
 		deleteWebhook(webhookId: string) {
@@ -301,28 +307,50 @@ async function syncTransactionsForAccount(params: {
 	};
 }
 
-function mapPluggyTransactionsToExpenses(params: {
+export type StoredTransactionForExpense = {
+	pluggyTransactionId: string;
+	date: string;
+	amount: string | number;
+	description: string | null;
+	category: string | null;
+	provider: string | null;
+	accountName: string | null;
+	accountType: string | null;
+	accountSubtype: string | null;
+	accountBrand: string | null;
+};
+
+/** Maps stored Pluggy transactions into expense rows with origin metadata. */
+export function mapPluggyTransactionsToExpenses(params: {
 	userId: string;
 	localItemId: string;
-	transactions: PluggyTransaction[];
+	transactions: StoredTransactionForExpense[];
 }) {
 	const { userId, localItemId, transactions } = params;
 	return transactions
-		.filter(
-			(tx) =>
+		.filter((tx) => {
+			const amount = Number(tx.amount);
+			return (
 				Boolean(tx.date) &&
-				tx.amount < 0 &&
-				!isIgnoredPluggyExpenseCategory(tx.category),
-		)
+				Number.isFinite(amount) &&
+				amount < 0 &&
+				!isIgnoredPluggyExpenseCategory(tx.category)
+			);
+		})
 		.map((tx) => ({
 			userId,
 			expenseDate: tx.date,
-			amount: Math.abs(tx.amount).toFixed(2),
+			amount: Math.abs(Number(tx.amount)).toFixed(2),
 			category: tx.category?.trim() || "Outros",
 			note: tx.description ?? null,
 			source: PLUGGY_EXPENSE_SOURCE,
-			sourceExternalId: tx.id,
+			sourceExternalId: tx.pluggyTransactionId,
 			sourceItemId: localItemId,
+			sourceProvider: tx.provider,
+			sourceAccountName: tx.accountName,
+			sourceAccountType: tx.accountType,
+			sourceAccountSubtype: tx.accountSubtype,
+			sourceAccountBrand: tx.accountBrand,
 		}));
 }
 
@@ -338,22 +366,27 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 			amount: pluggyTransactions.amount,
 			description: pluggyTransactions.description,
 			category: pluggyTransactions.category,
+			provider: pluggyItems.provider,
+			accountName: pluggyAccounts.name,
+			accountType: pluggyAccounts.type,
+			accountSubtype: pluggyAccounts.subtype,
+			accountBrand: pluggyAccounts.brand,
 		})
 		.from(pluggyTransactions)
+		.innerJoin(
+			pluggyItems,
+			eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
+		)
+		.leftJoin(
+			pluggyAccounts,
+			eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
+		)
 		.where(eq(pluggyTransactions.pluggyItemId, localItemId));
 
-	const transactions: PluggyTransaction[] = storedTransactions.map((tx) => ({
-		id: tx.pluggyTransactionId,
-		date: tx.date,
-		amount: Number(tx.amount),
-		description: tx.description ?? undefined,
-		category: tx.category ?? undefined,
-		accountId: "",
-	}));
 	const outgoing = mapPluggyTransactionsToExpenses({
 		userId,
 		localItemId,
-		transactions,
+		transactions: storedTransactions,
 	});
 
 	await db.transaction(async (tx) => {
@@ -375,7 +408,7 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 	});
 
 	return {
-		total: transactions.length,
+		total: storedTransactions.length,
 		inserted: outgoing.length,
 	};
 }
