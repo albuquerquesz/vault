@@ -1,7 +1,6 @@
 "use client";
 
 import { DailyExpensesHeatmapCard } from "@/components/overview/daily-expenses-heatmap/daily-expenses-heatmap-card";
-import { GoalsCard } from "@/components/overview/goals/goals-card";
 import { useDashboardOverview } from "@/components/overview/hooks/use-dashboard-overview";
 import { MonthlyBillCard } from "@/components/overview/monthly-bill/monthly-bill-card";
 import { OrderSourceMixCard } from "@/components/overview/order-source-mix/order-source-mix-card";
@@ -35,10 +34,6 @@ export function DashboardOverview() {
 				<div className="xl:col-span-6">
 					<RecentTransactionsCard />
 				</div>
-			</div>
-			<div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-				<div />
-				<GoalsCard />
 			</div>
 		</div>
 	);
