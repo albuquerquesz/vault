@@ -2,8 +2,8 @@
 
 import dayjs from "dayjs";
 import { useMemo } from "react";
-import { useFinanceExpenses } from "@/features/finance/sdk";
 import type { HeatmapColumn } from "@/components/charts/heatmap";
+import { useFinanceExpenses } from "@/features/finance/sdk";
 import "dayjs/locale/pt-br";
 
 const DAILY_EXPENSES_COLUMN_COUNT = 3;
@@ -12,13 +12,17 @@ function buildHeatmapSkeleton(month: string): HeatmapColumn[] {
 	const [year, monthNum] = month.split("-").map(Number);
 	if (!year || !monthNum) return [];
 
-	const firstDay = new Date(year, monthNum - 1, 1);
+	const _firstDay = new Date(year, monthNum - 1, 1);
 	const lastDay = new Date(year, monthNum, 0);
 	const columns: HeatmapColumn[] = [];
 	const daysInMonth = lastDay.getDate();
 	const rowsPerColumn = Math.ceil(daysInMonth / DAILY_EXPENSES_COLUMN_COUNT);
 
-	for (let columnIndex = 0; columnIndex < DAILY_EXPENSES_COLUMN_COUNT; columnIndex++) {
+	for (
+		let columnIndex = 0;
+		columnIndex < DAILY_EXPENSES_COLUMN_COUNT;
+		columnIndex++
+	) {
 		const bins = [];
 
 		for (let rowIndex = 0; rowIndex < rowsPerColumn; rowIndex++) {

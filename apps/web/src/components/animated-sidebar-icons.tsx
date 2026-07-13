@@ -44,9 +44,9 @@ export const AnimatedSidebarEyeIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseEnter?.(e);
-			} else {
-				controls.start("animate");
+				return;
 			}
+			controls.start("animate");
 		},
 		[controls, onMouseEnter],
 	);
@@ -55,9 +55,9 @@ export const AnimatedSidebarEyeIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseLeave?.(e);
-			} else {
-				controls.start("normal");
+				return;
 			}
+			controls.start("normal");
 		},
 		[controls, onMouseLeave],
 	);
@@ -134,9 +134,9 @@ export const AnimatedSidebarEyeOffIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseEnter?.(e);
-			} else {
-				controls.start("animate");
+				return;
 			}
+			controls.start("animate");
 		},
 		[controls, onMouseEnter],
 	);
@@ -145,9 +145,9 @@ export const AnimatedSidebarEyeOffIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseLeave?.(e);
-			} else {
-				controls.start("normal");
+				return;
 			}
+			controls.start("normal");
 		},
 		[controls, onMouseLeave],
 	);
@@ -222,9 +222,9 @@ export const AnimatedSidebarWalletIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseEnter?.(e);
-			} else {
-				controls.start("animate");
+				return;
 			}
+			controls.start("animate");
 		},
 		[controls, onMouseEnter],
 	);
@@ -233,9 +233,9 @@ export const AnimatedSidebarWalletIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseLeave?.(e);
-			} else {
-				controls.start("normal");
+				return;
 			}
+			controls.start("normal");
 		},
 		[controls, onMouseLeave],
 	);
@@ -296,9 +296,9 @@ export const AnimatedSidebarCircleHelpIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseEnter?.(e);
-			} else {
-				controls.start("animate");
+				return;
 			}
+			controls.start("animate");
 		},
 		[controls, onMouseEnter],
 	);
@@ -307,9 +307,9 @@ export const AnimatedSidebarCircleHelpIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseLeave?.(e);
-			} else {
-				controls.start("normal");
+				return;
 			}
+			controls.start("normal");
 		},
 		[controls, onMouseLeave],
 	);
@@ -381,9 +381,9 @@ export const AnimatedSidebarChartLineIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseEnter?.(e);
-			} else {
-				controls.start("animate");
+				return;
 			}
+			controls.start("animate");
 		},
 		[controls, onMouseEnter],
 	);
@@ -392,9 +392,9 @@ export const AnimatedSidebarChartLineIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseLeave?.(e);
-			} else {
-				controls.start("normal");
+				return;
 			}
+			controls.start("normal");
 		},
 		[controls, onMouseLeave],
 	);
@@ -455,9 +455,9 @@ export const AnimatedSidebarChartPieIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseEnter?.(e);
-			} else {
-				controls.start("animate");
+				return;
 			}
+			controls.start("animate");
 		},
 		[controls, onMouseEnter],
 	);
@@ -466,9 +466,9 @@ export const AnimatedSidebarChartPieIcon = forwardRef<
 		(e: ReactMouseEvent<HTMLDivElement>) => {
 			if (isControlledRef.current) {
 				onMouseLeave?.(e);
-			} else {
-				controls.start("normal");
+				return;
 			}
+			controls.start("normal");
 		},
 		[controls, onMouseLeave],
 	);

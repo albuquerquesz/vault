@@ -113,6 +113,7 @@ export function usePluggyRegisterItem() {
 				qc.invalidateQueries({ queryKey: ["pluggy-items"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-transactions"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-accounts"] }),
+				qc.invalidateQueries({ queryKey: ["monthlyBills"] }),
 			]);
 		},
 	});
@@ -122,15 +123,15 @@ export function usePluggyDeleteItem() {
 	const qc = useQueryClient();
 	return useMutation<void, Error, string>({
 		mutationFn: async (pluggyItemId: string) =>
-			apiFetch<void>(
-				`/api/pluggy/items/${encodeURIComponent(pluggyItemId)}`,
-				{ method: "DELETE" },
-			),
+			apiFetch<void>(`/api/pluggy/items/${encodeURIComponent(pluggyItemId)}`, {
+				method: "DELETE",
+			}),
 		onSettled: async () => {
 			await Promise.all([
 				qc.invalidateQueries({ queryKey: ["pluggy-items"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-transactions"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-accounts"] }),
+				qc.invalidateQueries({ queryKey: ["monthlyBills"] }),
 			]);
 		},
 	});
@@ -169,10 +170,19 @@ export function usePluggyTransactions(params?: {
 // ─── Sync ───────────────────────────────────────────────────────────────────
 
 export function usePluggySync() {
+	const qc = useQueryClient();
 	return useMutation<PluggySyncResult, Error, string>({
 		mutationFn: async (itemId: string) =>
 			apiFetch<{ sync: PluggySyncResult }>(`/api/pluggy/sync/${itemId}`, {
 				method: "POST",
 			}).then((data) => data.sync),
+		onSettled: async () => {
+			await Promise.all([
+				qc.invalidateQueries({ queryKey: ["pluggy-items"] }),
+				qc.invalidateQueries({ queryKey: ["pluggy-transactions"] }),
+				qc.invalidateQueries({ queryKey: ["pluggy-accounts"] }),
+				qc.invalidateQueries({ queryKey: ["monthlyBills"] }),
+			]);
+		},
 	});
 }

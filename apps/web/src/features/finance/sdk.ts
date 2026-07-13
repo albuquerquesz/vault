@@ -1,7 +1,7 @@
 import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { getCachedData, setCachedData } from "@/features/finance/cache";
 import { apiFetch, queryClient } from "@/utils/api";
-import { useEffect } from "react";
 
 // --- Types ---
 
@@ -63,6 +63,7 @@ export interface Goal {
 	id: string;
 	userId: string;
 	name: string;
+	url: string | null;
 	targetAmount: number;
 	currentAmount: number;
 	currency: string;
@@ -86,6 +87,7 @@ export interface CreateGoalInput {
 	name: string;
 	targetAmount: number;
 	currentAmount?: number;
+	url?: string | null;
 }
 
 export interface UpdateGoalInput {
@@ -93,6 +95,7 @@ export interface UpdateGoalInput {
 	name?: string;
 	targetAmount?: number;
 	currentAmount?: number;
+	url?: string | null;
 }
 
 export interface SavingsTarget {
@@ -133,7 +136,9 @@ export const financeSdk = {
 		return {
 			queryKey: ["expenses", month],
 			queryFn: () =>
-				apiFetch<FinanceExpense[]>(`/api/finance/expenses?month=${encodeURIComponent(month)}`),
+				apiFetch<FinanceExpense[]>(
+					`/api/finance/expenses?month=${encodeURIComponent(month)}`,
+				),
 		} as const;
 	},
 
@@ -141,7 +146,9 @@ export const financeSdk = {
 		return {
 			queryKey: ["monthlyBills", month],
 			queryFn: () =>
-				apiFetch<FinanceMonthlyBills>(`/api/finance/monthly-bills?month=${encodeURIComponent(month)}`),
+				apiFetch<FinanceMonthlyBills>(
+					`/api/finance/monthly-bills?month=${encodeURIComponent(month)}`,
+				),
 		} as const;
 	},
 
@@ -149,7 +156,9 @@ export const financeSdk = {
 		return {
 			queryKey: ["overview", month, today],
 			queryFn: () =>
-				apiFetch<FinanceMonthlyOverview>(`/api/finance/overview?month=${encodeURIComponent(month)}&today=${encodeURIComponent(today)}`),
+				apiFetch<FinanceMonthlyOverview>(
+					`/api/finance/overview?month=${encodeURIComponent(month)}&today=${encodeURIComponent(today)}`,
+				),
 		} as const;
 	},
 
@@ -191,10 +200,7 @@ export const financeSdk = {
 // --- Hooks ---
 
 export function useFinanceExpenses(month = getMonthValue()) {
-	const cached = getCachedData<FinanceExpense[]>(
-		"listExpenses",
-		month,
-	);
+	const cached = getCachedData<FinanceExpense[]>("listExpenses", month);
 
 	const query = useQuery({
 		...financeSdk.listExpensesOptions(month),
@@ -258,39 +264,40 @@ export function useUpsertMonthlyBudget(
 // --- Goals ---
 
 export const goalsSdk = {
-	listGoalsOptions: () => ({
-		queryKey: ["goals"],
-		queryFn: () => apiFetch<Goal[]>("/api/finance/goals"),
-	}) as const,
+	listGoalsOptions: () =>
+		({
+			queryKey: ["goals"],
+			queryFn: () => apiFetch<Goal[]>("/api/finance/goals"),
+		}) as const,
 
-	createGoalMutationOptions: (client: QueryClient = queryClient) => ({
-		mutationFn: (input: CreateGoalInput) =>
-			apiFetch<Goal>("/api/finance/goals", {
-				method: "POST",
-				body: input,
-			}),
-		onSuccess: () =>
-			client.invalidateQueries({ queryKey: ["goals"] }),
-	}) as const,
+	createGoalMutationOptions: (client: QueryClient = queryClient) =>
+		({
+			mutationFn: (input: CreateGoalInput) =>
+				apiFetch<Goal>("/api/finance/goals", {
+					method: "POST",
+					body: input,
+				}),
+			onSuccess: () => client.invalidateQueries({ queryKey: ["goals"] }),
+		}) as const,
 
-	updateGoalMutationOptions: (client: QueryClient = queryClient) => ({
-		mutationFn: ({ id, ...body }: UpdateGoalInput) =>
-			apiFetch<Goal>(`/api/finance/goals/${id}`, {
-				method: "PATCH",
-				body,
-			}),
-		onSuccess: () =>
-			client.invalidateQueries({ queryKey: ["goals"] }),
-	}) as const,
+	updateGoalMutationOptions: (client: QueryClient = queryClient) =>
+		({
+			mutationFn: ({ id, ...body }: UpdateGoalInput) =>
+				apiFetch<Goal>(`/api/finance/goals/${id}`, {
+					method: "PATCH",
+					body,
+				}),
+			onSuccess: () => client.invalidateQueries({ queryKey: ["goals"] }),
+		}) as const,
 
-	deleteGoalMutationOptions: (client: QueryClient = queryClient) => ({
-		mutationFn: (id: string) =>
-			apiFetch<void>(`/api/finance/goals/${id}`, {
-				method: "DELETE",
-			}),
-		onSuccess: () =>
-			client.invalidateQueries({ queryKey: ["goals"] }),
-	}) as const,
+	deleteGoalMutationOptions: (client: QueryClient = queryClient) =>
+		({
+			mutationFn: (id: string) =>
+				apiFetch<void>(`/api/finance/goals/${id}`, {
+					method: "DELETE",
+				}),
+			onSuccess: () => client.invalidateQueries({ queryKey: ["goals"] }),
+		}) as const,
 };
 
 export function useGoals() {
@@ -314,7 +321,9 @@ export const savingsTargetSdk = {
 	queryOptions: (month: string) => ({
 		queryKey: savingsTargetSdk.queryKey(month),
 		queryFn: async () => {
-			const res = await apiFetch<SavingsTarget>(`/finance/savings-target?month=${month}`);
+			const res = await apiFetch<SavingsTarget>(
+				`/finance/savings-target?month=${month}`,
+			);
 			return res;
 		},
 	}),

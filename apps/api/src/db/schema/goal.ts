@@ -17,6 +17,7 @@ export const goal = pgTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		name: text("name").notNull(),
+		url: text("url"),
 		targetAmount: numeric("target_amount", {
 			precision: 12,
 			scale: 2,

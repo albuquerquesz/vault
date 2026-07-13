@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
+import { db } from "./index";
 import {
 	account,
 	expense,
@@ -14,7 +15,6 @@ import {
 	user,
 	verification,
 } from "./schema";
-import { db } from "./index";
 
 const seedUserId = "user_seed_main";
 const seedSessionId = "session_seed_main";

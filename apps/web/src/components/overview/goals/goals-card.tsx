@@ -3,14 +3,14 @@
 import { Button } from "@vault/ui/components/button";
 import { Skeleton } from "@vault/ui/components/skeleton";
 import { Target } from "lucide-react";
-import { GoalList } from "@/components/overview/goals/goal-list";
 import { CreateGoalDialog } from "@/components/overview/goals/create-goal-dialog";
+import { GoalList } from "@/components/overview/goals/goal-list";
 import { useGoalsCard } from "@/components/overview/goals/hooks/use-goals-card";
+import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 import {
 	OverviewCardEmptyState,
 	OverviewCardErrorState,
 } from "@/components/overview/shared/overview-card-state";
-import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 
 function GoalsLoadingState() {
 	return (
@@ -39,7 +39,9 @@ export function GoalsCard() {
 		setName,
 		setOpen,
 		setTargetAmount,
+		setUrl,
 		targetAmount,
+		url,
 	} = useGoalsCard();
 
 	return (
@@ -79,8 +81,10 @@ export function GoalsCard() {
 				onOpenChange={setOpen}
 				onSubmit={handleSubmit}
 				onTargetAmountChange={setTargetAmount}
+				onUrlChange={setUrl}
 				open={open}
 				targetAmount={targetAmount}
+				url={url}
 			/>
 		</>
 	);

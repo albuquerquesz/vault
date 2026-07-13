@@ -1,8 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import { toast } from "sonner";
 import { useTheme } from "@/components/theme-provider";
 import { apiFetch, queryClient } from "@/utils/api";
-import { toast } from "sonner";
-import dayjs from "dayjs";
 
 // Types
 
@@ -181,9 +181,7 @@ export function useUpdateAvatar() {
 
 // --- Pluggy Credentials ---
 
-export function usePluggyCredentialsStatus(options?: {
-	enabled?: boolean;
-}) {
+export function usePluggyCredentialsStatus(options?: { enabled?: boolean }) {
 	return useQuery({
 		queryKey: PLUGGY_CREDENTIALS_KEY,
 		queryFn: () =>
@@ -197,13 +195,10 @@ export function usePluggyCredentialsStatus(options?: {
 export function useSavePluggyCredentials() {
 	return useMutation({
 		mutationFn: (data: PluggyCredentialsInput) =>
-			apiFetch<PluggyCredentialsStatus>(
-				"/api/settings/pluggy/credentials",
-				{
-					method: "POST",
-					body: data,
-				},
-			),
+			apiFetch<PluggyCredentialsStatus>("/api/settings/pluggy/credentials", {
+				method: "POST",
+				body: data,
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: PLUGGY_CREDENTIALS_KEY });
 			toast.success("Chaves Pluggy salvas com sucesso");
@@ -217,10 +212,9 @@ export function useSavePluggyCredentials() {
 export function useDeletePluggyCredentials() {
 	return useMutation({
 		mutationFn: () =>
-			apiFetch<PluggyCredentialsStatus>(
-				"/api/settings/pluggy/credentials",
-				{ method: "DELETE" },
-			),
+			apiFetch<PluggyCredentialsStatus>("/api/settings/pluggy/credentials", {
+				method: "DELETE",
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: PLUGGY_CREDENTIALS_KEY });
 			toast.success("Chaves Pluggy removidas");

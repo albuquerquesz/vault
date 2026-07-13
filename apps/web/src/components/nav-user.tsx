@@ -1,7 +1,11 @@
 "use client";
 
 import { useNavigate } from "@tanstack/react-router";
-import { Avatar, AvatarFallback, AvatarImage } from "@vault/ui/components/avatar";
+import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from "@vault/ui/components/avatar";
 
 import { authClient } from "@/lib/auth-client";
 

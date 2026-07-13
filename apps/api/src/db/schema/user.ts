@@ -25,12 +25,9 @@ export const user = pgTable("user", {
 		.notNull(),
 });
 
-export const userRelations = relations(
-	user,
-	({ many }) => ({
-		accounts: many(account),
-		sessions: many(session),
-		expenses: many(expense),
-		budgets: many(monthlyBudget),
-	}),
-);
+export const userRelations = relations(user, ({ many }) => ({
+	accounts: many(account),
+	sessions: many(session),
+	expenses: many(expense),
+	budgets: many(monthlyBudget),
+}));

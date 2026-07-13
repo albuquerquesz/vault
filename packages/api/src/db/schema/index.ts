@@ -9,7 +9,7 @@ export * from "./pluggy-account";
 export * from "./pluggy-credentials";
 export * from "./pluggy-item";
 export * from "./pluggy-transaction";
+export * from "./savings-target";
 export * from "./session";
 export * from "./user";
-export * from "./savings-target";
 export * from "./verification";

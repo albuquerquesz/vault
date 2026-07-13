@@ -19,8 +19,10 @@ export const pluggyTransactions = pgTable(
 		pluggyItemId: uuid("pluggy_item_id")
 			.references(() => pluggyItems.id, { onDelete: "cascade" })
 			.notNull(),
-		pluggyAccountId: uuid("pluggy_account_id")
-			.references(() => pluggyAccounts.id, { onDelete: "cascade" }),
+		pluggyAccountId: uuid("pluggy_account_id").references(
+			() => pluggyAccounts.id,
+			{ onDelete: "cascade" },
+		),
 		pluggyTransactionId: varchar("pluggy_transaction_id", {
 			length: 255,
 		}).notNull(),

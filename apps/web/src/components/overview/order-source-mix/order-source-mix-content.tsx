@@ -6,9 +6,9 @@ import {
 	PatternLines,
 	PieCenter,
 	PieChart,
+	type PieData,
 	PieSlice,
 	slicePalette,
-	type PieData,
 } from "@/components/pie-chart";
 import type { OrderSourceDatum } from "./hooks/use-order-source-mix";
 
@@ -148,7 +148,9 @@ export function OrderSourceMixContent({
 									backgroundColor: slicePalette[index % slicePalette.length],
 								}}
 							/>
-							<span className="text-sm text-muted-foreground">{datum.source}</span>
+							<span className="text-sm text-muted-foreground">
+								{datum.source}
+							</span>
 						</div>
 						<div className="ml-auto flex items-center gap-2">
 							<span className="text-sm font-medium tabular-nums">

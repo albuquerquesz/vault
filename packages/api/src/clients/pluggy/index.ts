@@ -9,8 +9,8 @@ export {
 export type {
 	CreatePluggyConnectTokenInput,
 	PluggyAccount,
-	PluggyConnectToken,
 	PluggyConnector,
+	PluggyConnectToken,
 	PluggyCredentials,
 	PluggyItem,
 	PluggyTransaction,

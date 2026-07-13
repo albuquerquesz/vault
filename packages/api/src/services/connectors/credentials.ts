@@ -108,7 +108,9 @@ export async function savePluggyCredentials(
 				updatedAt: new Date(),
 			})
 			.where(eq(pluggyCredentials.userId, userId));
-	} else {
+	}
+
+	if (!existing) {
 		await db.insert(pluggyCredentials).values({
 			userId,
 			clientId: input.clientId,

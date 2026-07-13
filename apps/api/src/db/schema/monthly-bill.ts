@@ -37,4 +37,3 @@ export const monthlyBillRelations = relations(monthlyBill, ({ one }) => ({
 		references: [user.id],
 	}),
 }));
-

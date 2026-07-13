@@ -98,7 +98,8 @@ export function useDailyExpensesHeatmap(month: string, locale = "pt-BR") {
 			});
 		});
 
-		const current = heatmapData[0]?.values.reduce((sum, value) => sum + value, 0) ?? 0;
+		const current =
+			heatmapData[0]?.values.reduce((sum, value) => sum + value, 0) ?? 0;
 		const previous =
 			heatmapData.at(-1)?.values.reduce((sum, value) => sum + value, 0) ?? 0;
 

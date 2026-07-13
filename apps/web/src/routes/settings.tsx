@@ -1,8 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import {
-	type SettingsSection,
-	SettingsPage,
-} from "@/components/settings-page";
+import { SettingsPage, type SettingsSection } from "@/components/settings-page";
 import { authClient } from "@/lib/auth-client";
 
 const SETTINGS_SECTIONS = ["general", "account", "about"] as const;
@@ -15,7 +12,9 @@ function isSettingsSection(value: unknown): value is SettingsSection {
 }
 
 export const Route = createFileRoute("/settings")({
-	validateSearch: (search: Record<string, unknown>): {
+	validateSearch: (
+		search: Record<string, unknown>,
+	): {
 		section?: SettingsSection;
 	} => {
 		if (isSettingsSection(search.section)) {

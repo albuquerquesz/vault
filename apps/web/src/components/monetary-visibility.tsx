@@ -187,9 +187,15 @@ export function MonetaryVisibilityToggle() {
 			variant="ghost"
 		>
 			{isVisible ? (
-				<AnimatedSidebarEyeIcon className="size-10 [&_svg]:scale-125" size={48} />
+				<AnimatedSidebarEyeIcon
+					className="size-10 [&_svg]:scale-125"
+					size={48}
+				/>
 			) : (
-				<AnimatedSidebarEyeOffIcon className="size-10 [&_svg]:scale-125" size={48} />
+				<AnimatedSidebarEyeOffIcon
+					className="size-10 [&_svg]:scale-125"
+					size={48}
+				/>
 			)}
 		</Button>
 	);

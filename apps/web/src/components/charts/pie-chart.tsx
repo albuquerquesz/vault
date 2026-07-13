@@ -390,16 +390,14 @@ const PieChartCore = memo(function PieChartCore({
 					<Group left={center} top={center}>
 						{scrubSlicePaths && scrubSliceFills
 							? scrubSlicePaths.map((d: string, index: number) =>
-									d
-										? (
-											<path
-												d={d}
-												fill={scrubSliceFills![index]}
-												key={data[index]?.label ?? index}
-												pointerEvents="none"
-											/>
-										  )
-										: null,
+									d ? (
+										<path
+											d={d}
+											fill={scrubSliceFills?.[index]}
+											key={data[index]?.label ?? index}
+											pointerEvents="none"
+										/>
+									) : null,
 								)
 							: null}
 						{svgChildren}

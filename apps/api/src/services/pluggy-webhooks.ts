@@ -2,10 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { PluggyApiError } from "../clients/pluggy/index.js";
 import { db } from "../db/index.js";
-import {
-	pluggyItems,
-	pluggyTransactions,
-} from "../db/schema/index.js";
+import { pluggyItems, pluggyTransactions } from "../db/schema/index.js";
 import {
 	MissingPluggyCredentialsError,
 	resolvePluggyCredentials,
@@ -162,10 +159,10 @@ async function syncOneLocalItem(params: {
 			} catch (error) {
 				if (!(error instanceof PluggyApiError && error.statusCode === 404)) {
 					// Non-fatal: still attempt product sync.
-					console.warn(
-						"[pluggy-webhook] failed to refresh item status",
-						{ localItemId, error },
-					);
+					console.warn("[pluggy-webhook] failed to refresh item status", {
+						localItemId,
+						error,
+					});
 				}
 			}
 		}

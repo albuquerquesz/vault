@@ -1,16 +1,16 @@
-import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
-import { user, type UserSettings } from "../db/schema/user";
-import { db } from "../db";
+import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import type { PluggyCredentials } from "../clients/pluggy/types";
+import { db } from "../db";
+import { type UserSettings, user } from "../db/schema/user";
 import { requireSession } from "../index";
 import {
-	getPluggyCredentialsStatus,
-	savePluggyCredentials,
 	deletePluggyCredentials,
+	getPluggyCredentialsStatus,
 	MissingPluggyCredentialsError,
+	savePluggyCredentials,
 } from "../services/connectors/credentials";
-import type { PluggyCredentials } from "../clients/pluggy/types";
 
 const preferencesSchema = z.object({
 	theme: z.enum(["light", "dark"]).nullish(),
@@ -32,7 +32,10 @@ const pluggyCredentialsSchema = z.object({
 	clientSecret: z.string().min(1),
 });
 
-function mergeSettings(base: UserSettings | null, patch: Record<string, string | number | null>): UserSettings {
+function mergeSettings(
+	base: UserSettings | null,
+	patch: Record<string, string | number | null>,
+): UserSettings {
 	const merged = { ...(base ?? {}) };
 	for (const [key, value] of Object.entries(patch)) {
 		if (value === undefined) continue;
@@ -97,7 +100,7 @@ export function registerSettingsRoutes(server: FastifyInstance) {
 				.where(eq(user.id, session.user.id))
 				.returning({ settings: user.settings });
 
-			const settings = (result[0]!.settings ?? {}) as UserSettings;
+			const settings = (result[0]?.settings ?? {}) as UserSettings;
 			return reply.send({
 				theme: settings.theme ?? null,
 				monthlyIncome: settings.monthlyIncome ?? null,
@@ -175,7 +178,7 @@ export function registerSettingsRoutes(server: FastifyInstance) {
 				.where(eq(user.id, session.user.id))
 				.returning({ image: user.image });
 
-			return reply.send({ image: result[0]!.image });
+			return reply.send({ image: result[0]?.image });
 		} catch (error) {
 			return sendKnownError(reply, error);
 		}

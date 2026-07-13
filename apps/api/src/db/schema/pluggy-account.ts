@@ -42,12 +42,9 @@ export const pluggyAccounts = pgTable(
 	],
 );
 
-export const pluggyAccountsRelations = relations(
-	pluggyAccounts,
-	({ one }) => ({
-		item: one(pluggyItems, {
-			fields: [pluggyAccounts.pluggyItemId],
-			references: [pluggyItems.id],
-		}),
+export const pluggyAccountsRelations = relations(pluggyAccounts, ({ one }) => ({
+	item: one(pluggyItems, {
+		fields: [pluggyAccounts.pluggyItemId],
+		references: [pluggyItems.id],
 	}),
-);
+}));

@@ -52,7 +52,9 @@ export function OverviewCardShell({
 					</CardDescription>
 					<Tooltip>
 						<TooltipTrigger
-							render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
+							render={() => (
+								<Info className="mt-0.5 size-4 text-muted-foreground" />
+							)}
 						/>
 						<TooltipContent>{tooltip}</TooltipContent>
 					</Tooltip>

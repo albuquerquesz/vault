@@ -22,6 +22,9 @@ export const monthlyBillItem = pgTable(
 		paidAmount: numeric("paid_amount", { precision: 12, scale: 2 }).notNull(),
 		totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull(),
 		sortOrder: integer("sort_order").notNull(),
+		/** Origin of the row: manual seed/UI vs Pluggy credit-card bill sync. */
+		source: text("source").default("manual").notNull(),
+		pluggyBillId: text("pluggy_bill_id"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()
@@ -46,4 +49,3 @@ export const monthlyBillItemRelations = relations(
 		}),
 	}),
 );
-

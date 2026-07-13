@@ -10,6 +10,44 @@ import {
 	useUpdateGoal,
 } from "@/features/finance/sdk";
 
+const brlCurrencyFmt = new Intl.NumberFormat("pt-BR", {
+	style: "currency",
+	currency: "BRL",
+});
+
+/** Format a numeric amount as BRL (e.g. 40 → "R$ 40,00"). */
+export function formatBrlAmount(amount: number): string {
+	return brlCurrencyFmt.format(amount);
+}
+
+/**
+ * Digits-only mask: typed digits are treated as cents.
+ * "4000" → "R$ 40,00"
+ */
+export function maskBrlInput(raw: string): string {
+	const digits = raw.replace(/\D/g, "");
+	if (!digits) {
+		return "";
+	}
+
+	const cents = Number.parseInt(digits, 10);
+	if (Number.isNaN(cents)) {
+		return "";
+	}
+
+	return brlCurrencyFmt.format(cents / 100);
+}
+
+/** Parse a masked BRL string back to a number ("R$ 40,00" → 40). */
+export function parseBrlInput(formatted: string): number {
+	const digits = formatted.replace(/\D/g, "");
+	if (!digits) {
+		return Number.NaN;
+	}
+
+	return Number.parseInt(digits, 10) / 100;
+}
+
 export function useGoalsCard() {
 	const goalsQuery = useGoals();
 	const createGoal = useCreateGoal();
@@ -20,10 +58,12 @@ export function useGoalsCard() {
 	const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 	const [name, setName] = useState("");
 	const [targetAmount, setTargetAmount] = useState("");
+	const [url, setUrl] = useState("");
 
 	const resetForm = () => {
 		setName("");
 		setTargetAmount("");
+		setUrl("");
 		setEditingGoal(null);
 	};
 
@@ -35,7 +75,8 @@ export function useGoalsCard() {
 	const openEdit = (goal: Goal) => {
 		setEditingGoal(goal);
 		setName(goal.name);
-		setTargetAmount(String(goal.targetAmount));
+		setTargetAmount(formatBrlAmount(goal.targetAmount));
+		setUrl(goal.url ?? "");
 		setOpen(true);
 	};
 
@@ -49,10 +90,12 @@ export function useGoalsCard() {
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		const amount = Number.parseFloat(targetAmount);
+		const amount = parseBrlInput(targetAmount);
 		if (!name.trim() || Number.isNaN(amount) || amount <= 0) {
 			return;
 		}
+
+		const nextUrl = url.trim() || null;
 
 		if (editingGoal) {
 			updateGoal.mutate(
@@ -60,6 +103,7 @@ export function useGoalsCard() {
 					id: editingGoal.id,
 					name: name.trim(),
 					targetAmount: amount,
+					url: nextUrl,
 				},
 				{
 					onSuccess: () => {
@@ -72,7 +116,7 @@ export function useGoalsCard() {
 		}
 
 		createGoal.mutate(
-			{ name: name.trim(), targetAmount: amount },
+			{ name: name.trim(), targetAmount: amount, url: nextUrl },
 			{
 				onSuccess: () => {
 					resetForm();
@@ -105,6 +149,8 @@ export function useGoalsCard() {
 		setName,
 		targetAmount,
 		setTargetAmount,
+		url,
+		setUrl,
 		handleSubmit,
 		handleComplete,
 		handleDelete,

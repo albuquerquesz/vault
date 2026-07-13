@@ -24,14 +24,16 @@ Leia este documento antes de alterar:
 4. frontend envia `{ pluggyItemId }` para `POST /api/pluggy/items`
 5. backend chama `GET /items/{id}`
 6. backend faz upsert em `pluggy_items`
-7. backend sincroniza contas e transações dos últimos 90 dias
-8. frontend invalida `pluggy-items`, `pluggy-accounts` e `pluggy-transactions`
+7. backend sincroniza contas, **faturas de cartão** (`GET /bills?accountId=` para contas `CREDIT`) e transações dos últimos 90 dias
+8. faturas gravadas em `pluggy_bills` e materializadas em `monthly_bill` / `monthly_bill_item` (source=`pluggy`)
+9. frontend invalida `pluggy-items`, `pluggy-accounts`, `pluggy-transactions` e `monthlyBills`
 
 ## Regras da API Pluggy
 
 - Autenticação server-to-server começa em `POST https://api.pluggy.ai/auth`.
 - Leitura de produtos usa `X-API-KEY`; não depende do `connectToken`.
 - Contas vêm de `GET /accounts?itemId=...`.
+- Faturas de cartão vêm de `GET /bills?accountId=...` (somente contas `CREDIT` / `CREDIT_CARD`). Não use `/credit-card-bills`.
 - Transações vêm de `GET /v2/transactions?accountId=...&dateFrom=...&dateTo=...`.
 - A paginação de transações usa `results` e `next`. Não assuma `data`, `pageSize` ou endpoint por item.
 
@@ -77,7 +79,9 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
 - `pluggy_items` deve permanecer idempotente por `userId + pluggyItemId`.
 - `pluggy_accounts` deve permanecer idempotente por `pluggyItemId + pluggyAccountId`.
 - `pluggy_transactions` deve permanecer idempotente por `pluggyItemId + pluggyTransactionId`.
-- O sync inicial deve sincronizar contas antes de transações, porque transações dependem do mapeamento `pluggy_account_id`.
+- `pluggy_bills` deve permanecer idempotente por `pluggyAccountId + pluggyBillId`.
+- O sync inicial deve sincronizar contas antes de faturas/transações, porque ambos dependem do mapeamento `pluggy_account_id`.
+- Após upsert de `pluggy_bills`, materializar `monthly_bill` + `monthly_bill_item` (source=`pluggy`) por mês de `dueDate` (YYYY-MM). Não apagar itens manuais (`source=manual`).
 - Se a persistência do item funcionar e o sync falhar, o item não deve ser desfeito. A API deve retornar sucesso parcial com `sync.status = "failed"`.
 
 ## Regras de UX
@@ -92,7 +96,7 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
 - Não use `db:push` como atalho para corrigir drift local.
 - Se `db:migrate` falhar porque o schema local está adiantado em relação a `drizzle.__drizzle_migrations`, resete o banco local e reaplique as migrations.
 - Valide mudanças com cURL direto:
-  - na Pluggy: `/auth`, `/accounts`, `/v2/transactions`
+  - na Pluggy: `/auth`, `/accounts`, `/bills`, `/v2/transactions`
   - na API local: `/api/pluggy/items`, `/api/pluggy/accounts`, `/api/pluggy/transactions`, `/api/pluggy/sync/:id`
   - webhook: `POST /api/webhooks/pluggy` com payload `{ "event":"item/updated", "itemId":"..." }`
 

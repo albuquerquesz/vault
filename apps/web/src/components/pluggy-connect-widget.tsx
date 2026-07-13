@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@vault/ui/components/button";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 const PLUGGY_CONNECT_SCRIPT_SRC =
 	"https://cdn.pluggy.ai/pluggy-connect/v1.3.1/pluggy-connect.js";
@@ -41,7 +41,9 @@ let pluggyConnectScriptPromise: Promise<void> | null = null;
 
 function loadPluggyConnectScript() {
 	if (typeof window === "undefined") {
-		return Promise.reject(new Error("Pluggy Connect is only available in the browser"));
+		return Promise.reject(
+			new Error("Pluggy Connect is only available in the browser"),
+		);
 	}
 
 	if (window.PluggyConnect) {

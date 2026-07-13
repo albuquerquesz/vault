@@ -1,16 +1,16 @@
 import type {
-	PluggyAccountsPage,
 	CreatePluggyConnectTokenInput,
 	PluggyAccount,
-	PluggyConnectToken,
+	PluggyAccountsPage,
 	PluggyConnector,
+	PluggyConnectToken,
 	PluggyCredentials,
 	PluggyItem,
 	PluggyRemoteAccount,
 	PluggyTransaction,
 	PluggyTransactionsPage,
-	RegisterPluggyWebhookInput,
 	PluggyWebhookRegistration,
+	RegisterPluggyWebhookInput,
 } from "./types";
 
 const PLUGGY_API = "https://api.pluggy.ai";
@@ -198,10 +198,10 @@ export function createPluggyClient(creds: PluggyCredentials) {
 		},
 
 		async listAccounts(itemId: string): Promise<PluggyAccount[]> {
-			const response = await pluggyFetch(
+			const response = (await pluggyFetch(
 				creds,
 				`/accounts?itemId=${encodeURIComponent(itemId)}`,
-			) as PluggyAccountsPage;
+			)) as PluggyAccountsPage;
 			return response.results.map(normalizeAccount);
 		},
 

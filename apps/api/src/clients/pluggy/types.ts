@@ -109,6 +109,53 @@ export interface PluggyAccountsPage {
 	results: PluggyRemoteAccount[];
 }
 
+export interface PluggyBillPayment {
+	id?: string;
+	amount: number;
+	paymentDate?: string;
+	valueType?: string;
+	paymentMode?: string;
+	currencyCode?: string;
+}
+
+export interface PluggyBillFinanceCharge {
+	id?: string;
+	type?: string;
+	amount: number;
+	currencyCode?: string;
+	additionalInfo?: string;
+}
+
+/** Normalized credit-card bill from GET /bills?accountId= */
+export interface PluggyBill {
+	id: string;
+	dueDate: string;
+	totalAmount: number;
+	totalAmountCurrencyCode?: string;
+	minimumPaymentAmount?: number;
+	allowsInstallments?: boolean;
+	payments: PluggyBillPayment[];
+	financeCharges: PluggyBillFinanceCharge[];
+}
+
+export interface PluggyRemoteBill {
+	id: string;
+	dueDate: string;
+	totalAmount: number;
+	totalAmountCurrencyCode?: string;
+	minimumPaymentAmount?: number | null;
+	allowsInstallments?: boolean;
+	payments?: PluggyBillPayment[];
+	financeCharges?: PluggyBillFinanceCharge[];
+}
+
+export interface PluggyBillsPage {
+	page: number;
+	total: number;
+	totalPages: number;
+	results: PluggyRemoteBill[];
+}
+
 export interface PluggyItem {
 	id: string;
 	status: string;

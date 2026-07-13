@@ -76,12 +76,10 @@ export function RevenueChart() {
 	}, [chartRows]);
 
 	// Extra spacing so long ranges don’t collide; pairs with `interval` above.
-	let xAxisMinTickGap: number | undefined;
-	if (periodDays <= 7) {
-		xAxisMinTickGap = undefined;
-	} else {
-		xAxisMinTickGap = Math.max(8, Math.min(52, Math.floor(periodDays / 2)));
-	}
+	const xAxisMinTickGap =
+		periodDays <= 7
+			? undefined
+			: Math.max(8, Math.min(52, Math.floor(periodDays / 2)));
 
 	return (
 		<Card className="financial-panel-border ring-0 md:col-span-2 lg:col-span-4">

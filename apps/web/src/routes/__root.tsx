@@ -5,10 +5,9 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { Toaster } from "@vault/ui/components/sonner";
-
+import { TooltipProvider } from "@vault/ui/components/tooltip";
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@vault/ui/components/tooltip";
 
 import "../index.css";
 

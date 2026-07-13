@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { createDb } from "./db/index.js";
 import { env } from "./db/env.js";
+import { createDb } from "./db/index.js";
 import * as schema from "./db/schema/auth.js";
 
 export function createAuth() {

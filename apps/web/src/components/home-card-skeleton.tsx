@@ -145,10 +145,7 @@ export function HeatmapSkeletonContent() {
 				<Skeleton className="h-3 w-10" />
 				<div className="flex items-center gap-1.5">
 					{Array.from({ length: 5 }).map((_, index) => (
-						<Skeleton
-							key={`heatmap-legend-${index}`}
-							className="h-2.5 w-3.5"
-						/>
+						<Skeleton key={`heatmap-legend-${index}`} className="h-2.5 w-3.5" />
 					))}
 				</div>
 				<Skeleton className="h-3 w-10" />

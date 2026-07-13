@@ -1,16 +1,19 @@
 import type {
-	PluggyAccountsPage,
 	CreatePluggyConnectTokenInput,
 	PluggyAccount,
-	PluggyConnectToken,
+	PluggyAccountsPage,
+	PluggyBill,
+	PluggyBillsPage,
 	PluggyConnector,
+	PluggyConnectToken,
 	PluggyCredentials,
 	PluggyItem,
 	PluggyRemoteAccount,
+	PluggyRemoteBill,
 	PluggyTransaction,
 	PluggyTransactionsPage,
-	RegisterPluggyWebhookInput,
 	PluggyWebhookRegistration,
+	RegisterPluggyWebhookInput,
 } from "./types.js";
 
 const PLUGGY_API = "https://api.pluggy.ai";
@@ -144,6 +147,19 @@ function normalizeAccount(account: PluggyRemoteAccount): PluggyAccount {
 	};
 }
 
+function normalizeBill(bill: PluggyRemoteBill): PluggyBill {
+	return {
+		id: bill.id,
+		dueDate: bill.dueDate,
+		totalAmount: bill.totalAmount,
+		totalAmountCurrencyCode: bill.totalAmountCurrencyCode,
+		minimumPaymentAmount: bill.minimumPaymentAmount ?? undefined,
+		allowsInstallments: bill.allowsInstallments,
+		payments: bill.payments ?? [],
+		financeCharges: bill.financeCharges ?? [],
+	};
+}
+
 export function createPluggyClient(creds: PluggyCredentials) {
 	return {
 		async createConnectToken(
@@ -198,11 +214,20 @@ export function createPluggyClient(creds: PluggyCredentials) {
 		},
 
 		async listAccounts(itemId: string): Promise<PluggyAccount[]> {
-			const response = await pluggyFetch(
+			const response = (await pluggyFetch(
 				creds,
 				`/accounts?itemId=${encodeURIComponent(itemId)}`,
-			) as PluggyAccountsPage;
+			)) as PluggyAccountsPage;
 			return response.results.map(normalizeAccount);
+		},
+
+		/** Credit card bills for a CREDIT account. */
+		async listBills(accountId: string): Promise<PluggyBill[]> {
+			const response = (await pluggyFetch(
+				creds,
+				`/bills?accountId=${encodeURIComponent(accountId)}`,
+			)) as PluggyBillsPage;
+			return (response.results ?? []).map(normalizeBill);
 		},
 
 		async getTransactionsByAccount(

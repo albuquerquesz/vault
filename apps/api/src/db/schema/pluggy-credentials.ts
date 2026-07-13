@@ -9,7 +9,9 @@ export const pluggyCredentials = pgTable("pluggy_credentials", {
 	clientId: text("client_id").notNull(),
 	/** AES-256-GCM ciphertext (base64: iv.tag.ciphertext). */
 	clientSecretCiphertext: text("client_secret_ciphertext").notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true })
+		.defaultNow()
+		.notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true })
 		.defaultNow()
 		.$onUpdate(() => new Date())

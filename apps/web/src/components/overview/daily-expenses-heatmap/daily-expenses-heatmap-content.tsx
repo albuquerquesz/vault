@@ -1,12 +1,12 @@
 "use client";
 
+import type { HeatmapColumn } from "@/components/charts/heatmap";
 import {
-	HeatmapChart,
 	HeatmapCells,
+	HeatmapChart,
 	HeatmapLegend,
 	HeatmapTooltip,
 } from "@/components/charts/heatmap";
-import type { HeatmapColumn } from "@/components/charts/heatmap";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 
 type DailyExpensesHeatmapContentProps = {
@@ -56,7 +56,7 @@ export function DailyExpensesHeatmapContent({
 				<HeatmapCells cornerRadius={3} />
 				<HeatmapTooltip
 					showDelay={300}
-					formatLabel={(count: number, date: Date) =>
+					formatLabel={(count: number, _date: Date) =>
 						`${new Intl.NumberFormat(locale, {
 							style: "currency",
 							currency,

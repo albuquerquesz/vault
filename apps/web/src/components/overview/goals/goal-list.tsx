@@ -7,7 +7,13 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@vault/ui/components/dropdown-menu";
-import { CheckIcon, MoreVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import {
+	CheckIcon,
+	ExternalLinkIcon,
+	MoreVerticalIcon,
+	PencilIcon,
+	Trash2Icon,
+} from "lucide-react";
 import { AnimatedNumber } from "@/components/animated-number";
 import type { Goal } from "@/features/finance/sdk";
 
@@ -50,12 +56,37 @@ export function GoalList({
 						key={goal.id}
 						className="flex items-center justify-between gap-3 py-1.5"
 					>
-						<span
-							className="min-w-0 flex-1 truncate text-lg font-medium"
-							title={goal.name}
-						>
-							{displayName}
-						</span>
+						<div className="flex min-w-0 flex-1 items-center gap-2">
+							{goal.url ? (
+								<a
+									href={goal.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="min-w-0 truncate text-lg font-medium underline-offset-4 hover:underline"
+									title={goal.name}
+								>
+									{displayName}
+								</a>
+							) : (
+								<span
+									className="min-w-0 truncate text-lg font-medium"
+									title={goal.name}
+								>
+									{displayName}
+								</span>
+							)}
+							{goal.url ? (
+								<a
+									href={goal.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="shrink-0 text-muted-foreground hover:text-foreground"
+									aria-label={`Abrir link da meta ${goal.name}`}
+								>
+									<ExternalLinkIcon className="size-4" />
+								</a>
+							) : null}
+						</div>
 
 						<div className="flex shrink-0 items-center gap-1">
 							<AnimatedNumber

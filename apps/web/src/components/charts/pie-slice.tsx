@@ -3,9 +3,9 @@
 import { arc as arcGenerator } from "@visx/shape";
 import { motion, useSpring, useTransform } from "motion/react";
 import { memo, useCallback, useEffect, useMemo } from "react";
-import { usePieHover, usePieStable } from "./pie-context";
 import { useEnterComplete } from "./hooks/use-enter-complete";
 import { useMountProgress } from "./hooks/use-mount-progress";
+import { usePieHover, usePieStable } from "./pie-context";
 
 // Helper to generate arc path using d3 arc generator
 function generateArcPath(
@@ -115,7 +115,8 @@ function AnimatedSliceTranslate({
 	const enterComplete = useEnterComplete(mountProgress);
 
 	const animatedPath = useMemo(() => {
-		const currentEndAngle = startAngle + (endAngle - startAngle) * mountProgress;
+		const currentEndAngle =
+			startAngle + (endAngle - startAngle) * mountProgress;
 		if (currentEndAngle <= startAngle + 0.01) {
 			return "";
 		}
@@ -127,7 +128,15 @@ function AnimatedSliceTranslate({
 			cornerRadius,
 			padAngle,
 		);
-	}, [mountProgress, startAngle, endAngle, innerRadius, outerRadius, cornerRadius, padAngle]);
+	}, [
+		mountProgress,
+		startAngle,
+		endAngle,
+		innerRadius,
+		outerRadius,
+		cornerRadius,
+		padAngle,
+	]);
 
 	const offset = useMemo(
 		() => getSliceOffset(startAngle, endAngle, hoverOffset),
@@ -187,9 +196,7 @@ function AnimatedSliceTranslate({
 			pointerEvents="none"
 			style={{
 				filter:
-					showGlow && isHovered
-						? `drop-shadow(0 0 12px ${glowColor})`
-						: "none",
+					showGlow && isHovered ? `drop-shadow(0 0 12px ${glowColor})` : "none",
 			}}
 			transition={{
 				opacity: { duration: 0.15 },
@@ -286,7 +293,14 @@ function AnimatedSliceGrow({
 				cornerRadius,
 				padAngle,
 			),
-		[innerRadius, grownOuterRadius, startAngle, endAngle, cornerRadius, padAngle],
+		[
+			innerRadius,
+			grownOuterRadius,
+			startAngle,
+			endAngle,
+			cornerRadius,
+			padAngle,
+		],
 	);
 
 	if (enterComplete) {
@@ -324,9 +338,7 @@ function AnimatedSliceGrow({
 			pointerEvents="none"
 			style={{
 				filter:
-					showGlow && isHovered
-						? `drop-shadow(0 0 12px ${glowColor})`
-						: "none",
+					showGlow && isHovered ? `drop-shadow(0 0 12px ${glowColor})` : "none",
 			}}
 			transition={{
 				opacity: { duration: 0.15 },
@@ -397,7 +409,14 @@ export const PieSlice = memo(function PieSlice({
 				cornerRadius,
 				arcData.paddingAngle,
 			),
-		[innerRadius, outerRadius, arcData.startAngle, arcData.endAngle, cornerRadius, arcData.paddingAngle],
+		[
+			innerRadius,
+			outerRadius,
+			arcData.startAngle,
+			arcData.endAngle,
+			cornerRadius,
+			arcData.paddingAngle,
+		],
 	);
 
 	// Generate the visible path for grow effect
@@ -412,7 +431,14 @@ export const PieSlice = memo(function PieSlice({
 				cornerRadius,
 				arcData.paddingAngle,
 			),
-		[innerRadius, grownOuterRadius, arcData.startAngle, arcData.endAngle, cornerRadius, arcData.paddingAngle],
+		[
+			innerRadius,
+			grownOuterRadius,
+			arcData.startAngle,
+			arcData.endAngle,
+			cornerRadius,
+			arcData.paddingAngle,
+		],
 	);
 
 	// Render animated slice based on effect type
@@ -473,9 +499,7 @@ export const PieSlice = memo(function PieSlice({
 					pointerEvents="none"
 					style={{
 						filter:
-							showGlow && isHovered
-								? `drop-shadow(0 0 12px ${color})`
-								: "none",
+							showGlow && isHovered ? `drop-shadow(0 0 12px ${color})` : "none",
 					}}
 					transition={{
 						opacity: { duration: 0.15 },
@@ -502,9 +526,7 @@ export const PieSlice = memo(function PieSlice({
 				pointerEvents="none"
 				style={{
 					filter:
-						showGlow && isHovered
-							? `drop-shadow(0 0 12px ${color})`
-							: "none",
+						showGlow && isHovered ? `drop-shadow(0 0 12px ${color})` : "none",
 				}}
 				transition={{
 					opacity: { duration: 0.15 },
@@ -515,8 +537,14 @@ export const PieSlice = memo(function PieSlice({
 		);
 	};
 
-	const handleMouseEnter = useCallback(() => setHoveredIndex(index), [index, setHoveredIndex]);
-	const handleMouseLeave = useCallback(() => setHoveredIndex(null), [setHoveredIndex]);
+	const handleMouseEnter = useCallback(
+		() => setHoveredIndex(index),
+		[index, setHoveredIndex],
+	);
+	const handleMouseLeave = useCallback(
+		() => setHoveredIndex(null),
+		[setHoveredIndex],
+	);
 
 	return (
 		<g style={{ cursor: "pointer" }}>

@@ -10,55 +10,55 @@ import { HeatmapXAxis } from "./heatmap-x-axis";
 import { HeatmapYAxis } from "./heatmap-y-axis";
 
 export interface HeatmapChartLoadingProps {
-  /** Target column data used to size the skeleton grid. */
-  data: HeatmapColumn[];
-  /** Visible time range — filters week columns that overlap the domain. */
-  xDomain?: [Date, Date];
-  /** Chart margins */
-  margin?: Partial<Margin>;
-  /** Fixed cell size in pixels. When 0, cells are square and sized to fit the plot. Default: 0 */
-  binSize?: number;
-  /** Gap between cells in pixels. Default: 2 */
-  gap?: number;
-  /** Corner radius for each cell. Default: 2 */
-  cornerRadius?: number;
-  /** Centered shimmer label text. Default: "Loading" */
-  label?: string;
-  /** Additional class name for the container */
-  className?: string;
+	/** Target column data used to size the skeleton grid. */
+	data: HeatmapColumn[];
+	/** Visible time range — filters week columns that overlap the domain. */
+	xDomain?: [Date, Date];
+	/** Chart margins */
+	margin?: Partial<Margin>;
+	/** Fixed cell size in pixels. When 0, cells are square and sized to fit the plot. Default: 0 */
+	binSize?: number;
+	/** Gap between cells in pixels. Default: 2 */
+	gap?: number;
+	/** Corner radius for each cell. Default: 2 */
+	cornerRadius?: number;
+	/** Centered shimmer label text. Default: "Loading" */
+	label?: string;
+	/** Additional class name for the container */
+	className?: string;
 }
 
 export function HeatmapChartLoading({
-  data,
-  xDomain,
-  margin,
-  binSize = 0,
-  gap = 2,
-  cornerRadius = 2,
-  label = "Loading",
-  className = "",
+	data,
+	xDomain,
+	margin,
+	binSize = 0,
+	gap = 2,
+	cornerRadius = 2,
+	label = "Loading",
+	className = "",
 }: HeatmapChartLoadingProps) {
-  const skeletonData = useMemo(
-    () => generateHeatmapSkeletonFromTarget(data),
-    [data]
-  );
+	const skeletonData = useMemo(
+		() => generateHeatmapSkeletonFromTarget(data),
+		[data],
+	);
 
-  return (
-    <HeatmapChart
-      binSize={binSize}
-      className={className}
-      data={skeletonData}
-      gap={gap}
-      loadingLabel={label}
-      margin={margin}
-      status="loading"
-      xDomain={xDomain}
-    >
-      <HeatmapCells cornerRadius={cornerRadius} interactive={false} />
-      <HeatmapXAxis />
-      <HeatmapYAxis />
-    </HeatmapChart>
-  );
+	return (
+		<HeatmapChart
+			binSize={binSize}
+			className={className}
+			data={skeletonData}
+			gap={gap}
+			loadingLabel={label}
+			margin={margin}
+			status="loading"
+			xDomain={xDomain}
+		>
+			<HeatmapCells cornerRadius={cornerRadius} interactive={false} />
+			<HeatmapXAxis />
+			<HeatmapYAxis />
+		</HeatmapChart>
+	);
 }
 
 export default HeatmapChartLoading;

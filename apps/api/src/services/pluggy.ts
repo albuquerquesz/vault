@@ -1,28 +1,32 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { createPluggyClient, PluggyApiError } from "../clients/pluggy/index.js";
-import { db } from "../db/index.js";
-import {
-	expense,
-	pluggyAccounts,
-	pluggyItems,
-	pluggyTransactions,
-} from "../db/schema/index.js";
 import type {
 	CreatePluggyConnectTokenInput,
 	PluggyAccount,
+	PluggyBill,
 	PluggyConnectToken,
 	PluggyCredentials,
-	PluggyItem as RemotePluggyItem,
 	PluggyTransaction,
 	RegisterPluggyWebhookInput,
+	PluggyItem as RemotePluggyItem,
 } from "../clients/pluggy/types.js";
+import { db } from "../db/index.js";
+import {
+	expense,
+	monthlyBill,
+	monthlyBillItem,
+	pluggyAccounts,
+	pluggyBills,
+	pluggyItems,
+	pluggyTransactions,
+} from "../db/schema/index.js";
 
 export type {
 	CreatePluggyConnectTokenInput,
 	PluggyConnectToken,
-	RemotePluggyItem as PluggyItem,
 	PluggyTransaction,
 	RegisterPluggyWebhookInput,
+	RemotePluggyItem as PluggyItem,
 };
 
 const INITIAL_SYNC_WINDOW_DAYS = 90;
@@ -108,6 +112,10 @@ export function createPluggyService(creds: PluggyCredentials) {
 			return client.listAccounts(itemId);
 		},
 
+		listBills(accountId: string): Promise<PluggyBill[]> {
+			return client.listBills(accountId);
+		},
+
 		getTransactionsByAccount({
 			accountId,
 			startDate,
@@ -156,7 +164,9 @@ async function resolveProviderName(
 	}
 
 	const connectors = await service.listConnectors();
-	const connector = connectors.find((entry) => Number(entry.id) === connectorId);
+	const connector = connectors.find(
+		(entry) => Number(entry.id) === connectorId,
+	);
 	return connector?.name ?? "Unknown institution";
 }
 
@@ -237,6 +247,228 @@ export async function syncAccountsForItem(params: {
 		status: "success" as const,
 		accountIdsByRemoteId,
 	};
+}
+
+function sumBillPayments(bill: PluggyBill): number {
+	return (bill.payments ?? []).reduce(
+		(sum, payment) => sum + (Number(payment.amount) || 0),
+		0,
+	);
+}
+
+function monthFromDueDate(dueDate: string | Date): string | null {
+	const raw = typeof dueDate === "string" ? dueDate : dueDate.toISOString();
+	const match = raw.match(/^(\d{4}-\d{2})/);
+	return match?.[1] ?? null;
+}
+
+/** Sync credit-card bills for CREDIT accounts of an item. */
+export async function syncBillsForCreditAccounts(params: {
+	service: ReturnType<typeof createPluggyService>;
+	userId: string;
+	accounts: PluggyAccount[];
+	accountIdsByRemoteId: Map<string, string>;
+}): Promise<PluggySyncResult> {
+	const { service, userId, accounts, accountIdsByRemoteId } = params;
+	const creditAccounts = accounts.filter(
+		(account) => account.type === "CREDIT",
+	);
+
+	let total = 0;
+	let synced = 0;
+
+	for (const account of creditAccounts) {
+		const localAccountId = accountIdsByRemoteId.get(account.id);
+		if (!localAccountId) continue;
+
+		const bills = await service.listBills(account.id);
+		total += bills.length;
+
+		const insertable = bills
+			.filter((bill) => Boolean(bill.id) && Boolean(bill.dueDate))
+			.map((bill) => {
+				const paidAmount = sumBillPayments(bill);
+				return {
+					pluggyAccountId: localAccountId,
+					pluggyBillId: bill.id,
+					dueDate: new Date(bill.dueDate),
+					totalAmount: bill.totalAmount.toString(),
+					paidAmount: paidAmount.toString(),
+					minimumPaymentAmount:
+						bill.minimumPaymentAmount != null
+							? bill.minimumPaymentAmount.toString()
+							: null,
+					currency: bill.totalAmountCurrencyCode ?? "BRL",
+				};
+			});
+
+		if (insertable.length === 0) continue;
+
+		const upserted = await db
+			.insert(pluggyBills)
+			.values(insertable)
+			.onConflictDoUpdate({
+				target: [pluggyBills.pluggyAccountId, pluggyBills.pluggyBillId],
+				set: {
+					dueDate: sql.raw(`EXCLUDED.due_date`),
+					totalAmount: sql.raw(`EXCLUDED.total_amount`),
+					paidAmount: sql.raw(`EXCLUDED.paid_amount`),
+					minimumPaymentAmount: sql.raw(`EXCLUDED.minimum_payment_amount`),
+					currency: sql.raw(`EXCLUDED.currency`),
+					updatedAt: new Date(),
+				},
+			})
+			.returning({ id: pluggyBills.id });
+
+		synced += upserted.length;
+	}
+
+	await materializeMonthlyBillsFromPluggy({ userId });
+
+	return {
+		total,
+		synced,
+		status: "success" as const,
+	};
+}
+
+/**
+ * Rebuild monthly_bill / monthly_bill_item read model from stored Pluggy bills.
+ * Pluggy-sourced items are replaced; manual items are preserved.
+ */
+export async function materializeMonthlyBillsFromPluggy(params: {
+	userId: string;
+}): Promise<void> {
+	const { userId } = params;
+
+	const rows = await db
+		.select({
+			pluggyBillId: pluggyBills.pluggyBillId,
+			dueDate: pluggyBills.dueDate,
+			totalAmount: pluggyBills.totalAmount,
+			paidAmount: pluggyBills.paidAmount,
+			accountName: pluggyAccounts.name,
+			accountRemoteId: pluggyAccounts.pluggyAccountId,
+		})
+		.from(pluggyBills)
+		.innerJoin(
+			pluggyAccounts,
+			eq(pluggyBills.pluggyAccountId, pluggyAccounts.id),
+		)
+		.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
+		.where(eq(pluggyItems.userId, userId))
+		.orderBy(asc(pluggyBills.dueDate));
+
+	// account+month → latest bill by dueDate
+	const byMonthAccount = new Map<
+		string,
+		{
+			month: string;
+			name: string;
+			paidAmount: number;
+			totalAmount: number;
+			pluggyBillId: string;
+			dueDateMs: number;
+		}
+	>();
+
+	for (const row of rows) {
+		const month = monthFromDueDate(row.dueDate);
+		if (!month) continue;
+
+		const name =
+			row.accountName?.trim() || row.accountRemoteId.slice(0, 8) || "Cartão";
+		const key = `${month}::${row.accountRemoteId}`;
+		const dueDateMs = new Date(row.dueDate).getTime();
+		const existing = byMonthAccount.get(key);
+		if (existing && existing.dueDateMs >= dueDateMs) {
+			continue;
+		}
+
+		byMonthAccount.set(key, {
+			month,
+			name,
+			paidAmount: Number(row.paidAmount) || 0,
+			totalAmount: Number(row.totalAmount) || 0,
+			pluggyBillId: row.pluggyBillId,
+			dueDateMs,
+		});
+	}
+
+	const months = [...new Set([...byMonthAccount.values()].map((v) => v.month))];
+
+	for (const month of months) {
+		const monthItems = [...byMonthAccount.values()]
+			.filter((item) => item.month === month)
+			.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+
+		const [bill] = await db
+			.insert(monthlyBill)
+			.values({
+				userId,
+				month,
+				totalBill: "0",
+			})
+			.onConflictDoUpdate({
+				target: [monthlyBill.userId, monthlyBill.month],
+				set: {
+					updatedAt: new Date(),
+				},
+			})
+			.returning();
+
+		if (!bill) continue;
+
+		await db
+			.delete(monthlyBillItem)
+			.where(
+				and(
+					eq(monthlyBillItem.monthlyBillId, bill.id),
+					eq(monthlyBillItem.source, "pluggy"),
+				),
+			);
+
+		const manualItems = await db
+			.select()
+			.from(monthlyBillItem)
+			.where(eq(monthlyBillItem.monthlyBillId, bill.id))
+			.orderBy(asc(monthlyBillItem.sortOrder));
+
+		const startSort =
+			manualItems.reduce((max, item) => Math.max(max, item.sortOrder), 0) + 1;
+
+		if (monthItems.length > 0) {
+			await db.insert(monthlyBillItem).values(
+				monthItems.map((item, index) => ({
+					monthlyBillId: bill.id,
+					name: item.name,
+					paidAmount: item.paidAmount.toFixed(2),
+					totalAmount: item.totalAmount.toFixed(2),
+					sortOrder: startSort + index,
+					source: "pluggy",
+					pluggyBillId: item.pluggyBillId,
+				})),
+			);
+		}
+
+		const allItems = await db
+			.select()
+			.from(monthlyBillItem)
+			.where(eq(monthlyBillItem.monthlyBillId, bill.id));
+
+		const totalBill = allItems.reduce(
+			(sum, item) => sum + (Number(item.totalAmount) || 0),
+			0,
+		);
+
+		await db
+			.update(monthlyBill)
+			.set({
+				totalBill: totalBill.toFixed(2),
+				updatedAt: new Date(),
+			})
+			.where(eq(monthlyBill.id, bill.id));
+	}
 }
 
 /** Sync transactions for a single account. */
@@ -373,10 +605,7 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 			accountBrand: pluggyAccounts.brand,
 		})
 		.from(pluggyTransactions)
-		.innerJoin(
-			pluggyItems,
-			eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
-		)
+		.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
 		.leftJoin(
 			pluggyAccounts,
 			eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
@@ -436,6 +665,14 @@ export async function syncTransactionsForItem(params: {
 		pluggyItemId,
 	});
 	const accountMap = accountSync.accountIdsByRemoteId;
+
+	// Credit-card bills → pluggy_bills + monthly_bill read model
+	await syncBillsForCreditAccounts({
+		service,
+		userId,
+		accounts,
+		accountIdsByRemoteId: accountMap,
+	});
 
 	// Sync transactions per account
 	let totalTransactions = 0;

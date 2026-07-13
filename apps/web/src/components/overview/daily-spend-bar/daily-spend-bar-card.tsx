@@ -4,74 +4,74 @@ import { Skeleton } from "@vault/ui/components/skeleton";
 import { ChartColumn } from "lucide-react";
 import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 import {
-  OverviewCardEmptyState,
-  OverviewCardErrorState,
-  OverviewCardLoadingState,
+	OverviewCardEmptyState,
+	OverviewCardErrorState,
+	OverviewCardLoadingState,
 } from "@/components/overview/shared/overview-card-state";
 import { DailySpendBarContent } from "./daily-spend-bar-content";
 import { useDailySpendBar } from "./hooks/use-daily-spend-bar";
 
 type DailySpendBarCardProps = {
-  month: string;
-  title?: string;
+	month: string;
+	title?: string;
 };
 
 function DailySpendBarLoadingSkeleton() {
-  return (
-    <OverviewCardShell
-      title="Gastos por dia"
-      icon={<ChartColumn className="size-4 text-muted-foreground" />}
-      tooltip="Total gasto em cada dia do mês selecionado"
-      contentClassName="flex flex-1 flex-col p-4"
-    >
-      <div className="flex h-full min-h-55 flex-1 flex-col justify-end gap-2">
-        <div className="flex h-45 items-end gap-1">
-          {Array.from({ length: 18 }).map((_, index) => (
-            <Skeleton
-              className="w-full rounded-sm"
-              key={`daily-spend-skel-${index}`}
-              style={{ height: `${30 + ((index * 17) % 70)}%` }}
-            />
-          ))}
-        </div>
-        <div className="flex justify-between px-1">
-          <Skeleton className="h-3 w-6" />
-          <Skeleton className="h-3 w-6" />
-          <Skeleton className="h-3 w-6" />
-          <Skeleton className="h-3 w-6" />
-        </div>
-      </div>
-    </OverviewCardShell>
-  );
+	return (
+		<OverviewCardShell
+			title="Gastos por dia"
+			icon={<ChartColumn className="size-4 text-muted-foreground" />}
+			tooltip="Total gasto em cada dia do mês selecionado"
+			contentClassName="flex flex-1 flex-col p-4"
+		>
+			<div className="flex h-full min-h-55 flex-1 flex-col justify-end gap-2">
+				<div className="flex h-45 items-end gap-1">
+					{Array.from({ length: 18 }).map((_, index) => (
+						<Skeleton
+							className="w-full rounded-sm"
+							key={`daily-spend-skel-${index}`}
+							style={{ height: `${30 + ((index * 17) % 70)}%` }}
+						/>
+					))}
+				</div>
+				<div className="flex justify-between px-1">
+					<Skeleton className="h-3 w-6" />
+					<Skeleton className="h-3 w-6" />
+					<Skeleton className="h-3 w-6" />
+					<Skeleton className="h-3 w-6" />
+				</div>
+			</div>
+		</OverviewCardShell>
+	);
 }
 
 export function DailySpendBarCard({
-  month,
-  title = "Gastos por dia",
+	month,
+	title = "Gastos por dia",
 }: DailySpendBarCardProps) {
-  const { chartData, totalSpent, peakDay, isLoading, isError } =
-    useDailySpendBar(month);
+	const { chartData, totalSpent, peakDay, isLoading, isError } =
+		useDailySpendBar(month);
 
-  if (isLoading) {
-    return (
-      <OverviewCardLoadingState fallback={<DailySpendBarLoadingSkeleton />} />
-    );
-  }
+	if (isLoading) {
+		return (
+			<OverviewCardLoadingState fallback={<DailySpendBarLoadingSkeleton />} />
+		);
+	}
 
-  return (
-    <OverviewCardShell
-      title={title}
-      icon={<ChartColumn className="size-4 text-muted-foreground" />}
-      tooltip="Total gasto em cada dia do mês selecionado"
-      contentClassName="flex flex-1 flex-col p-4"
-    >
-      {isError ? (
-        <OverviewCardErrorState message="Não foi possível carregar os gastos diários." />
-      ) : totalSpent <= 0 ? (
-        <OverviewCardEmptyState message="Nenhuma despesa neste mês" />
-      ) : (
-        <DailySpendBarContent chartData={chartData} peakDay={peakDay} />
-      )}
-    </OverviewCardShell>
-  );
+	return (
+		<OverviewCardShell
+			title={title}
+			icon={<ChartColumn className="size-4 text-muted-foreground" />}
+			tooltip="Total gasto em cada dia do mês selecionado"
+			contentClassName="flex flex-1 flex-col p-4"
+		>
+			{isError ? (
+				<OverviewCardErrorState message="Não foi possível carregar os gastos diários." />
+			) : totalSpent <= 0 ? (
+				<OverviewCardEmptyState message="Nenhuma despesa neste mês" />
+			) : (
+				<DailySpendBarContent chartData={chartData} peakDay={peakDay} />
+			)}
+		</OverviewCardShell>
+	);
 }

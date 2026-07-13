@@ -1,5 +1,14 @@
 import { and, eq, sql } from "drizzle-orm";
 import { createPluggyClient, PluggyApiError } from "../clients/pluggy";
+import type {
+	CreatePluggyConnectTokenInput,
+	PluggyAccount,
+	PluggyConnectToken,
+	PluggyCredentials,
+	PluggyTransaction,
+	RegisterPluggyWebhookInput,
+	PluggyItem as RemotePluggyItem,
+} from "../clients/pluggy/types";
 import { db } from "../db";
 import {
 	expense,
@@ -7,22 +16,13 @@ import {
 	pluggyItems,
 	pluggyTransactions,
 } from "../db/schema";
-import type {
-	CreatePluggyConnectTokenInput,
-	PluggyAccount,
-	PluggyConnectToken,
-	PluggyCredentials,
-	PluggyItem as RemotePluggyItem,
-	PluggyTransaction,
-	RegisterPluggyWebhookInput,
-} from "../clients/pluggy/types";
 
 export type {
 	CreatePluggyConnectTokenInput,
 	PluggyConnectToken,
-	RemotePluggyItem as PluggyItem,
 	PluggyTransaction,
 	RegisterPluggyWebhookInput,
+	RemotePluggyItem as PluggyItem,
 };
 
 const INITIAL_SYNC_WINDOW_DAYS = 90;
@@ -156,7 +156,9 @@ async function resolveProviderName(
 	}
 
 	const connectors = await service.listConnectors();
-	const connector = connectors.find((entry) => Number(entry.id) === connectorId);
+	const connector = connectors.find(
+		(entry) => Number(entry.id) === connectorId,
+	);
 	return connector?.name ?? "Unknown institution";
 }
 
@@ -373,10 +375,7 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 			accountBrand: pluggyAccounts.brand,
 		})
 		.from(pluggyTransactions)
-		.innerJoin(
-			pluggyItems,
-			eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
-		)
+		.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
 		.leftJoin(
 			pluggyAccounts,
 			eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
