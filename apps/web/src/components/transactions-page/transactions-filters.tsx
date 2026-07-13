@@ -11,7 +11,6 @@ import {
 } from "@vault/ui/components/select";
 import { CalendarIcon, SearchIcon, XIcon } from "lucide-react";
 import { ActiveFilterChip } from "./active-filter-chip";
-import { CATEGORIES } from "./constants";
 import type {
   TransactionsActiveFilterChip,
   TransactionsMonthOption,
@@ -23,6 +22,7 @@ export function TransactionsFilters({
   monthOptions,
   categoryFilter,
   onCategoryFilterChange,
+  categories,
   searchQuery,
   onSearchQueryChange,
   hasActiveFilters,
@@ -34,6 +34,7 @@ export function TransactionsFilters({
   monthOptions: TransactionsMonthOption[];
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
+  categories: string[];
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   hasActiveFilters: boolean;
@@ -69,7 +70,7 @@ export function TransactionsFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas categorias</SelectItem>
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
               </SelectItem>

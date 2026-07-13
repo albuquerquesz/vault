@@ -57,6 +57,13 @@
       "when": 1783885664135,
       "tag": "0007_overjoyed_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783903500000,
+      "tag": "0008_blue_hustler",
+      "breakpoints": true
     }
   ]
 }

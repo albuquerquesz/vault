@@ -62,6 +62,18 @@ export function TransactionsPage() {
     [filteredExpenses],
   );
 
+  const categories = useMemo(() => {
+    const values = new Set(
+      (expensesQuery.data ?? [])
+        .map((expense) => expense.category?.trim())
+        .filter((category): category is string => Boolean(category)),
+    );
+
+    return Array.from(values).sort((left, right) =>
+      left.localeCompare(right, "pt-BR"),
+    );
+  }, [expensesQuery.data]);
+
   const monthLabel = useMemo(() => {
     const date = new Date(`${selectedMonth}-01T12:00:00`);
     return date.toLocaleDateString("pt-BR", {
@@ -164,6 +176,7 @@ export function TransactionsPage() {
           monthOptions={monthOptions}
           categoryFilter={categoryFilter}
           onCategoryFilterChange={setCategoryFilter}
+          categories={categories}
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
           hasActiveFilters={hasActiveFilters}

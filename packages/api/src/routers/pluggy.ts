@@ -15,6 +15,7 @@ import {
 } from "../services/connectors/credentials";
 import {
 	createPluggyService,
+	deleteDerivedExpensesForItem,
 	persistPluggyItemAndSync,
 	syncTransactionsForItem,
 } from "../services/pluggy";
@@ -183,6 +184,7 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 				const service = createPluggyService(creds);
 				const sync = await syncTransactionsForItem({
 					service,
+					userId: session.user.id,
 					localItemId: item.id,
 					pluggyItemId: item.pluggyItemId,
 				});
@@ -219,6 +221,7 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 				const creds = await resolvePluggyCredentials(session.user.id);
 				const pluggy = createPluggyService(creds);
 				await pluggy.deleteItem(item.pluggyItemId);
+				await deleteDerivedExpensesForItem(item.id);
 				await db
 					.delete(pluggyTransactions)
 					.where(eq(pluggyTransactions.pluggyItemId, item.id));

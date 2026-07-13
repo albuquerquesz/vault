@@ -6,8 +6,10 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
+import { pluggyItems } from "./pluggy-item";
 import { user } from "./user";
 
 export const expense = pgTable(
@@ -21,6 +23,11 @@ export const expense = pgTable(
 		amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
 		category: text("category").notNull(),
 		note: text("note"),
+		source: text("source").default("manual").notNull(),
+		sourceExternalId: text("source_external_id"),
+		sourceItemId: uuid("source_item_id").references(() => pluggyItems.id, {
+			onDelete: "cascade",
+		}),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()
@@ -30,6 +37,12 @@ export const expense = pgTable(
 	(table) => [
 		index("expense_user_id_idx").on(table.userId),
 		index("expense_date_idx").on(table.expenseDate),
+		index("expense_source_item_id_idx").on(table.sourceItemId),
+		uniqueIndex("expense_user_source_external_idx").on(
+			table.userId,
+			table.source,
+			table.sourceExternalId,
+		),
 	],
 );
 
@@ -37,5 +50,9 @@ export const expenseRelations = relations(expense, ({ one }) => ({
 	user: one(user, {
 		fields: [expense.userId],
 		references: [user.id],
+	}),
+	item: one(pluggyItems, {
+		fields: [expense.sourceItemId],
+		references: [pluggyItems.id],
 	}),
 }));

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/utils/api";
 
 const API_BASE =
 	import.meta.env.VITE_API_BASE ??
@@ -60,7 +61,9 @@ async function readApiError(res: Response): Promise<string> {
 }
 
 async function fetcher<T>(path: string): Promise<T> {
-	const res = await fetch(`${API_BASE}${path}`);
+	const res = await fetch(`${API_BASE}${path}`, {
+		credentials: "include",
+	});
 	if (!res.ok) {
 		throw new Error(await readApiError(res));
 	}
@@ -71,14 +74,10 @@ async function fetcher<T>(path: string): Promise<T> {
 
 export function usePluggyConnectToken() {
 	return useMutation<string, Error, void>({
-		mutationFn: async () => {
-			const res = await fetch(`${API_BASE}/api/pluggy/connect`, {
+		mutationFn: async () =>
+			apiFetch<{ url: string }>("/api/pluggy/connect", {
 				method: "POST",
-			});
-			if (!res.ok) throw new Error(await readApiError(res));
-			const data = await res.json();
-			return data.url;
-		},
+			}).then((data) => data.url),
 	});
 }
 
@@ -94,15 +93,14 @@ export function usePluggyItems() {
 export function usePluggyRegisterItem() {
 	const qc = useQueryClient();
 	return useMutation({
-		mutationFn: async (pluggyItemId: string) => {
-			const res = await fetch(`${API_BASE}/api/pluggy/items`, {
+		mutationFn: async (pluggyItemId: string) =>
+			apiFetch<{
+				item: PluggyItem;
+				sync: PluggySyncResult;
+			}>("/api/pluggy/items", {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ pluggyItemId }),
-			});
-			if (!res.ok) throw new Error(await readApiError(res));
-			return res.json();
-		},
+				body: { pluggyItemId },
+			}),
 		onSettled: async () => {
 			await Promise.all([
 				qc.invalidateQueries({ queryKey: ["pluggy-items"] }),
@@ -116,13 +114,11 @@ export function usePluggyRegisterItem() {
 export function usePluggyDeleteItem() {
 	const qc = useQueryClient();
 	return useMutation<void, Error, string>({
-		mutationFn: async (pluggyItemId: string) => {
-			const res = await fetch(
-				`${API_BASE}/api/pluggy/items/${encodeURIComponent(pluggyItemId)}`,
+		mutationFn: async (pluggyItemId: string) =>
+			apiFetch<void>(
+				`/api/pluggy/items/${encodeURIComponent(pluggyItemId)}`,
 				{ method: "DELETE" },
-			);
-			if (!res.ok) throw new Error(await readApiError(res));
-		},
+			),
 		onSettled: async () => {
 			await Promise.all([
 				qc.invalidateQueries({ queryKey: ["pluggy-items"] }),
@@ -167,13 +163,9 @@ export function usePluggyTransactions(params?: {
 
 export function usePluggySync() {
 	return useMutation<PluggySyncResult, Error, string>({
-		mutationFn: async (itemId: string) => {
-			const res = await fetch(`${API_BASE}/api/pluggy/sync/${itemId}`, {
+		mutationFn: async (itemId: string) =>
+			apiFetch<{ sync: PluggySyncResult }>(`/api/pluggy/sync/${itemId}`, {
 				method: "POST",
-			});
-			if (!res.ok) throw new Error(await readApiError(res));
-			const data = await res.json();
-			return data.sync as PluggySyncResult;
-		},
+			}).then((data) => data.sync),
 	});
 }

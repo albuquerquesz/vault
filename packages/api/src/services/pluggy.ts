@@ -1,7 +1,8 @@
-import { sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { createPluggyClient, PluggyApiError } from "../clients/pluggy";
 import { db } from "../db";
 import {
+	expense,
 	pluggyAccounts,
 	pluggyItems,
 	pluggyTransactions,
@@ -38,6 +39,8 @@ export type PluggyAccountSyncResult = {
 	error?: string;
 	accountIdsByRemoteId: Map<string, string>;
 };
+
+const PLUGGY_EXPENSE_SOURCE = "pluggy";
 
 /** Pluggy operations bound to the given user BYOK credentials. */
 export function createPluggyService(creds: PluggyCredentials) {
@@ -188,13 +191,22 @@ export async function syncAccountsForItem(params: {
 /** Sync transactions for a single account. */
 async function syncTransactionsForAccount(params: {
 	service: ReturnType<typeof createPluggyService>;
+	userId: string;
 	localItemId: string;
 	localAccountId: string;
 	pluggyAccountId: string;
 	startDate: string;
 	endDate: string;
 }): Promise<PluggySyncResult> {
-	const { service, localItemId, localAccountId, pluggyAccountId, startDate, endDate } = params;
+	const {
+		service,
+		userId,
+		localItemId,
+		localAccountId,
+		pluggyAccountId,
+		startDate,
+		endDate,
+	} = params;
 	const transactions = await service.getTransactionsByAccount({
 		accountId: pluggyAccountId,
 		startDate,
@@ -221,31 +233,88 @@ async function syncTransactionsForAccount(params: {
 		};
 	}
 
-	const inserted = await db
+	const upserted = await db
 		.insert(pluggyTransactions)
 		.values(insertable)
-		.onConflictDoNothing({
+		.onConflictDoUpdate({
 			target: [
 				pluggyTransactions.pluggyItemId,
 				pluggyTransactions.pluggyTransactionId,
 			],
+			set: {
+				pluggyAccountId: sql.raw(`EXCLUDED.pluggy_account_id`),
+				date: sql.raw(`EXCLUDED.date`),
+				amount: sql.raw(`EXCLUDED.amount`),
+				description: sql.raw(`EXCLUDED.description`),
+				category: sql.raw(`EXCLUDED.category`),
+			},
 		})
 		.returning({ id: pluggyTransactions.id });
 
+	await syncExpensesFromPluggyTransactions({
+		userId,
+		localItemId,
+		transactions,
+	});
+
 	return {
 		total: transactions.length,
-		synced: inserted.length,
+		synced: upserted.length,
 		status: "success" as const,
 	};
+}
+
+async function syncExpensesFromPluggyTransactions(params: {
+	userId: string;
+	localItemId: string;
+	transactions: PluggyTransaction[];
+}) {
+	const { userId, localItemId, transactions } = params;
+	const outgoing = transactions
+		.filter((tx) => Boolean(tx.date) && tx.amount < 0)
+		.map((tx) => ({
+			userId,
+			expenseDate: tx.date,
+			amount: Math.abs(tx.amount).toFixed(2),
+			category: tx.category?.trim() || "Outros",
+			note: tx.description ?? null,
+			source: PLUGGY_EXPENSE_SOURCE,
+			sourceExternalId: tx.id,
+			sourceItemId: localItemId,
+		}));
+
+	if (outgoing.length === 0) {
+		return;
+	}
+
+	await db
+		.insert(expense)
+		.values(outgoing)
+		.onConflictDoUpdate({
+			target: [
+				expense.userId,
+				expense.source,
+				expense.sourceExternalId,
+			],
+			set: {
+				expenseDate: sql.raw(`EXCLUDED.expense_date`),
+				amount: sql.raw(`EXCLUDED.amount`),
+				category: sql.raw(`EXCLUDED.category`),
+				note: sql.raw(`EXCLUDED.note`),
+				sourceItemId: sql.raw(`EXCLUDED.source_item_id`),
+				updatedAt: new Date(),
+			},
+		});
 }
 
 /** Sync transactions for all accounts of an item. */
 export async function syncTransactionsForItem(params: {
 	service: ReturnType<typeof createPluggyService>;
+	userId: string;
 	localItemId: string;
 	pluggyItemId: string;
 }): Promise<PluggySyncResult> {
-	const { service, localItemId, pluggyItemId } = params;
+	const { service, userId, localItemId, pluggyItemId } = params;
 	const { startDate, endDate } = buildInitialSyncWindow();
 
 	// Fetch accounts from Pluggy
@@ -272,6 +341,7 @@ export async function syncTransactionsForItem(params: {
 
 		const result = await syncTransactionsForAccount({
 			service,
+			userId,
 			localItemId,
 			localAccountId,
 			pluggyAccountId: acc.id,
@@ -324,6 +394,7 @@ export async function persistPluggyItemAndSync(params: {
 	try {
 		const sync = await syncTransactionsForItem({
 			service,
+			userId: params.userId,
 			localItemId: item.id,
 			pluggyItemId: item.pluggyItemId,
 		});
@@ -343,6 +414,17 @@ export async function persistPluggyItemAndSync(params: {
 			},
 		};
 	}
+}
+
+export async function deleteDerivedExpensesForItem(localItemId: string) {
+	await db
+		.delete(expense)
+		.where(
+			and(
+				eq(expense.source, PLUGGY_EXPENSE_SOURCE),
+				eq(expense.sourceItemId, localItemId),
+			),
+		);
 }
 
 /** @deprecated Prefer createPluggyService(creds) for BYOK. Kept for call-site migration. */

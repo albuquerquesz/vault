@@ -12,6 +12,9 @@ export interface FinanceExpense {
 	amount: number;
 	category: string;
 	note: string | null;
+	source: string;
+	sourceExternalId?: string | null;
+	sourceItemId?: string | null;
 	createdAt: Date;
 	updatedAt: Date;
 }
