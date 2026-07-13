@@ -16,6 +16,16 @@ const currencyFmt = new Intl.NumberFormat("pt-BR", {
 	currency: "BRL",
 });
 
+const MAX_NAME_LENGTH = 20;
+
+function maskGoalName(name: string) {
+	if (name.length <= MAX_NAME_LENGTH) {
+		return name;
+	}
+
+	return `${name.slice(0, MAX_NAME_LENGTH)}…`;
+}
+
 type GoalListProps = {
 	goals: Goal[];
 	onComplete: (goal: Goal) => void;
@@ -33,19 +43,23 @@ export function GoalList({
 		<div className="flex flex-col gap-1">
 			{goals.map((goal) => {
 				const isCompleted = goal.currentAmount >= goal.targetAmount;
+				const displayName = maskGoalName(goal.name);
 
 				return (
 					<div
 						key={goal.id}
 						className="flex items-center justify-between gap-3 py-1.5"
 					>
-						<span className="min-w-0 flex-1 truncate text-sm font-medium">
-							{goal.name}
+						<span
+							className="min-w-0 flex-1 truncate text-lg font-medium"
+							title={goal.name}
+						>
+							{displayName}
 						</span>
 
 						<div className="flex shrink-0 items-center gap-1">
 							<AnimatedNumber
-								className="text-base font-semibold tabular-nums text-white"
+								className="text-xl font-semibold tabular-nums text-white"
 								format={(value) => currencyFmt.format(value)}
 								value={goal.targetAmount}
 							/>

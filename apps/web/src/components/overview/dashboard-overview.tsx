@@ -27,7 +27,7 @@ export function DashboardOverview() {
         <OrderSourceMixCard month={selectedMonth} />
         <MonthlyBillCard month={selectedMonth} />
       </div>
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-10">
+      <div className="grid grid-cols-1 gap-4 mb-4 xl:grid-cols-10">
         <div className="xl:col-span-4">
           <GoalsCard />
         </div>
