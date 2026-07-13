@@ -57,6 +57,17 @@ export const financeSdk = {
             },
         };
     },
+    deleteExpensesMutationOptions(month = getMonthValue(), client = queryClient, today = getTodayValue()) {
+        return {
+            mutationFn: (ids) => apiFetch("/api/finance/expenses", {
+                method: "DELETE",
+                body: { ids },
+            }),
+            onSuccess: async () => {
+                await invalidateFinanceMonthQueries(client, month, today);
+            },
+        };
+    },
 };
 // --- Hooks ---
 export function useFinanceExpenses(month = getMonthValue()) {
@@ -90,6 +101,9 @@ export function useFinanceMonthlyBills(month = getMonthValue()) {
 }
 export function useCreateExpense(month = getMonthValue(), today = getTodayValue()) {
     return useMutation(financeSdk.createExpenseMutationOptions(month, queryClient, today));
+}
+export function useDeleteExpenses(month = getMonthValue(), today = getTodayValue()) {
+    return useMutation(financeSdk.deleteExpensesMutationOptions(month, queryClient, today));
 }
 export function useUpsertMonthlyBudget(month = getMonthValue(), today = getTodayValue()) {
     return useMutation(financeSdk.upsertMonthlyBudgetMutationOptions(month, queryClient, today));

@@ -4,6 +4,7 @@ import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
+	type OnChangeFn,
 	type RowSelectionState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -22,6 +23,8 @@ interface DataTableProps<TData, TValue> {
 	pageSize?: number;
 	/** Stable row id for selection across infinite-scroll batches. */
 	getRowId?: (originalRow: TData, index: number) => string;
+	rowSelection?: RowSelectionState;
+	onRowSelectionChange?: OnChangeFn<RowSelectionState>;
 }
 
 export function DataTable<TData, TValue>({
@@ -29,20 +32,38 @@ export function DataTable<TData, TValue>({
 	data,
 	pageSize = 10,
 	getRowId,
+	rowSelection: controlledSelection,
+	onRowSelectionChange,
 }: DataTableProps<TData, TValue>) {
 	const [visibleCount, setVisibleCount] = useState(pageSize);
-	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+	const [uncontrolledSelection, setUncontrolledSelection] =
+		useState<RowSelectionState>({});
 	const sentinelRef = useRef<HTMLDivElement>(null);
+
+	const isControlled = controlledSelection !== undefined;
+	const rowSelection = isControlled
+		? controlledSelection
+		: uncontrolledSelection;
+	const setRowSelection: OnChangeFn<RowSelectionState> = (updater) => {
+		if (isControlled) {
+			onRowSelectionChange?.(updater);
+			return;
+		}
+		setUncontrolledSelection(updater);
+		onRowSelectionChange?.(updater);
+	};
 
 	// Reset batch when filters / month change the dataset.
 	useEffect(() => {
 		setVisibleCount(pageSize);
 	}, [data, pageSize]);
 
-	// Clear selection when the underlying dataset identity changes (month/filters).
+	// Clear internal selection when the underlying dataset identity changes.
 	useEffect(() => {
-		setRowSelection({});
-	}, [data]);
+		if (!isControlled) {
+			setUncontrolledSelection({});
+		}
+	}, [data, isControlled]);
 
 	const visibleData = useMemo(
 		() => data.slice(0, visibleCount),
@@ -91,7 +112,7 @@ export function DataTable<TData, TValue>({
 						{table.getRowModel().rows.length ? (
 							table.getRowModel().rows.map((row) => (
 								<TableRow
-									className="h-10 border-b border-border/40 hover:bg-muted/20 data-[state=selected]:bg-muted/20"
+									className="h-12 border-b border-border/40 hover:bg-muted/20 data-[state=selected]:bg-muted/20"
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}
 								>

@@ -3,18 +3,32 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { flexRender, getCoreRowModel, useReactTable, } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableRow, } from "@vault/ui/components/table";
 import { useEffect, useMemo, useRef, useState } from "react";
-export function DataTable({ columns, data, pageSize = 10, getRowId, }) {
+export function DataTable({ columns, data, pageSize = 10, getRowId, rowSelection: controlledSelection, onRowSelectionChange, }) {
     const [visibleCount, setVisibleCount] = useState(pageSize);
-    const [rowSelection, setRowSelection] = useState({});
+    const [uncontrolledSelection, setUncontrolledSelection] = useState({});
     const sentinelRef = useRef(null);
+    const isControlled = controlledSelection !== undefined;
+    const rowSelection = isControlled
+        ? controlledSelection
+        : uncontrolledSelection;
+    const setRowSelection = (updater) => {
+        if (isControlled) {
+            onRowSelectionChange?.(updater);
+            return;
+        }
+        setUncontrolledSelection(updater);
+        onRowSelectionChange?.(updater);
+    };
     // Reset batch when filters / month change the dataset.
     useEffect(() => {
         setVisibleCount(pageSize);
     }, [data, pageSize]);
-    // Clear selection when the underlying dataset identity changes (month/filters).
+    // Clear internal selection when the underlying dataset identity changes.
     useEffect(() => {
-        setRowSelection({});
-    }, [data]);
+        if (!isControlled) {
+            setUncontrolledSelection({});
+        }
+    }, [data, isControlled]);
     const visibleData = useMemo(() => data.slice(0, visibleCount), [data, visibleCount]);
     const total = data.length;
     const hasMore = visibleCount < total;

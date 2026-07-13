@@ -195,6 +195,23 @@ export const financeSdk = {
 			},
 		} as const;
 	},
+
+	deleteExpensesMutationOptions(
+		month = getMonthValue(),
+		client: QueryClient = queryClient,
+		today = getTodayValue(),
+	) {
+		return {
+			mutationFn: (ids: string[]) =>
+				apiFetch<{ deleted: number }>("/api/finance/expenses", {
+					method: "DELETE",
+					body: { ids },
+				}),
+			onSuccess: async () => {
+				await invalidateFinanceMonthQueries(client, month, today);
+			},
+		} as const;
+	},
 };
 
 // --- Hooks ---
@@ -249,6 +266,15 @@ export function useCreateExpense(
 ) {
 	return useMutation(
 		financeSdk.createExpenseMutationOptions(month, queryClient, today),
+	);
+}
+
+export function useDeleteExpenses(
+	month = getMonthValue(),
+	today = getTodayValue(),
+) {
+	return useMutation(
+		financeSdk.deleteExpensesMutationOptions(month, queryClient, today),
 	);
 }
 

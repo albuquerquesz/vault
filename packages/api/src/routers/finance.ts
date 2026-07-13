@@ -144,6 +144,36 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 	});
 
 	server.route({
+		method: "DELETE",
+		url: "/expenses",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { ids } = z
+					.object({
+						ids: z.array(z.string().uuid()).min(1).max(100),
+					})
+					.parse(req.body);
+
+				const deleted = await db
+					.delete(expense)
+					.where(
+						and(eq(expense.userId, session.user.id), inArray(expense.id, ids)),
+					)
+					.returning({ id: expense.id });
+
+				return reply.send({ deleted: deleted.length });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
 		method: "POST",
 		url: "/budget",
 		async handler(req, reply) {
