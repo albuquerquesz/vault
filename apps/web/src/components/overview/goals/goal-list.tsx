@@ -7,8 +7,14 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@vault/ui/components/dropdown-menu";
-import { CheckIcon, MoreHorizontalIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { CheckIcon, MoreVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { AnimatedNumber } from "@/components/animated-number";
 import type { Goal } from "@/features/finance/sdk";
+
+const currencyFmt = new Intl.NumberFormat("pt-BR", {
+	style: "currency",
+	currency: "BRL",
+});
 
 type GoalListProps = {
 	goals: Goal[];
@@ -33,41 +39,51 @@ export function GoalList({
 						key={goal.id}
 						className="flex items-center justify-between gap-3 py-1.5"
 					>
-						<span className="truncate text-sm font-medium">{goal.name}</span>
+						<span className="min-w-0 flex-1 truncate text-sm font-medium">
+							{goal.name}
+						</span>
 
-						<DropdownMenu>
-							<DropdownMenuTrigger
-								render={
-									<Button
-										variant="ghost"
-										size="icon-sm"
-										className="size-8 shrink-0 text-muted-foreground"
-										aria-label={`Opções da meta ${goal.name}`}
-									>
-										<MoreHorizontalIcon className="size-4" />
-									</Button>
-								}
+						<div className="flex shrink-0 items-center gap-1">
+							<AnimatedNumber
+								className="text-base font-semibold tabular-nums text-white"
+								format={(value) => currencyFmt.format(value)}
+								value={goal.targetAmount}
 							/>
-							<DropdownMenuContent align="end" className="min-w-36 bg-card">
-								{!isCompleted && (
-									<DropdownMenuItem onClick={() => onComplete(goal)}>
-										<CheckIcon className="size-4" />
-										Concluir
+
+							<DropdownMenu>
+								<DropdownMenuTrigger
+									render={
+										<Button
+											variant="ghost"
+											size="icon-sm"
+											className="size-8 shrink-0 text-muted-foreground"
+											aria-label={`Opções da meta ${goal.name}`}
+										>
+											<MoreVerticalIcon className="size-4" />
+										</Button>
+									}
+								/>
+								<DropdownMenuContent align="end" className="min-w-36 bg-card">
+									{!isCompleted && (
+										<DropdownMenuItem onClick={() => onComplete(goal)}>
+											<CheckIcon className="size-4" />
+											Concluir
+										</DropdownMenuItem>
+									)}
+									<DropdownMenuItem onClick={() => onEdit(goal)}>
+										<PencilIcon className="size-4" />
+										Editar
 									</DropdownMenuItem>
-								)}
-								<DropdownMenuItem onClick={() => onEdit(goal)}>
-									<PencilIcon className="size-4" />
-									Editar
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									variant="destructive"
-									onClick={() => onDelete(goal)}
-								>
-									<Trash2Icon className="size-4" />
-									Deletar
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+									<DropdownMenuItem
+										variant="destructive"
+										onClick={() => onDelete(goal)}
+									>
+										<Trash2Icon className="size-4" />
+										Deletar
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
 					</div>
 				);
 			})}
