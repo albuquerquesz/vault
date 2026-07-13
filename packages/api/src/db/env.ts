@@ -3,6 +3,8 @@ import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
 export const env = createEnv({
+	clientPrefix: "",
+	client: {},
 	server: {
 		DATABASE_URL: z.string().min(1),
 		POSTGRES_DB: z.string().min(1).default("vault"),
