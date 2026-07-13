@@ -1,65 +1,123 @@
 "use client";
 
 import {
-	Bar,
-	BarChart,
-	BarDepthBack,
-	BarDepthFront,
-	BarLineIndicator,
-	BarXAxis,
-	ChartTooltip,
-	Grid,
+  Bar,
+  BarChart,
+  BarDepthBack,
+  BarDepthFront,
+  BarLineIndicator,
+  BarPulse,
+  BarXAxis,
+  ChartTooltip,
+  Grid,
 } from "@/components/bar-chart";
 import type { DailySpendDatum } from "./hooks/use-daily-spend-bar";
 
 const brlFormatter = new Intl.NumberFormat("pt-BR", {
-	style: "currency",
-	currency: "BRL",
+  style: "currency",
+  currency: "BRL",
 });
 
+const brlWholeFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+/**
+ * Vault inverts the bklit chart scale: `--chart-1` is near-white (oklch 0.92)
+ * and `--chart-5` is charcoal (oklch 0.34). The Studio "3D Depth" demo paints
+ * bars with a dark base (~0.32), so we use the dark end of our palette.
+ */
+const BAR_COLOR = "var(--chart-5)";
+/** Lighter step so the peak day reads clearly without leaving the palette. */
+const PEAK_BAR_COLOR = "var(--chart-3)";
+
 function formatBrl(value: number) {
-	return brlFormatter.format(value);
+  return brlFormatter.format(value);
+}
+
+function formatBrlWhole(value: number) {
+  return brlWholeFormatter.format(value);
+}
+
+function isPeakDay(
+  datum: Record<string, unknown>,
+  peakDay: DailySpendDatum | null,
+) {
+  if (!peakDay) {
+    return false;
+  }
+  return datum.dayNumber === peakDay.dayNumber;
 }
 
 export function DailySpendBarContent({
-	chartData,
+  chartData,
+  peakDay,
 }: {
-	chartData: DailySpendDatum[];
+  chartData: DailySpendDatum[];
+  peakDay: DailySpendDatum | null;
 }) {
-	return (
-		<div className="flex h-full min-h-[220px] w-full flex-1 flex-col">
-			<BarChart
-				className="h-full min-h-[220px] flex-1"
-				data={chartData}
-				margin={{ top: 8, right: 8, bottom: 40, left: 8 }}
-				xDataKey="day"
-			>
-				<Grid horizontal />
-				<BarDepthBack color="var(--chart-1)" dataKey="amount" />
-				<Bar dataKey="amount" fill="var(--chart-1)" perspective />
-				<BarDepthFront dataKey="amount" />
-				<BarXAxis maxLabels={12} />
-				<ChartTooltip
-					rows={(point) => {
-						const amount =
-							typeof point.amount === "number" ? point.amount : 0;
-						const day =
-							typeof point.day === "string" ? point.day : String(point.day ?? "");
+  const peakIndex = peakDay != null ? peakDay.dayNumber - 1 : undefined;
 
-						return [
-							{
-								color: "var(--chart-1)",
-								label: `Dia ${day}`,
-								value: formatBrl(amount),
-							},
-						];
-					}}
-					showCrosshair={false}
-					showDatePill={false}
-					showDots={false}
-				/>
-				<BarLineIndicator data={chartData} valueKey="amount" xKey="day" />
-			</BarChart>
-		</div>
-	);
+  const colorFor = (datum: Record<string, unknown>, _index: number) =>
+    isPeakDay(datum, peakDay) ? PEAK_BAR_COLOR : BAR_COLOR;
+
+  return (
+    <div className="flex h-full min-h-55 w-full flex-1 flex-col gap-2">
+      {peakDay ? (
+        <p className="shrink-0 self-start text-4xl mb-8 font-semibold tracking-tight tabular-nums text-foreground">
+          {formatBrlWhole(peakDay.amount)}
+        </p>
+      ) : null}
+      <BarChart
+        className="h-full min-h-50 flex-1"
+        data={chartData}
+        margin={{ top: 8, right: 8, bottom: 40, left: 8 }}
+        xDataKey="day"
+      >
+        <Grid horizontal />
+        <BarDepthBack
+          color={BAR_COLOR}
+          colorAccessor={colorFor}
+          dataKey="amount"
+        />
+        <Bar
+          dataKey="amount"
+          fill={BAR_COLOR}
+          fillAccessor={colorFor}
+          perspective
+        />
+        <BarDepthFront dataKey="amount" />
+        {peakIndex != null && peakIndex >= 0 ? (
+          <BarPulse activeIndex={peakIndex} dataKey="amount" />
+        ) : null}
+        <BarXAxis maxLabels={12} />
+        <ChartTooltip
+          rows={(point) => {
+            const amount = typeof point.amount === "number" ? point.amount : 0;
+            const day =
+              typeof point.day === "string"
+                ? point.day
+                : String(point.day ?? "");
+            const isPeak =
+              peakDay != null && Number(point.dayNumber) === peakDay.dayNumber;
+
+            return [
+              {
+                color: isPeak ? PEAK_BAR_COLOR : BAR_COLOR,
+                label: isPeak ? `Dia ${day} · pico` : `Dia ${day}`,
+                value: formatBrl(amount),
+              },
+            ];
+          }}
+          showCrosshair={false}
+          showDatePill={false}
+          showDots={false}
+        />
+        <BarLineIndicator data={chartData} valueKey="amount" xKey="day" />
+      </BarChart>
+    </div>
+  );
 }
