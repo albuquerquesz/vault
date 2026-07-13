@@ -15,6 +15,7 @@ type CreateGoalDialogProps = {
 	onTargetAmountChange: (value: string) => void;
 	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 	isSubmitting: boolean;
+	isEditing?: boolean;
 };
 
 export function CreateGoalDialog({
@@ -26,6 +27,7 @@ export function CreateGoalDialog({
 	onTargetAmountChange,
 	onSubmit,
 	isSubmitting,
+	isEditing = false,
 }: CreateGoalDialogProps) {
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -35,7 +37,9 @@ export function CreateGoalDialog({
 					<form onSubmit={onSubmit}>
 						<div className="flex flex-col gap-4 p-6">
 							<div className="flex items-center justify-between">
-								<h2 className="text-lg font-semibold tracking-tight">Nova meta</h2>
+								<h2 className="text-lg font-semibold tracking-tight">
+									{isEditing ? "Editar meta" : "Nova meta"}
+								</h2>
 								<Dialog.Close
 									render={
 										<Button
@@ -82,11 +86,15 @@ export function CreateGoalDialog({
 							</div>
 
 							<div className="flex justify-end gap-2">
-								<Button variant="ghost" type="button" onClick={() => onOpenChange(false)}>
+								<Button
+									variant="ghost"
+									type="button"
+									onClick={() => onOpenChange(false)}
+								>
 									Cancelar
 								</Button>
 								<Button disabled={isSubmitting} type="submit">
-									Criar meta
+									{isEditing ? "Salvar" : "Criar meta"}
 								</Button>
 							</div>
 						</div>

@@ -184,14 +184,65 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 			try {
 				const session = await requireSession(req.raw);
 				const { id } = z.object({ id: z.string() }).parse(req.params);
-				const { currentAmount } = z.object({ currentAmount: z.number().min(0) }).parse(req.body);
+				const body = z
+					.object({
+						name: z.string().trim().min(1).max(128).optional(),
+						targetAmount: z.number().positive().optional(),
+						currentAmount: z.number().min(0).optional(),
+					})
+					.refine(
+						(data) =>
+							data.name !== undefined ||
+							data.targetAmount !== undefined ||
+							data.currentAmount !== undefined,
+						{ message: "At least one field is required" },
+					)
+					.parse(req.body);
 				const existing = await db.select().from(goal).where(and(eq(goal.id, id), eq(goal.userId, session.user.id))).limit(1).then(r => r[0]);
 				if (!existing) return reply.status(404).send({ error: "Goal not found" });
-				const [record] = await db.update(goal).set({ currentAmount: currentAmount.toString() }).where(eq(goal.id, id)).returning();
+				const [record] = await db
+					.update(goal)
+					.set({
+						...(body.name !== undefined ? { name: body.name } : {}),
+						...(body.targetAmount !== undefined
+							? { targetAmount: body.targetAmount.toString() }
+							: {}),
+						...(body.currentAmount !== undefined
+							? { currentAmount: body.currentAmount.toString() }
+							: {}),
+					})
+					.where(eq(goal.id, id))
+					.returning();
 				return reply.send(serializeGoal(record!));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401) return reply.status(401).send({ error: "Authentication required" });
 				if (error instanceof z.ZodError) return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "DELETE",
+		url: "/goals/:id",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id } = z.object({ id: z.string() }).parse(req.params);
+				const existing = await db
+					.select()
+					.from(goal)
+					.where(and(eq(goal.id, id), eq(goal.userId, session.user.id)))
+					.limit(1)
+					.then((r) => r[0]);
+				if (!existing) return reply.status(404).send({ error: "Goal not found" });
+				await db.delete(goal).where(eq(goal.id, id));
+				return reply.status(204).send();
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
 				throw error;
 			}
 		},

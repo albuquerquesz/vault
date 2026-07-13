@@ -14,16 +14,10 @@ import { OverviewCardShell } from "@/components/overview/shared/overview-card-sh
 
 function GoalsLoadingState() {
 	return (
-		<div className="space-y-4">
-			<Skeleton className="h-8 w-28" />
-			<div className="space-y-3">
-				<Skeleton className="h-4 w-full" />
-				<Skeleton className="h-1.5 w-full" />
-			</div>
-			<div className="space-y-3">
-				<Skeleton className="h-4 w-4/5" />
-				<Skeleton className="h-1.5 w-full" />
-			</div>
+		<div className="space-y-3">
+			<Skeleton className="h-5 w-28" />
+			<Skeleton className="h-5 w-4/5" />
+			<Skeleton className="h-5 w-2/3" />
 		</div>
 	);
 }
@@ -31,12 +25,17 @@ function GoalsLoadingState() {
 export function GoalsCard() {
 	const {
 		goals,
+		handleComplete,
+		handleDelete,
 		handleSubmit,
-		isCreating,
+		isEditing,
 		isError,
 		isLoading,
+		isSubmitting,
 		name,
 		open,
+		openCreate,
+		openEdit,
 		setName,
 		setOpen,
 		setTargetAmount,
@@ -51,7 +50,7 @@ export function GoalsCard() {
 				tooltip="Acompanhe o progresso das suas metas financeiras"
 				contentClassName="flex flex-1 flex-col space-y-4"
 				footer={
-					<Button className="ml-auto" size="sm" onClick={() => setOpen(true)}>
+					<Button className="ml-auto" size="sm" onClick={openCreate}>
 						Nova meta
 					</Button>
 				}
@@ -63,12 +62,18 @@ export function GoalsCard() {
 				) : goals.length === 0 ? (
 					<OverviewCardEmptyState message="Nenhuma meta definida" />
 				) : (
-					<GoalList goals={goals} />
+					<GoalList
+						goals={goals}
+						onComplete={handleComplete}
+						onDelete={handleDelete}
+						onEdit={openEdit}
+					/>
 				)}
 			</OverviewCardShell>
 
 			<CreateGoalDialog
-				isSubmitting={isCreating}
+				isEditing={isEditing}
+				isSubmitting={isSubmitting}
 				name={name}
 				onNameChange={setName}
 				onOpenChange={setOpen}

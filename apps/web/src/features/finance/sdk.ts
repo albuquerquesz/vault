@@ -90,7 +90,9 @@ export interface CreateGoalInput {
 
 export interface UpdateGoalInput {
 	id: string;
-	currentAmount: number;
+	name?: string;
+	targetAmount?: number;
+	currentAmount?: number;
 }
 
 export interface SavingsTarget {
@@ -272,10 +274,19 @@ export const goalsSdk = {
 	}) as const,
 
 	updateGoalMutationOptions: (client: QueryClient = queryClient) => ({
-		mutationFn: (input: UpdateGoalInput) =>
-			apiFetch<Goal>(`/api/finance/goals/${input.id}`, {
+		mutationFn: ({ id, ...body }: UpdateGoalInput) =>
+			apiFetch<Goal>(`/api/finance/goals/${id}`, {
 				method: "PATCH",
-				body: { currentAmount: input.currentAmount },
+				body,
+			}),
+		onSuccess: () =>
+			client.invalidateQueries({ queryKey: ["goals"] }),
+	}) as const,
+
+	deleteGoalMutationOptions: (client: QueryClient = queryClient) => ({
+		mutationFn: (id: string) =>
+			apiFetch<void>(`/api/finance/goals/${id}`, {
+				method: "DELETE",
 			}),
 		onSuccess: () =>
 			client.invalidateQueries({ queryKey: ["goals"] }),
@@ -292,6 +303,10 @@ export function useCreateGoal() {
 
 export function useUpdateGoal() {
 	return useMutation(goalsSdk.updateGoalMutationOptions());
+}
+
+export function useDeleteGoal() {
+	return useMutation(goalsSdk.deleteGoalMutationOptions());
 }
 
 export const savingsTargetSdk = {
