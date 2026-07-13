@@ -1,21 +1,17 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"version": 2,
-	"builds": [
-		{
-			"src": "api/[...path].ts",
-			"use": "@vercel/node",
-			"config": {
-				"includeFiles": [
-					"src/**"
-				]
-			}
+	"installCommand": "bun install",
+	"buildCommand": "bun run build",
+	"functions": {
+		"api/[...path].ts": {
+			"maxDuration": 60,
+			"includeFiles": "src/**"
 		}
-	],
-	"routes": [
+	},
+	"rewrites": [
 		{
-			"src": "/(.*)",
-			"dest": "api/[...path].ts"
+			"source": "/(.*)",
+			"destination": "/api"
 		}
 	]
 }
