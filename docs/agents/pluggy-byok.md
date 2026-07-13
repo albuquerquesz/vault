@@ -96,10 +96,20 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
   - na API local: `/api/pluggy/items`, `/api/pluggy/accounts`, `/api/pluggy/transactions`, `/api/pluggy/sync/:id`
   - webhook: `POST /api/webhooks/pluggy` com payload `{ "event":"item/updated", "itemId":"..." }`
 
+## Deploy / CI
+
+- **Migrations:** `.github/workflows/api-migrate.yml` em push para `dev`/`main` (secret `NEON_DATABASE_URL`).
+- **API production:** `.github/workflows/deploy-api.yml` em push para `dev`/`main` quando `apps/api/**` (ou paths relacionados) mudam.
+  - Secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID_API`
+  - Projeto Vercel: `vault-api` (Root Directory `apps/api`, install `bun install`)
+  - Alias estável: `https://vault-api-phi.vercel.app`
+- O projeto Vercel também está **conectado ao GitHub** (previews em branches não-production).
+- Smoke pós-deploy do workflow valida `POST /api/webhooks/pluggy`.
+
 ## Checklist mínimo antes de encerrar uma mudança
 
 - `bun run db:migrate`
-- `bunx tsc --noEmit` em `packages/api`
+- `bunx tsc --noEmit` em `apps/api` / `packages/api`
 - `bunx tsc --noEmit` em `apps/web`
 - cURL Pluggy com `X-API-KEY`
 - cURL da API local confirmando ingestão idempotente e leitura de contas/transações
