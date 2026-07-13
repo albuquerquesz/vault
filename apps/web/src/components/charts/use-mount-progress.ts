@@ -1,24 +1,29 @@
-import { useEffect, useState } from "react";
+"use client";
 
-/**
- * Returns a value from 0→1 that represents how far through the mount animation we are.
- * Useful for driving progress-based animations.
- */
-export function useMountProgress(durationMs: number = 1100): number {
-	const [progress, setProgress] = useState(0);
+import { animate, type Transition, useMotionValue } from "motion/react";
+import { useEffect, useRef } from "react";
+import { DEFAULT_CHART_ENTER_TRANSITION } from "./animation";
 
-	useEffect(() => {
-		const start = performance.now();
-		const frame = requestAnimationFrame(function tick(now) {
-			const elapsed = now - start;
-			const p = Math.min(elapsed / durationMs, 1);
-			setProgress(p);
-			if (p < 1) {
-				requestAnimationFrame(tick);
-			}
-		});
-		return () => cancelAnimationFrame(frame);
-	}, [durationMs]);
+/** Drives 0→1 enter progress using the studio motion transition (spring or tween). */
+export function useMountProgress(
+  enterTransition: Transition | undefined,
+  delaySeconds: number,
+  replayKey: number | string
+) {
+  const progress = useMotionValue(0);
+  const transitionRef = useRef(enterTransition);
+  transitionRef.current = enterTransition;
 
-	return progress;
+  // replayKey intentionally retriggers enter when motion settings change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: replayKey
+  useEffect(() => {
+    progress.set(0);
+    const controls = animate(progress, 1, {
+      ...(transitionRef.current ?? DEFAULT_CHART_ENTER_TRANSITION),
+      delay: delaySeconds,
+    });
+    return () => controls.stop();
+  }, [delaySeconds, replayKey, progress]);
+
+  return progress;
 }

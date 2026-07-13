@@ -3,18 +3,43 @@
 import dayjs from "dayjs";
 import { useMemo } from "react";
 import { useFinanceExpenses } from "@/features/finance/sdk";
+import type { HeatmapColumn } from "@/components/charts/heatmap";
 import "dayjs/locale/pt-br";
 
-export type SalesByHourDatum = {
-	day: string;
-	values: readonly number[];
-};
+function buildHeatmapSkeleton(month: string): HeatmapColumn[] {
+	const [year, monthNum] = month.split("-").map(Number);
+	if (!year || !monthNum) return [];
 
-const DAY_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"] as const;
+	const firstDay = new Date(year, monthNum - 1, 1);
+	const lastDay = new Date(year, monthNum, 0);
 
-function formatPeakWindow(day: string, hour: number) {
-	const endHour = (hour + 1) % 24;
-	return `${day} ${hour}h-${endHour}h`;
+	const startDate = new Date(firstDay);
+	startDate.setDate(startDate.getDate() - startDate.getDay());
+
+	const endDate = new Date(lastDay);
+	if (endDate.getDay() !== 6) {
+		endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+	}
+
+	const columns: HeatmapColumn[] = [];
+	const current = new Date(startDate);
+	let colIndex = 0;
+
+	while (current <= endDate) {
+		const bins = [];
+		for (let dow = 0; dow < 7; dow++) {
+			bins.push({
+				bin: dow,
+				count: 0,
+				date: new Date(current),
+			});
+			current.setDate(current.getDate() + 1);
+		}
+		columns.push({ bin: colIndex, bins });
+		colIndex++;
+	}
+
+	return columns;
 }
 
 function formatPeriodLabel(month: string, locale: string) {
@@ -33,88 +58,42 @@ function formatPeriodLabel(month: string, locale: string) {
 export function useDailyExpensesHeatmap(month: string, locale = "pt-BR") {
 	const expensesQuery = useFinanceExpenses(month);
 
-	const heatmapData = useMemo(() => {
+	const skeletonColumns = useMemo(() => buildHeatmapSkeleton(month), [month]);
+
+	const heatmapData = useMemo((): HeatmapColumn[] => {
 		const expenses = expensesQuery.data;
-		if (!expenses?.length) {
-			return [] as SalesByHourDatum[];
-		}
+		if (!expenses?.length) return skeletonColumns;
 
-		const dayTotals = new Array(7).fill(0);
-
+		const dailyTotals = new Map<string, number>();
 		for (const expense of expenses) {
-			const date = new Date(expense.expenseDate);
-			const dayOfWeek = date.getUTCDay();
-			dayTotals[dayOfWeek] += expense.amount;
+			const dateStr = dayjs(expense.expenseDate).format("YYYY-MM-DD");
+			dailyTotals.set(
+				dateStr,
+				(dailyTotals.get(dateStr) ?? 0) + expense.amount,
+			);
 		}
 
-		return DAY_LABELS.map((day, index) => {
-			const total = dayTotals[index];
-			const perHour = total / 24;
-			const values = Array.from({ length: 24 }, (_, hour) => {
-				const factor = 0.5 + 0.5 * Math.sin(((hour - 6) / 24) * Math.PI * 2);
-				return perHour * (0.5 + factor * 0.5);
-			});
+		return skeletonColumns.map((col) => ({
+			...col,
+			bins: col.bins.map((bin) => ({
+				...bin,
+				count: dailyTotals.get(dayjs(bin.date).format("YYYY-MM-DD")) ?? 0,
+			})),
+		}));
+	}, [expensesQuery.data, skeletonColumns]);
 
-			return { day, values };
-		});
-	}, [expensesQuery.data]);
-
-	const mobileRows = useMemo(
+	const total = useMemo(
 		() =>
-			heatmapData.map((row) => {
-				const total = row.values.reduce((sum, value) => sum + value, 0);
-				const peakHour = row.values.reduce(
-					(bestHour, value, hour, values) =>
-						value > values[bestHour] ? hour : bestHour,
-					0,
-				);
-
-				return {
-					day: row.day,
-					total,
-					peakLabel: formatPeakWindow(row.day, peakHour),
-				};
-			}),
+			heatmapData.reduce(
+				(sum, col) => sum + col.bins.reduce((s, b) => s + b.count, 0),
+				0,
+			),
 		[heatmapData],
 	);
 
-	const metrics = useMemo(() => {
-		const allSlots = heatmapData.flatMap((row) => row.values);
-		const maxValue = Math.max(...allSlots, 0);
-		const total = allSlots.reduce((sum, value) => sum + value, 0);
-		const averagePerHour = allSlots.length > 0 ? total / allSlots.length : 0;
-
-		let peakDay = heatmapData[0]?.day ?? "Dom";
-		let peakHour = 0;
-		let peakValue = 0;
-
-		heatmapData.forEach((row) => {
-			row.values.forEach((value, hour) => {
-				if (value > peakValue) {
-					peakValue = value;
-					peakDay = row.day;
-					peakHour = hour;
-				}
-			});
-		});
-
-		const current = heatmapData[0]?.values.reduce((sum, value) => sum + value, 0) ?? 0;
-		const previous =
-			heatmapData.at(-1)?.values.reduce((sum, value) => sum + value, 0) ?? 0;
-
-		return {
-			averagePerHour,
-			maxValue,
-			peakLabel: formatPeakWindow(peakDay, peakHour),
-			dayChangePct: previous ? ((current - previous) / previous) * 100 : 0,
-			total,
-		};
-	}, [heatmapData]);
-
 	return {
 		heatmapData,
-		mobileRows,
-		metrics,
+		total,
 		resolvedPeriodLabel: formatPeriodLabel(month, locale),
 		isLoading: expensesQuery.isPending,
 		isError: expensesQuery.isError,

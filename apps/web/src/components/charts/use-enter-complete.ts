@@ -1,16 +1,28 @@
-import { useEffect, useRef, useState } from "react";
+"use client";
+
+import type { MotionValue } from "motion/react";
+import { useEffect, useState } from "react";
 
 /**
- * Returns true once the initial enter animation has completed.
+ * Returns true once a mount-progress MotionValue reaches 1.
+ * Use to swap animated MotionValue-driven props for static values after
+ * enter completes — drops per-frame subscriptions during pan/hover.
  */
-export function useEnterComplete(durationMs: number = 1100): boolean {
-	const [complete, setComplete] = useState(false);
-	const timerRef = useRef<ReturnType<typeof setTimeout>>();
+export function useEnterComplete(mountProgress: MotionValue<number>): boolean {
+  const [complete, setComplete] = useState(() => mountProgress.get() >= 1);
 
-	useEffect(() => {
-		timerRef.current = setTimeout(() => setComplete(true), durationMs);
-		return () => clearTimeout(timerRef.current);
-	}, [durationMs]);
+  useEffect(() => {
+    if (mountProgress.get() >= 1) {
+      setComplete(true);
+      return;
+    }
 
-	return complete;
+    return mountProgress.on("change", (value) => {
+      if (value >= 1) {
+        setComplete(true);
+      }
+    });
+  }, [mountProgress]);
+
+  return complete;
 }

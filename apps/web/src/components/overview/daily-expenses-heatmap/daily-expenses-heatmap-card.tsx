@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock3Icon } from "lucide-react";
-import { HomeCardSkeleton } from "@/components/home-card-skeleton";
+import { HeatmapChartLoading } from "@/components/charts/heatmap";
 import {
 	DailyExpensesHeatmapContent,
 } from "@/components/overview/daily-expenses-heatmap/daily-expenses-heatmap-content";
@@ -9,7 +9,6 @@ import { useDailyExpensesHeatmap } from "@/components/overview/daily-expenses-he
 import {
 	OverviewCardEmptyState,
 	OverviewCardErrorState,
-	OverviewCardLoadingState,
 } from "@/components/overview/shared/overview-card-state";
 import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 
@@ -28,12 +27,24 @@ export function DailyExpensesHeatmapCard({
 	locale = "pt-BR",
 	month,
 }: DailyExpensesHeatmapCardProps) {
-	const { heatmapData, isError, isLoading, metrics, mobileRows, resolvedPeriodLabel } =
+	const { heatmapData, total, isError, isLoading, resolvedPeriodLabel } =
 		useDailyExpensesHeatmap(month, locale);
 
 	if (isLoading) {
 		return (
-			<OverviewCardLoadingState fallback={<HomeCardSkeleton variant="heatmap" />} />
+			<OverviewCardShell
+				title={title}
+				icon={<Clock3Icon className="size-4 text-muted-foreground" />}
+				tooltip="Mapa de calor das despesas por dia"
+				className="min-h-96"
+				contentClassName="flex flex-1 flex-col"
+			>
+				<HeatmapChartLoading
+					data={heatmapData}
+					gap={3}
+					label="Carregando despesas"
+				/>
+			</OverviewCardShell>
 		);
 	}
 
@@ -41,7 +52,7 @@ export function DailyExpensesHeatmapCard({
 		<OverviewCardShell
 			title={title}
 			icon={<Clock3Icon className="size-4 text-muted-foreground" />}
-			tooltip="Mapa de calor das despesas por dia e hora"
+			tooltip="Mapa de calor das despesas por dia"
 			className="min-h-96"
 			contentClassName="flex flex-1 flex-col"
 		>
@@ -54,9 +65,8 @@ export function DailyExpensesHeatmapCard({
 					currency={currency}
 					heatmapData={heatmapData}
 					locale={locale}
-					metrics={metrics}
-					mobileRows={mobileRows}
 					periodLabel={periodLabel ?? resolvedPeriodLabel}
+					total={total}
 				/>
 			)}
 		</OverviewCardShell>

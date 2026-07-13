@@ -1,4 +1,4 @@
-import { Children, type ReactNode } from "react";
+import { Children, isValidElement, type ReactNode } from "react";
 
 const CHART_DEFS_COMPONENTS = new Set([
 	"Defs",
@@ -20,7 +20,7 @@ export function partitionChartDefNodes(children: ReactNode): {
 
 	Children.forEach(children, (child) => {
 		if (
-			Children.isValidElement(child) &&
+			isValidElement(child) &&
 			typeof child.type === "object" &&
 			"displayName" in child.type &&
 			isChartDefsComponent((child.type as any).displayName)
@@ -42,7 +42,7 @@ export function collectChartDefsChildren(children: ReactNode): ReactNode[] {
 
 	Children.forEach(children, (child) => {
 		if (
-			Children.isValidElement(child) &&
+			isValidElement(child) &&
 			typeof child.type === "object" &&
 			"displayName" in child.type &&
 			isChartDefsComponent((child.type as any).displayName)
