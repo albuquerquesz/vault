@@ -151,3 +151,78 @@ export function buildPeriodStats(
 		totalIn: 0,
 	};
 }
+
+export type TransactionsFilters = {
+	accounts: string[];
+	dates: string[];
+	categories: string[];
+};
+
+export const EMPTY_TRANSACTIONS_FILTERS: TransactionsFilters = {
+	accounts: [],
+	dates: [],
+	categories: [],
+};
+
+export function getExpenseAccountKey(expense: FinanceExpense): string {
+	const name = expense.sourceAccountName?.trim();
+	return name && name.length > 0 ? name : "Sem conta";
+}
+
+export function hasActiveTransactionFilters(filters: TransactionsFilters): boolean {
+	return (
+		filters.accounts.length > 0 ||
+		filters.dates.length > 0 ||
+		filters.categories.length > 0
+	);
+}
+
+export function applyTransactionFilters(
+	expenses: FinanceExpense[],
+	filters: TransactionsFilters,
+): FinanceExpense[] {
+	let next = expenses;
+
+	if (filters.accounts.length > 0) {
+		const accounts = new Set(filters.accounts);
+		next = next.filter((expense) => accounts.has(getExpenseAccountKey(expense)));
+	}
+
+	if (filters.dates.length > 0) {
+		const dates = new Set(filters.dates.map((date) => date.slice(0, 10)));
+		next = next.filter((expense) =>
+			dates.has(expense.expenseDate.slice(0, 10)),
+		);
+	}
+
+	if (filters.categories.length > 0) {
+		const categories = new Set(filters.categories);
+		next = next.filter((expense) => categories.has(expense.category));
+	}
+
+	return next;
+}
+
+export function collectFilterOptions(expenses: FinanceExpense[]) {
+	const accounts = new Set<string>();
+	const dates = new Set<string>();
+	const categories = new Set<string>();
+
+	for (const expense of expenses) {
+		accounts.add(getExpenseAccountKey(expense));
+		dates.add(expense.expenseDate.slice(0, 10));
+		if (expense.category?.trim()) {
+			categories.add(expense.category.trim());
+		}
+	}
+
+	return {
+		accounts: Array.from(accounts).sort((left, right) =>
+			left.localeCompare(right, "pt-BR"),
+		),
+		dates: Array.from(dates).sort((left, right) => right.localeCompare(left)),
+		categories: Array.from(categories).sort((left, right) =>
+			left.localeCompare(right, "pt-BR"),
+		),
+	};
+}

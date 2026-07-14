@@ -13,13 +13,18 @@ import { SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 import { getMonthValue, useFinanceExpenses } from "@/features/finance/sdk";
+import { TransactionsFilterMenu } from "./transactions-page/transactions-filter-menu";
 import { TransactionsPeriodStats } from "./transactions-page/transactions-period-stats";
 import { TransactionsSkeleton } from "./transactions-page/transactions-skeleton";
 import { TransactionsTable } from "./transactions-page/transactions-table";
 import {
+	applyTransactionFilters,
 	buildPeriodStats,
+	EMPTY_TRANSACTIONS_FILTERS,
 	filterLastNDays,
 	getPreviousMonthValue,
+	hasActiveTransactionFilters,
+	type TransactionsFilters,
 } from "./transactions-page/utils";
 
 export function TransactionsPage() {
@@ -29,6 +34,9 @@ export function TransactionsPage() {
 		[selectedMonth],
 	);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [appliedFilters, setAppliedFilters] = useState<TransactionsFilters>(
+		EMPTY_TRANSACTIONS_FILTERS,
+	);
 
 	const expensesQuery = useFinanceExpenses(selectedMonth);
 	const previousMonthQuery = useFinanceExpenses(previousMonth);
@@ -36,14 +44,19 @@ export function TransactionsPage() {
 	const expenses = expensesQuery.data ?? [];
 
 	const filteredExpenses = useMemo(() => {
-		if (!searchQuery.trim()) return expenses;
-		const query = searchQuery.toLowerCase();
-		return expenses.filter(
-			(expense) =>
-				expense.category.toLowerCase().includes(query) ||
-				expense.note?.toLowerCase().includes(query),
-		);
-	}, [expenses, searchQuery]);
+		let next = applyTransactionFilters(expenses, appliedFilters);
+
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			next = next.filter(
+				(expense) =>
+					expense.category.toLowerCase().includes(query) ||
+					expense.note?.toLowerCase().includes(query),
+			);
+		}
+
+		return next;
+	}, [expenses, appliedFilters, searchQuery]);
 
 	const periodStats = useMemo(() => {
 		const merged = [
@@ -60,6 +73,10 @@ export function TransactionsPage() {
 			year: "numeric",
 		});
 	}, [selectedMonth]);
+
+	const hasActiveFilters =
+		searchQuery.trim().length > 0 ||
+		hasActiveTransactionFilters(appliedFilters);
 
 	if (expensesQuery.isPending) {
 		return (
@@ -104,7 +121,7 @@ export function TransactionsPage() {
 				<div className="min-w-0">
 					<TransactionsTable
 						expenses={filteredExpenses}
-						hasActiveSearch={searchQuery.trim().length > 0}
+						hasActiveFilters={hasActiveFilters}
 						month={selectedMonth}
 						monthLabel={monthLabel}
 					/>
@@ -116,14 +133,21 @@ export function TransactionsPage() {
 							periodLabel="Últimos 30d"
 							stats={periodStats}
 						/>
-						<div className="relative w-full min-w-0">
-							<SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-							<Input
-								aria-label="Buscar transações"
-								className="w-full rounded-md border-border/70 !bg-transparent pl-10 shadow-none dark:!bg-transparent dark:hover:!bg-transparent dark:focus-visible:!bg-transparent"
-								onChange={(event) => setSearchQuery(event.target.value)}
-								placeholder="Buscar por nota ou categoria"
-								value={searchQuery}
+						<div className="flex w-full min-w-0 items-center gap-2">
+							<div className="relative min-w-0 flex-1">
+								<SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+								<Input
+									aria-label="Buscar transações"
+									className="w-full rounded-md border-border/70 !bg-transparent pl-10 shadow-none dark:!bg-transparent dark:hover:!bg-transparent dark:focus-visible:!bg-transparent"
+									onChange={(event) => setSearchQuery(event.target.value)}
+									placeholder="Buscar por nota ou categoria"
+									value={searchQuery}
+								/>
+							</div>
+							<TransactionsFilterMenu
+								appliedFilters={appliedFilters}
+								expenses={expenses}
+								onAppliedFiltersChange={setAppliedFilters}
 							/>
 						</div>
 					</div>

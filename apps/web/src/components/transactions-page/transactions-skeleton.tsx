@@ -45,7 +45,10 @@ export function TransactionsSkeleton() {
 						<div className="h-5 w-24 rounded bg-muted/40" />
 						<div className="h-5 w-24 rounded bg-muted/40" />
 					</div>
-					<div className="h-9 w-full rounded-md bg-muted/40" />
+					<div className="flex w-full items-center gap-2">
+						<div className="h-9 min-w-0 flex-1 rounded-md bg-muted/40" />
+						<div className="size-9 shrink-0 rounded-lg bg-muted/40" />
+					</div>
 				</div>
 				<div className="financial-panel-border h-[300px] w-full" />
 			</div>
