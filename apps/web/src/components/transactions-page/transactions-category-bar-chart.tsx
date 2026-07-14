@@ -22,8 +22,10 @@ import { formatBRL, getCategoryBarFill } from "./utils";
 const MAX_NAMED_CATEGORIES = 6;
 /** Vertical bar thickness (px). */
 const BAR_SIZE = 38;
-/** Row pitch for chart min-height (bar + gap). */
-const BAR_ROW_HEIGHT = 44;
+/** Row pitch for chart height (bar + gap). */
+const BAR_ROW_HEIGHT = 42;
+/** Gap between category bars (px). */
+const BAR_CATEGORY_GAP = 4;
 
 const LABEL_STYLE = {
 	fontFamily: '"Space Grotesk", sans-serif',
@@ -171,7 +173,7 @@ export function TransactionsCategoryBarChart({
 
 	if (chartData.length === 0) {
 		return (
-			<div className="flex h-full min-h-48 w-full flex-col items-center justify-center gap-1 p-4 text-center sm:p-5">
+			<div className="flex w-full flex-col items-center justify-center gap-1 p-4 text-center sm:p-5">
 				<p className="text-sm font-medium">Gastos por categoria</p>
 				<p className="text-sm text-muted-foreground">
 					Nenhuma despesa neste período.
@@ -181,7 +183,7 @@ export function TransactionsCategoryBarChart({
 	}
 
 	return (
-		<div className="flex h-full w-full flex-col gap-4 p-4 sm:p-5">
+		<div className="flex w-full flex-col gap-3 p-4 sm:p-5">
 			<div className="space-y-1">
 				<p className="text-base font-medium tracking-tight">
 					Gastos por categoria
@@ -194,14 +196,15 @@ export function TransactionsCategoryBarChart({
 			</div>
 
 			<ChartContainer
-				className="aspect-auto min-h-40 w-full flex-1"
+				className="aspect-auto w-full"
 				config={chartConfig}
 				style={{
-					minHeight: Math.max(160, categoryCount * BAR_ROW_HEIGHT),
+					height: categoryCount * BAR_ROW_HEIGHT,
 				}}
 			>
 				<BarChart
 					accessibilityLayer
+					barCategoryGap={BAR_CATEGORY_GAP}
 					data={chartData}
 					layout="vertical"
 					margin={{ right: 88, left: 4, top: 4, bottom: 4 }}

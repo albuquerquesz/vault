@@ -128,7 +128,8 @@ export function TransactionsPage() {
 					/>
 				</div>
 
-				<div className="flex min-w-0 flex-col gap-4">
+				{/* pt matches first day-group header in the table (data-table) */}
+				<div className="flex min-w-0 flex-col gap-8 pt-4 sm:pt-5">
 					<div className="financial-panel-border flex w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
 						<div className="flex w-full min-w-0 items-center gap-2">
 							<div className="relative min-w-0 flex-1">
@@ -152,7 +153,7 @@ export function TransactionsPage() {
 							stats={periodStats}
 						/>
 					</div>
-					<div className="financial-panel-border flex min-h-48 w-full flex-1 flex-col overflow-hidden">
+					<div className="financial-panel-border flex w-full flex-col overflow-hidden">
 						<TransactionsCategoryBarChart
 							expenses={filteredExpenses}
 							periodLabel={monthLabel}
