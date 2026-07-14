@@ -64,10 +64,6 @@ export function TransactionsSkeleton() {
 							/>
 						))}
 					</div>
-					<div className="space-y-2">
-						<div className="h-3 w-48 rounded bg-muted/40" />
-						<div className="h-3 w-40 rounded bg-muted/40" />
-					</div>
 				</div>
 			</div>
 		</div>

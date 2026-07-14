@@ -153,7 +153,10 @@ export function TransactionsPage() {
 						/>
 					</div>
 					<div className="financial-panel-border flex min-h-48 w-full flex-1 flex-col overflow-hidden">
-						<TransactionsCategoryBarChart />
+						<TransactionsCategoryBarChart
+							expenses={filteredExpenses}
+							periodLabel={monthLabel}
+						/>
 					</div>
 				</div>
 			</div>
