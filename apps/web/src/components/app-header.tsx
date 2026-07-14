@@ -1,4 +1,3 @@
-import { SidebarTrigger } from "@vault/ui/components/sidebar";
 import { cn } from "@vault/ui/lib/utils";
 import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { useActiveBreadcrumbPage } from "@/components/app-shared";
@@ -17,7 +16,6 @@ export function AppHeader() {
 		>
 			<DecorIcon className="hidden md:block" position="bottom-left" />
 			<div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-				<SidebarTrigger className="shrink-0" />
 				<div className="min-w-0">
 					<AppBreadcrumbs page={activePage} />
 				</div>

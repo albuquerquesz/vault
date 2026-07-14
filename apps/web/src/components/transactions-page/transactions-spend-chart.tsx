@@ -1,20 +1,21 @@
 "use client";
 
+import { curveLinear } from "@visx/curve";
 import {
-	Area,
-	AreaChart,
 	ChartTooltip,
 	Grid,
+	Line,
+	LineChart,
 	XAxis,
-} from "@/components/area-chart";
+} from "@/components/line-chart";
 import type { TransactionsDailyChartPoint } from "./build-daily-chart-data";
+
+const SERIES_COLOR = "var(--chart-1)";
 
 const brlFormatter = new Intl.NumberFormat("pt-BR", {
 	style: "currency",
 	currency: "BRL",
 });
-
-const SERIES_COLOR = "var(--chart-1)";
 
 export function TransactionsSpendChart({
 	data,
@@ -27,25 +28,29 @@ export function TransactionsSpendChart({
 
 	return (
 		<div className="w-full min-w-0">
-			<AreaChart
-				aspectRatio="3.5 / 1"
-				className="w-full max-h-44 sm:max-h-52"
+			<LineChart
+				aspectRatio="3 / 1"
+				className="w-full max-h-52 sm:max-h-60"
 				data={data}
-				margin={{ top: 8, right: 12, bottom: 40, left: 12 }}
+				margin={{ top: 16, right: 24, bottom: 42, left: 24 }}
 				xDataKey="date"
 			>
 				<Grid horizontal />
-				<Area
+				<Line
+					curve={curveLinear}
 					dataKey="amount"
-					fill={SERIES_COLOR}
-					fillOpacity={0.3}
+					fadeEdges={false}
+					markers={{ radius: 4, strokeWidth: 2, fadeOnHover: false }}
+					showMarkers
 					stroke={SERIES_COLOR}
 					strokeWidth={2}
 				/>
-				<XAxis />
+				{/* data-aligned ticks only — avoids domain tail "Dec Dec Dec 21" stacking */}
+				<XAxis tickMode="data" />
 				<ChartTooltip
 					rows={(point) => {
-						const amount = typeof point.amount === "number" ? point.amount : 0;
+						const amount =
+							typeof point.amount === "number" ? point.amount : 0;
 						const rawDate = point.date;
 						const monthLabel =
 							rawDate instanceof Date
@@ -57,13 +62,14 @@ export function TransactionsSpendChart({
 						return [
 							{
 								color: SERIES_COLOR,
-								label: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
+								label:
+									monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
 								value: brlFormatter.format(amount),
 							},
 						];
 					}}
 				/>
-			</AreaChart>
+			</LineChart>
 		</div>
 	);
 }

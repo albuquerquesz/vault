@@ -1,10 +1,15 @@
 "use client";
 
 import { Button } from "@vault/ui/components/button";
+import { useSidebar } from "@vault/ui/components/sidebar";
 import { cn } from "@vault/ui/lib/utils";
 import { Loader2Icon, Trash2Icon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+
+/** Matches `SIDEBAR_WIDTH` / `SIDEBAR_WIDTH_ICON` in @vault/ui sidebar. */
+const SIDEBAR_OFFSET_EXPANDED = "16rem";
+const SIDEBAR_OFFSET_ICON = "3rem";
 
 export function TransactionsSelectionToolbar({
 	selectedCount,
@@ -20,6 +25,7 @@ export function TransactionsSelectionToolbar({
 	className?: string;
 }) {
 	const [mounted, setMounted] = useState(false);
+	const { state, isMobile } = useSidebar();
 
 	useEffect(() => {
 		setMounted(true);
@@ -32,14 +38,20 @@ export function TransactionsSelectionToolbar({
 	const label =
 		selectedCount === 1 ? "1 Selecionado" : `${selectedCount} Selecionados`;
 
+	// Center within the main content column, not the full viewport.
+	const leftOffset = isMobile
+		? 0
+		: state === "expanded"
+			? SIDEBAR_OFFSET_EXPANDED
+			: SIDEBAR_OFFSET_ICON;
+
 	return createPortal(
 		<div
-			// Viewport-bottom dock via portal — never participates in table layout.
-			className="pointer-events-none fixed inset-x-0 bottom-0 z-[200] flex justify-center px-4 pt-2"
+			className="pointer-events-none fixed bottom-0 z-[200] flex justify-center px-4 pt-2 transition-[left] duration-200 ease-linear"
 			style={{
 				position: "fixed",
 				bottom: 0,
-				left: 0,
+				left: leftOffset,
 				right: 0,
 				zIndex: 200,
 				paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))",

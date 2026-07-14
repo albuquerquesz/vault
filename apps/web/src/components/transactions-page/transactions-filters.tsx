@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@vault/ui/components/button";
 import { Input } from "@vault/ui/components/input";
 import {
 	Select,
@@ -9,7 +8,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@vault/ui/components/select";
-import { CalendarIcon, SearchIcon, XIcon } from "lucide-react";
+import { CalendarIcon, SearchIcon } from "lucide-react";
 import { ActiveFilterChip } from "./active-filter-chip";
 import type {
 	TransactionsActiveFilterChip,
@@ -25,9 +24,7 @@ export function TransactionsFilters({
 	categories,
 	searchQuery,
 	onSearchQueryChange,
-	hasActiveFilters,
 	activeFilterChips,
-	onClearFilters,
 }: {
 	selectedMonth: string;
 	onSelectedMonthChange: (value: string) => void;
@@ -37,18 +34,22 @@ export function TransactionsFilters({
 	categories: string[];
 	searchQuery: string;
 	onSearchQueryChange: (value: string) => void;
-	hasActiveFilters: boolean;
 	activeFilterChips: TransactionsActiveFilterChip[];
-	onClearFilters: () => void;
 }) {
+	// Override Select/Input dark:bg-input/30 so only the border shows.
+	const filterControlClass =
+		"!bg-transparent shadow-none dark:!bg-transparent dark:hover:!bg-transparent dark:focus-visible:!bg-transparent";
+
 	return (
 		<div className="pb-0">
-			<div className="grid gap-2 md:grid-cols-[auto_auto_minmax(0,1fr)_auto] md:items-center">
+			<div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
 				<Select
 					value={selectedMonth}
 					onValueChange={(value) => value && onSelectedMonthChange(value)}
 				>
-					<SelectTrigger className="w-full rounded-md md:w-40">
+					<SelectTrigger
+						className={`w-full rounded-md border-border/70 sm:w-40 ${filterControlClass}`}
+					>
 						<CalendarIcon className="mr-2 h-4 w-4" />
 						<SelectValue />
 					</SelectTrigger>
@@ -65,7 +66,9 @@ export function TransactionsFilters({
 					value={categoryFilter}
 					onValueChange={(value) => value && onCategoryFilterChange(value)}
 				>
-					<SelectTrigger className="w-full rounded-md md:w-45">
+					<SelectTrigger
+						className={`w-full rounded-md border-border/70 sm:w-45 ${filterControlClass}`}
+					>
 						<SelectValue placeholder="Todas categorias" />
 					</SelectTrigger>
 					<SelectContent>
@@ -78,30 +81,20 @@ export function TransactionsFilters({
 					</SelectContent>
 				</Select>
 
-				<div className="relative min-w-0">
+				<div className="relative w-full min-w-0 sm:w-[min(100%,16rem)]">
 					<SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						aria-label="Buscar transações"
-						className="w-full rounded-md pl-10"
+						className={`w-full rounded-md border-border/70 pl-10 ${filterControlClass}`}
 						placeholder="Buscar por nota ou categoria"
 						value={searchQuery}
 						onChange={(event) => onSearchQueryChange(event.target.value)}
 					/>
 				</div>
-
-				<Button
-					className="w-full md:w-auto"
-					disabled={!hasActiveFilters}
-					onClick={onClearFilters}
-					variant="outline"
-				>
-					<XIcon className="mr-2 size-4" />
-					Limpar filtros
-				</Button>
 			</div>
 
 			{activeFilterChips.length > 0 ? (
-				<div className="mt-2 flex flex-wrap items-center gap-2">
+				<div className="mt-2 flex flex-wrap items-center justify-end gap-2">
 					{activeFilterChips.map((chip) => (
 						<ActiveFilterChip
 							key={chip.label}

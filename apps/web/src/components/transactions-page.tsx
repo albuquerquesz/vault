@@ -10,7 +10,6 @@ import {
 } from "@vault/ui/components/card";
 import { useMemo, useState } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
-import { PageContent } from "@/components/page-content";
 import {
 	type FinanceExpense,
 	getMonthValue,
@@ -34,7 +33,9 @@ function applyExpenseFilters(
 ): FinanceExpense[] {
 	let filtered = [...expenses];
 	if (categoryFilter !== "all") {
-		filtered = filtered.filter((expense) => expense.category === categoryFilter);
+		filtered = filtered.filter(
+			(expense) => expense.category === categoryFilter,
+		);
 	}
 	if (searchQuery.trim()) {
 		const query = searchQuery.toLowerCase();
@@ -141,15 +142,15 @@ export function TransactionsPage() {
 
 	if (expensesQuery.isPending) {
 		return (
-			<PageContent className="pt-6">
+			<div className="w-full min-w-0 pt-6">
 				<TransactionsSkeleton />
-			</PageContent>
+			</div>
 		);
 	}
 
 	if (expensesQuery.isError) {
 		return (
-			<PageContent className="pt-6">
+			<div className="w-full min-w-0 pt-6">
 				<Card className="financial-panel-border ring-0">
 					<CardHeader className="border-b">
 						<CardDescription className="text-base">
@@ -171,30 +172,33 @@ export function TransactionsPage() {
 						</div>
 					</CardContent>
 				</Card>
-			</PageContent>
+			</div>
 		);
 	}
 
 	return (
 		<MonetaryVisibilityProvider>
-			<PageContent className="grid gap-3 pt-6">
-				<div className="flex flex-col gap-4">
-					<TransactionsFilters
-						selectedMonth={selectedMonth}
-						onSelectedMonthChange={setSelectedMonth}
-						monthOptions={monthOptions}
-						categoryFilter={categoryFilter}
-						onCategoryFilterChange={setCategoryFilter}
-						categories={categories}
-						searchQuery={searchQuery}
-						onSearchQueryChange={setSearchQuery}
-						hasActiveFilters={hasActiveFilters}
-						activeFilterChips={activeFilterChips}
-						onClearFilters={clearFilters}
-					/>
+			{/* Full width like overview — no max-w-[1200px] PageContent cap */}
+			<div className="grid w-full min-w-0 gap-4 pt-6">
+				<Card className="financial-panel-border w-full min-w-0 gap-0 rounded-none ring-0">
+					<CardContent className="flex flex-col gap-4 p-3 sm:p-4">
+						<TransactionsFilters
+							selectedMonth={selectedMonth}
+							onSelectedMonthChange={setSelectedMonth}
+							monthOptions={monthOptions}
+							categoryFilter={categoryFilter}
+							onCategoryFilterChange={setCategoryFilter}
+							categories={categories}
+							searchQuery={searchQuery}
+							onSearchQueryChange={setSearchQuery}
+							activeFilterChips={activeFilterChips}
+						/>
 
-					<TransactionsSpendChart data={chartData} />
+						<TransactionsSpendChart data={chartData} />
+					</CardContent>
+				</Card>
 
+				<div className="min-w-0">
 					<TransactionsTable
 						expenses={filteredExpenses}
 						hasActiveFilters={hasActiveFilters}
@@ -204,7 +208,7 @@ export function TransactionsPage() {
 						onClearFilters={clearFilters}
 					/>
 				</div>
-			</PageContent>
+			</div>
 		</MonetaryVisibilityProvider>
 	);
 }
