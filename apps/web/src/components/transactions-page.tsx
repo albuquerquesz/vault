@@ -19,7 +19,10 @@ import {
 import { buildYearChartData } from "./transactions-page/build-daily-chart-data";
 import { TransactionsFilters } from "./transactions-page/transactions-filters";
 import { TransactionsSkeleton } from "./transactions-page/transactions-skeleton";
-import { TransactionsSpendChart } from "./transactions-page/transactions-spend-chart";
+import {
+	TransactionsChartStatsBar,
+	TransactionsSpendChart,
+} from "./transactions-page/transactions-spend-chart";
 import { TransactionsTable } from "./transactions-page/transactions-table";
 import type {
 	TransactionsActiveFilterChip,
@@ -68,16 +71,29 @@ export function TransactionsPage() {
 		return applyExpenseFilters(data, categoryFilter, searchQuery);
 	}, [expensesQuery.data, categoryFilter, searchQuery]);
 
-	/** Area chart: full calendar year (default), still respects category/search. */
-	const chartData = useMemo(() => {
+	/** Chart: full calendar year (default), still respects category/search. */
+	const yearFilteredExpenses = useMemo(() => {
 		const yearExpenses = yearExpensesQuery.data ?? [];
-		const filtered = applyExpenseFilters(
-			yearExpenses,
-			categoryFilter,
-			searchQuery,
+		return applyExpenseFilters(yearExpenses, categoryFilter, searchQuery);
+	}, [yearExpensesQuery.data, categoryFilter, searchQuery]);
+
+	const chartData = useMemo(
+		() => buildYearChartData(chartYear, yearFilteredExpenses),
+		[chartYear, yearFilteredExpenses],
+	);
+
+	const chartStats = useMemo(() => {
+		const totalOut = yearFilteredExpenses.reduce(
+			(sum, expense) => sum + expense.amount,
+			0,
 		);
-		return buildYearChartData(chartYear, filtered);
-	}, [yearExpensesQuery.data, categoryFilter, searchQuery, chartYear]);
+		return {
+			count: yearFilteredExpenses.length,
+			totalOut,
+			// Expenses-only dataset today; reserved for future income.
+			totalIn: 0,
+		};
+	}, [yearFilteredExpenses]);
 
 	const categories = useMemo(() => {
 		const source = yearExpensesQuery.data ?? expensesQuery.data ?? [];
@@ -180,8 +196,8 @@ export function TransactionsPage() {
 		<MonetaryVisibilityProvider>
 			{/* Full width like overview — no max-w-[1200px] PageContent cap */}
 			<div className="grid w-full min-w-0 gap-4 pt-6">
-				<Card className="financial-panel-border w-full min-w-0 gap-0 rounded-none ring-0">
-					<CardContent className="flex flex-col gap-4 p-3 sm:p-4">
+				<Card className="financial-panel-border relative w-full min-w-0 gap-0 overflow-visible rounded-none ring-0">
+					<CardContent className="relative flex flex-col gap-4 overflow-visible p-3 pb-11 sm:p-4 sm:pb-12">
 						<TransactionsFilters
 							selectedMonth={selectedMonth}
 							onSelectedMonthChange={setSelectedMonth}
@@ -195,6 +211,7 @@ export function TransactionsPage() {
 						/>
 
 						<TransactionsSpendChart data={chartData} />
+						<TransactionsChartStatsBar stats={chartStats} />
 					</CardContent>
 				</Card>
 
