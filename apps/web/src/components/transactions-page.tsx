@@ -12,6 +12,7 @@ import { Input } from "@vault/ui/components/input";
 import { SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
+import { PartialResultCard } from "@/components/overview/partial-result/partial-result-card";
 import { getMonthValue, useFinanceExpenses } from "@/features/finance/sdk";
 import { TransactionsFilterMenu } from "./transactions-page/transactions-filter-menu";
 import { TransactionsPeriodStats } from "./transactions-page/transactions-period-stats";
@@ -151,7 +152,11 @@ export function TransactionsPage() {
 							stats={periodStats}
 						/>
 					</div>
-					<div className="financial-panel-border h-[300px] w-full" />
+					<PartialResultCard
+						className="w-full"
+						month={selectedMonth}
+						showLink={false}
+					/>
 				</div>
 			</div>
 		</MonetaryVisibilityProvider>

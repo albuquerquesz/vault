@@ -6,7 +6,7 @@ import { registerRoutes } from "./routers/index.js";
 
 const baseCorsConfig = {
 	origin: env.CORS_ORIGIN,
-	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 	allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 	credentials: true,
 	maxAge: 86400,

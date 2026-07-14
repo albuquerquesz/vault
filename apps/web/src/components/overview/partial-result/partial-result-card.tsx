@@ -14,6 +14,8 @@ import { PartialResultContent } from "./partial-result-content";
 type PartialResultCardProps = {
 	month: string;
 	className?: string;
+	/** Hide the overview link when the card is already on /transactions. */
+	showLink?: boolean;
 };
 
 function PartialResultLoadingSkeleton({ className }: { className?: string }) {
@@ -51,7 +53,11 @@ function PartialResultLoadingSkeleton({ className }: { className?: string }) {
 	);
 }
 
-export function PartialResultCard({ month, className }: PartialResultCardProps) {
+export function PartialResultCard({
+	month,
+	className,
+	showLink = true,
+}: PartialResultCardProps) {
 	const { metrics, isLoading, isError } = usePartialResult(month);
 
 	if (isLoading) {
@@ -75,7 +81,7 @@ export function PartialResultCard({ month, className }: PartialResultCardProps) 
 				) : !metrics ? (
 					<OverviewCardEmptyState message="Nenhum dado para este mês." />
 				) : (
-					<PartialResultContent metrics={metrics} />
+					<PartialResultContent metrics={metrics} showLink={showLink} />
 				)}
 			</CardContent>
 		</Card>
