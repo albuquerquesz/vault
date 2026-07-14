@@ -128,11 +128,7 @@ export function TransactionsPage() {
 				</div>
 
 				<div className="flex min-w-0 flex-col gap-8">
-					<div className="financial-panel-border flex h-[300px] w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
-						<TransactionsPeriodStats
-							periodLabel="Últimos 30d"
-							stats={periodStats}
-						/>
+					<div className="financial-panel-border flex w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
 						<div className="flex w-full min-w-0 items-center gap-2">
 							<div className="relative min-w-0 flex-1">
 								<SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -150,6 +146,10 @@ export function TransactionsPage() {
 								onAppliedFiltersChange={setAppliedFilters}
 							/>
 						</div>
+						<TransactionsPeriodStats
+							periodLabel="Últimos 30d"
+							stats={periodStats}
+						/>
 					</div>
 					<div className="financial-panel-border h-[300px] w-full" />
 				</div>

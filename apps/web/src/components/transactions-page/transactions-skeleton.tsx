@@ -38,16 +38,16 @@ export function TransactionsSkeleton() {
 			</div>
 
 			<div className="flex min-w-0 flex-col gap-8">
-				<div className="financial-panel-border flex h-[300px] w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
+				<div className="financial-panel-border flex w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
+					<div className="flex w-full items-center gap-2">
+						<div className="h-9 min-w-0 flex-1 rounded-md bg-muted/40" />
+						<div className="size-9 shrink-0 rounded-lg bg-muted/40" />
+					</div>
 					<div className="flex flex-wrap items-center gap-3 sm:gap-4">
 						<div className="h-8 w-28 rounded-full bg-muted/40" />
 						<div className="h-5 w-12 rounded bg-muted/40" />
 						<div className="h-5 w-24 rounded bg-muted/40" />
 						<div className="h-5 w-24 rounded bg-muted/40" />
-					</div>
-					<div className="flex w-full items-center gap-2">
-						<div className="h-9 min-w-0 flex-1 rounded-md bg-muted/40" />
-						<div className="size-9 shrink-0 rounded-lg bg-muted/40" />
 					</div>
 				</div>
 				<div className="financial-panel-border h-[300px] w-full" />
