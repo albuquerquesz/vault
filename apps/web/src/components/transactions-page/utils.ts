@@ -1,7 +1,7 @@
 "use client";
 
-import type { FinanceExpense } from "@/features/finance/sdk";
 import type { LucideIcon } from "lucide-react";
+import type { FinanceExpense } from "@/features/finance/sdk";
 import {
 	CATEGORY_COLOR_FALLBACKS,
 	CATEGORY_COLORS,

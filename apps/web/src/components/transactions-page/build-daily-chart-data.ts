@@ -74,8 +74,7 @@ export function buildYearChartData(
 		if (!Number.isFinite(monthNumber) || monthNumber < 1 || monthNumber > 12) {
 			continue;
 		}
-		amounts[monthNumber - 1] =
-			(amounts[monthNumber - 1] ?? 0) + expense.amount;
+		amounts[monthNumber - 1] = (amounts[monthNumber - 1] ?? 0) + expense.amount;
 	}
 
 	return amounts.map((amount, index) => ({

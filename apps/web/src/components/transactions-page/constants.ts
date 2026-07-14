@@ -10,8 +10,8 @@ import {
 	HeartPulse,
 	Home,
 	Landmark,
-	Plane,
 	Pill,
+	Plane,
 	ShoppingBag,
 	ShoppingCart,
 	Sparkles,
@@ -70,13 +70,15 @@ export const CATEGORY_ICON_FALLBACKS = [
 /** Soft badge styles (bg + text + border) — aligned with overview category accents. */
 export const CATEGORY_COLORS: Record<string, string> = {
 	// Manual / finance seed (pt-BR)
-	Moradia: "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400",
+	Moradia:
+		"bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400",
 	Alimentação:
 		"bg-orange-500/15 text-orange-600 border-orange-500/30 dark:text-orange-400",
 	Transporte:
 		"bg-blue-500/15 text-blue-600 border-blue-500/30 dark:text-blue-400",
 	Saúde: "bg-red-500/15 text-red-600 border-red-500/30 dark:text-red-400",
-	Lazer: "bg-purple-500/15 text-purple-600 border-purple-500/30 dark:text-purple-400",
+	Lazer:
+		"bg-purple-500/15 text-purple-600 border-purple-500/30 dark:text-purple-400",
 	Outros: "bg-zinc-500/15 text-zinc-600 border-zinc-500/30 dark:text-zinc-400",
 
 	// Pluggy / enrichment (en)
@@ -94,8 +96,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
 		"bg-fuchsia-500/15 text-fuchsia-600 border-fuchsia-500/30 dark:text-fuchsia-400",
 	Restaurants:
 		"bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400",
-	Transport:
-		"bg-sky-500/15 text-sky-600 border-sky-500/30 dark:text-sky-400",
+	Transport: "bg-sky-500/15 text-sky-600 border-sky-500/30 dark:text-sky-400",
 	Transfers:
 		"bg-slate-500/15 text-slate-600 border-slate-500/30 dark:text-slate-400",
 	Entertainment:

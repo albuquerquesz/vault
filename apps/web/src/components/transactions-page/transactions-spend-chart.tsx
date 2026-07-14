@@ -28,10 +28,10 @@ export function TransactionsSpendChart({
 	return (
 		<div className="w-full min-w-0">
 			<AreaChart
-				aspectRatio="2 / 1"
-				className="w-full max-sm:max-h-52"
+				aspectRatio="3.5 / 1"
+				className="w-full max-h-44 sm:max-h-52"
 				data={data}
-				margin={{ top: 12, right: 8, bottom: 28, left: 8 }}
+				margin={{ top: 8, right: 12, bottom: 40, left: 12 }}
 				xDataKey="date"
 			>
 				<Grid horizontal />
@@ -45,8 +45,7 @@ export function TransactionsSpendChart({
 				<XAxis />
 				<ChartTooltip
 					rows={(point) => {
-						const amount =
-							typeof point.amount === "number" ? point.amount : 0;
+						const amount = typeof point.amount === "number" ? point.amount : 0;
 						const rawDate = point.date;
 						const monthLabel =
 							rawDate instanceof Date
@@ -58,8 +57,7 @@ export function TransactionsSpendChart({
 						return [
 							{
 								color: SERIES_COLOR,
-								label:
-									monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
+								label: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
 								value: brlFormatter.format(amount),
 							},
 						];
