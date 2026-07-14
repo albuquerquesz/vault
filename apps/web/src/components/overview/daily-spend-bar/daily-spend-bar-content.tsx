@@ -65,14 +65,14 @@ export function DailySpendBarContent({
 		isPeakDay(datum, peakDay) ? PEAK_BAR_COLOR : BAR_COLOR;
 
 	return (
-		<div className="flex h-full min-h-55 w-full flex-1 flex-col gap-2">
+		<div className="flex h-full min-h-40 w-full flex-1 flex-col gap-2 sm:min-h-55">
 			{peakDay ? (
-				<p className="shrink-0 self-start text-4xl mb-8 font-semibold tracking-tight tabular-nums text-foreground">
+				<p className="mb-4 shrink-0 self-start text-2xl font-semibold tracking-tight tabular-nums text-foreground sm:mb-8 sm:text-4xl">
 					{formatBrlWhole(peakDay.amount)}
 				</p>
 			) : null}
 			<BarChart
-				className="h-full min-h-50 flex-1"
+				className="h-full min-h-40 flex-1 sm:min-h-50"
 				data={chartData}
 				margin={{ top: 8, right: 8, bottom: 40, left: 8 }}
 				xDataKey="day"

@@ -96,11 +96,14 @@ export function OrderSourceMixContent({
 		[sourceData],
 	);
 
+	const pieSize = 260;
+	const pieInner = 72;
+
 	return (
-		<div className="flex flex-1 items-center gap-12">
-			<div className="flex min-w-0 flex-[2] items-center justify-center">
-				<div className="relative flex h-[300px] w-[300px] shrink-0 items-center justify-center">
-					<PieChart data={pieData} innerRadius={82} size={300}>
+		<div className="flex flex-1 flex-col items-center gap-6 lg:flex-row lg:items-center lg:gap-12">
+			<div className="flex w-full min-w-0 shrink-0 items-center justify-center lg:flex-[2]">
+				<div className="relative flex size-[min(100%,260px)] max-w-full shrink-0 items-center justify-center">
+					<PieChart data={pieData} innerRadius={pieInner} size={pieSize}>
 						{sourceData.map((datum, index) => {
 							const preset = patternPresetForIndex(index);
 							const stroke =
@@ -138,21 +141,21 @@ export function OrderSourceMixContent({
 				</div>
 			</div>
 
-			<div className="flex min-w-0 flex-[3] flex-col gap-4 pr-8">
+			<div className="flex w-full min-w-0 flex-col gap-3 pr-0 lg:flex-[3] lg:gap-4 lg:pr-8">
 				{sourceData.map((datum, index) => (
 					<div key={datum.source} className="flex items-center gap-3">
-						<div className="flex items-center gap-2">
+						<div className="flex min-w-0 items-center gap-2">
 							<span
 								className="size-3 shrink-0"
 								style={{
 									backgroundColor: slicePalette[index % slicePalette.length],
 								}}
 							/>
-							<span className="text-sm text-muted-foreground">
+							<span className="truncate text-sm text-muted-foreground">
 								{datum.source}
 							</span>
 						</div>
-						<div className="ml-auto flex items-center gap-2">
+						<div className="ml-auto flex shrink-0 items-center gap-2">
 							<span className="text-sm font-medium tabular-nums">
 								{datum.percentage.toFixed(1)}%
 							</span>

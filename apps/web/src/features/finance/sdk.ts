@@ -1,5 +1,10 @@
-import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import {
+	type QueryClient,
+	useMutation,
+	useQueries,
+	useQuery,
+} from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
 import { getCachedData, setCachedData } from "@/features/finance/cache";
 import { apiFetch, queryClient } from "@/utils/api";
 
@@ -215,6 +220,55 @@ export const financeSdk = {
 };
 
 // --- Hooks ---
+
+/** All months `YYYY-MM` for a calendar year. */
+export function getYearMonths(year: number): string[] {
+	return Array.from({ length: 12 }, (_, index) => {
+		const month = String(index + 1).padStart(2, "0");
+		return `${year}-${month}`;
+	});
+}
+
+/**
+ * Loads expenses for every month of `year` (parallel queries, shared cache keys).
+ * Used by the transactions AreaChart (year-wide by default).
+ */
+export function useFinanceExpensesYear(year: number) {
+	const months = useMemo(() => getYearMonths(year), [year]);
+
+	const queries = useQueries({
+		queries: months.map((month) => {
+			const cached = getCachedData<FinanceExpense[]>("listExpenses", month);
+			return {
+				...financeSdk.listExpensesOptions(month),
+				initialData: cached ?? undefined,
+			};
+		}),
+	});
+
+	const data = useMemo(() => {
+		if (queries.some((query) => query.isPending && !query.data)) {
+			return undefined;
+		}
+		return queries.flatMap((query) => query.data ?? []);
+	}, [queries]);
+
+	useEffect(() => {
+		for (const [index, query] of queries.entries()) {
+			const month = months[index];
+			if (month && query.data) {
+				setCachedData("listExpenses", month, query.data);
+			}
+		}
+	}, [queries, months]);
+
+	return {
+		data,
+		isPending: queries.some((query) => query.isPending && !query.data),
+		isError: queries.some((query) => query.isError),
+		isFetching: queries.some((query) => query.isFetching),
+	};
+}
 
 export function useFinanceExpenses(month = getMonthValue()) {
 	const cached = getCachedData<FinanceExpense[]>("listExpenses", month);

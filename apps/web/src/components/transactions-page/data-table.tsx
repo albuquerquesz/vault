@@ -112,12 +112,12 @@ export function DataTable<TData, TValue>({
 						{table.getRowModel().rows.length ? (
 							table.getRowModel().rows.map((row) => (
 								<TableRow
-									className="h-12 border-b border-border/40 hover:bg-muted/20 data-[state=selected]:bg-muted/20"
+									className="h-11 border-b border-border/40 hover:bg-muted/20 data-[state=selected]:bg-muted/20 sm:h-12"
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}
 								>
 									{row.getVisibleCells().map((cell) => (
-										<TableCell className="px-3 py-1.5" key={cell.id}>
+										<TableCell className="px-2 py-1.5 sm:px-3" key={cell.id}>
 											{flexRender(
 												cell.column.columnDef.cell,
 												cell.getContext(),

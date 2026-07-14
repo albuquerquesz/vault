@@ -11,8 +11,13 @@ import {
 import { useMemo, useState } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 import { PageContent } from "@/components/page-content";
-import { getMonthValue, useFinanceExpenses } from "@/features/finance/sdk";
-import { buildDailyChartData } from "./transactions-page/build-daily-chart-data";
+import {
+	type FinanceExpense,
+	getMonthValue,
+	useFinanceExpenses,
+	useFinanceExpensesYear,
+} from "@/features/finance/sdk";
+import { buildYearChartData } from "./transactions-page/build-daily-chart-data";
 import { TransactionsFilters } from "./transactions-page/transactions-filters";
 import { TransactionsSkeleton } from "./transactions-page/transactions-skeleton";
 import { TransactionsSpendChart } from "./transactions-page/transactions-spend-chart";
@@ -22,45 +27,61 @@ import type {
 	TransactionsMonthOption,
 } from "./transactions-page/utils";
 
+function applyExpenseFilters(
+	expenses: FinanceExpense[],
+	categoryFilter: string,
+	searchQuery: string,
+): FinanceExpense[] {
+	let filtered = [...expenses];
+	if (categoryFilter !== "all") {
+		filtered = filtered.filter((expense) => expense.category === categoryFilter);
+	}
+	if (searchQuery.trim()) {
+		const query = searchQuery.toLowerCase();
+		filtered = filtered.filter(
+			(expense) =>
+				expense.category.toLowerCase().includes(query) ||
+				expense.note?.toLowerCase().includes(query),
+		);
+	}
+	return filtered;
+}
+
 export function TransactionsPage() {
 	const currentMonth = useMemo(() => getMonthValue(), []);
 	const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState("all");
 
+	const chartYear = useMemo(
+		() => Number(selectedMonth.slice(0, 4)) || new Date().getFullYear(),
+		[selectedMonth],
+	);
+
 	const expensesQuery = useFinanceExpenses(selectedMonth);
+	const yearExpensesQuery = useFinanceExpensesYear(chartYear);
 
 	const filteredExpenses = useMemo(() => {
 		const data = expensesQuery.data;
 		if (!data) return [];
-
-		let filtered = [...data];
-		if (categoryFilter !== "all") {
-			filtered = filtered.filter(
-				(expense) => expense.category === categoryFilter,
-			);
-		}
-
-		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase();
-			filtered = filtered.filter(
-				(expense) =>
-					expense.category.toLowerCase().includes(query) ||
-					expense.note?.toLowerCase().includes(query),
-			);
-		}
-
-		return filtered;
+		return applyExpenseFilters(data, categoryFilter, searchQuery);
 	}, [expensesQuery.data, categoryFilter, searchQuery]);
 
-	const chartData = useMemo(
-		() => buildDailyChartData(selectedMonth, filteredExpenses),
-		[selectedMonth, filteredExpenses],
-	);
+	/** Area chart: full calendar year (default), still respects category/search. */
+	const chartData = useMemo(() => {
+		const yearExpenses = yearExpensesQuery.data ?? [];
+		const filtered = applyExpenseFilters(
+			yearExpenses,
+			categoryFilter,
+			searchQuery,
+		);
+		return buildYearChartData(chartYear, filtered);
+	}, [yearExpensesQuery.data, categoryFilter, searchQuery, chartYear]);
 
 	const categories = useMemo(() => {
+		const source = yearExpensesQuery.data ?? expensesQuery.data ?? [];
 		const values = new Set(
-			(expensesQuery.data ?? [])
+			source
 				.map((expense) => expense.category?.trim())
 				.filter((category): category is string => Boolean(category)),
 		);
@@ -68,7 +89,7 @@ export function TransactionsPage() {
 		return Array.from(values).sort((left, right) =>
 			left.localeCompare(right, "pt-BR"),
 		);
-	}, [expensesQuery.data]);
+	}, [yearExpensesQuery.data, expensesQuery.data]);
 
 	const monthLabel = useMemo(() => {
 		const date = new Date(`${selectedMonth}-01T12:00:00`);

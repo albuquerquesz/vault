@@ -51,8 +51,13 @@ export function FinancialDashboard() {
         }
         .financial-dashboard [data-slot="card-title"] {
           font-family: "Space Grotesk", sans-serif !important;
-          font-size: 1.5rem !important;
+          font-size: 1.25rem !important;
           line-height: 1.2 !important;
+        }
+        @media (min-width: 640px) {
+          .financial-dashboard [data-slot="card-title"] {
+            font-size: 1.5rem !important;
+          }
         }
         .financial-dashboard h1 {
           font-family: "Space Grotesk", sans-serif !important;

@@ -37,7 +37,7 @@ export const transactionsColumns: ColumnDef<FinanceExpense>[] = [
 					provider={row.original.sourceProvider}
 					size="lg"
 				/>
-				<p className="min-w-0 truncate text-base font-medium text-foreground">
+				<p className="min-w-0 truncate text-sm font-medium text-foreground sm:text-base">
 					{row.original.note || "Despesa"}
 				</p>
 			</div>
@@ -54,12 +54,12 @@ export const transactionsColumns: ColumnDef<FinanceExpense>[] = [
 			return (
 				<Badge
 					className={cn(
-						"h-7 gap-1 rounded-sm border-0 px-2 text-sm font-medium",
+						"h-6 gap-1 rounded-sm border-0 px-1.5 text-xs font-medium sm:h-7 sm:px-2 sm:text-sm",
 						getCategoryColor(category),
 					)}
 					variant="secondary"
 				>
-					<Icon aria-hidden className="size-3.5 shrink-0" />
+					<Icon aria-hidden className="size-3 shrink-0 sm:size-3.5" />
 					{category}
 				</Badge>
 			);
@@ -70,7 +70,7 @@ export const transactionsColumns: ColumnDef<FinanceExpense>[] = [
 		header: () => <div className="w-full text-right">Valor</div>,
 		enableSorting: false,
 		cell: ({ row }) => (
-			<div className="text-right text-base font-medium tabular-nums whitespace-nowrap text-red-500">
+			<div className="text-right text-sm font-medium tabular-nums whitespace-nowrap text-red-500 sm:text-base">
 				<MaskedMonetaryValue
 					format={formatBRLNegative}
 					prefix="-R$"
@@ -84,7 +84,7 @@ export const transactionsColumns: ColumnDef<FinanceExpense>[] = [
 		header: () => <div className="w-full text-right">Data</div>,
 		enableSorting: false,
 		cell: ({ row }) => (
-			<span className="block text-right text-base font-medium whitespace-nowrap text-muted-foreground">
+			<span className="block text-right text-sm font-medium whitespace-nowrap text-muted-foreground sm:text-base">
 				{formatExpenseDate(row.original.expenseDate)}
 			</span>
 		),

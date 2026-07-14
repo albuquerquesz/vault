@@ -12,22 +12,24 @@ export function DashboardOverview() {
 		useDashboardOverview();
 
 	return (
-		<div className="grid grid-cols-1 gap-4 pt-6">
-			<div className="mb-2 flex flex-col items-start justify-between gap-4 sm:mb-6 sm:flex-row sm:items-center">
-				<h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl xl:text-4xl">
+		<div className="grid grid-cols-1 gap-4 pt-4 sm:pt-6">
+			<div className="mb-2 flex flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
+				<h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl xl:text-4xl">
 					Bem-vindo de volta{firstName ? `, ${firstName}!` : "!"} 👋
 				</h2>
-				<OverviewMonthSelect
-					onValueChange={setSelectedMonth}
-					options={monthOptions}
-					value={selectedMonth}
-				/>
+				<div className="w-full sm:w-auto">
+					<OverviewMonthSelect
+						onValueChange={setSelectedMonth}
+						options={monthOptions}
+						value={selectedMonth}
+					/>
+				</div>
 			</div>
-			<div className="grid grid-cols-1 gap-4 h-118 xl:grid-cols-[2fr_1fr]">
+			<div className="grid grid-cols-1 gap-4 xl:h-118 xl:grid-cols-[2fr_1fr]">
 				<OrderSourceMixCard month={selectedMonth} />
 				<MonthlyBillCard month={selectedMonth} />
 			</div>
-			<div className="grid grid-cols-1 gap-4 mb-4 xl:grid-cols-10">
+			<div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-10">
 				<div className="xl:col-span-4">
 					<GoalsCard />
 				</div>

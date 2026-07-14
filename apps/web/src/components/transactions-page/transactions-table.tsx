@@ -89,15 +89,6 @@ export function TransactionsTable({
 
 	return (
 		<>
-			{selectedCount > 0 ? (
-				<TransactionsSelectionToolbar
-					isDeleting={deleteExpenses.isPending}
-					onClear={() => setRowSelection({})}
-					onDelete={handleDelete}
-					selectedCount={selectedCount}
-				/>
-			) : null}
-
 			<DataTable
 				columns={transactionsColumns}
 				data={orderedExpenses}
@@ -106,6 +97,16 @@ export function TransactionsTable({
 				pageSize={10}
 				rowSelection={rowSelection}
 			/>
+
+			{/* Portal docks to viewport bottom — kept after table so it never sits in table layout. */}
+			{selectedCount > 0 ? (
+				<TransactionsSelectionToolbar
+					isDeleting={deleteExpenses.isPending}
+					onClear={() => setRowSelection({})}
+					onDelete={handleDelete}
+					selectedCount={selectedCount}
+				/>
+			) : null}
 		</>
 	);
 }

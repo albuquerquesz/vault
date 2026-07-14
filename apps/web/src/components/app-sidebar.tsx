@@ -9,6 +9,7 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	useSidebar,
 } from "@vault/ui/components/sidebar";
 import { cn } from "@vault/ui/lib/utils";
 import { footerNavLinks, useNavLinks } from "@/components/app-shared";
@@ -18,6 +19,8 @@ import { MonetaryVisibilityToggle } from "@/components/monetary-visibility";
 
 export function AppSidebar() {
 	const navLinks = useNavLinks();
+	const { setOpenMobile } = useSidebar();
+
 	return (
 		<Sidebar
 			className={cn(
@@ -28,10 +31,12 @@ export function AppSidebar() {
 			variant="sidebar"
 		>
 			<SidebarHeader className="h-14 justify-center border-b px-2">
-				<div className="flex items-center justify-between w-full">
-					<div className="flex items-center gap-2">
+				<div className="flex w-full items-center justify-between">
+					<div className="flex min-w-0 items-center gap-2">
 						<LogoIcon />
-						<span className="font-medium text-xl text-foreground!">Vault</span>
+						<span className="truncate font-medium text-xl text-foreground!">
+							Vault
+						</span>
 					</div>
 					<MonetaryVisibilityToggle />
 				</div>
@@ -42,6 +47,7 @@ export function AppSidebar() {
 						<SidebarMenuItem key={item.title}>
 							<SidebarMenuButton
 								isActive={item.isActive}
+								onClick={() => setOpenMobile(false)}
 								render={<Link to={item.path ?? "#"} />}
 							>
 								{item.icon}
@@ -59,6 +65,7 @@ export function AppSidebar() {
 							<SidebarMenuButton
 								className="text-muted-foreground"
 								isActive={item.isActive}
+								onClick={() => setOpenMobile(false)}
 								size="sm"
 								render={<a href={item.path} />}
 							>

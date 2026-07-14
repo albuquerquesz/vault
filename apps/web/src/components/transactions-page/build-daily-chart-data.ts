@@ -53,3 +53,33 @@ export function buildDailyChartData(
 		};
 	});
 }
+
+/** Twelve monthly totals for a calendar year (default AreaChart range). */
+export function buildYearChartData(
+	year: number,
+	expenses: FinanceExpense[],
+): TransactionsDailyChartPoint[] {
+	if (!Number.isFinite(year) || year < 1970) {
+		return [];
+	}
+
+	const amounts = new Array<number>(12).fill(0);
+	const yearPrefix = String(year);
+
+	for (const expense of expenses) {
+		if (!expense.expenseDate.startsWith(yearPrefix)) {
+			continue;
+		}
+		const monthNumber = Number(expense.expenseDate.slice(5, 7));
+		if (!Number.isFinite(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+			continue;
+		}
+		amounts[monthNumber - 1] =
+			(amounts[monthNumber - 1] ?? 0) + expense.amount;
+	}
+
+	return amounts.map((amount, index) => ({
+		date: new Date(year, index, 1, 12, 0, 0),
+		amount,
+	}));
+}

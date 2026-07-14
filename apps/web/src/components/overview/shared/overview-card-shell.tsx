@@ -40,7 +40,7 @@ export function OverviewCardShell({
 	return (
 		<Card
 			className={cn(
-				"financial-panel-border flex h-full min-h-[24rem] w-full flex-col ring-0",
+				"financial-panel-border flex h-full min-h-0 w-full flex-col ring-0 sm:min-h-[18rem] xl:min-h-[24rem]",
 				className,
 			)}
 		>

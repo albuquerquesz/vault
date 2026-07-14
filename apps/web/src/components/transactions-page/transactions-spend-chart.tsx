@@ -28,10 +28,10 @@ export function TransactionsSpendChart({
 	return (
 		<div className="w-full min-w-0">
 			<AreaChart
-				aspectRatio="3 / 1"
-				className="w-full"
+				aspectRatio="2 / 1"
+				className="w-full max-sm:max-h-52"
 				data={data}
-				margin={{ top: 16, right: 12, bottom: 32, left: 12 }}
+				margin={{ top: 12, right: 8, bottom: 28, left: 8 }}
 				xDataKey="date"
 			>
 				<Grid horizontal />
@@ -47,10 +47,19 @@ export function TransactionsSpendChart({
 					rows={(point) => {
 						const amount =
 							typeof point.amount === "number" ? point.amount : 0;
+						const rawDate = point.date;
+						const monthLabel =
+							rawDate instanceof Date
+								? rawDate.toLocaleDateString("pt-BR", {
+										month: "long",
+										year: "numeric",
+									})
+								: "Gastos";
 						return [
 							{
 								color: SERIES_COLOR,
-								label: "Gastos",
+								label:
+									monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
 								value: brlFormatter.format(amount),
 							},
 						];

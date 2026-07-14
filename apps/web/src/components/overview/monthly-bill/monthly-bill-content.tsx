@@ -24,12 +24,12 @@ export function MonthlyBillContent({
 	items: MonthlyBillItem[];
 }) {
 	return (
-		<div className="flex flex-1 flex-col gap-6">
-			<div className="text-3xl font-semibold tabular-nums">
+		<div className="flex flex-1 flex-col gap-4 sm:gap-6">
+			<div className="text-2xl font-semibold tabular-nums sm:text-3xl">
 				{fmt(totalBill)}
 			</div>
 
-			<div className="space-y-8">
+			<div className="flex flex-col gap-5 sm:gap-8">
 				{items.map((item) => {
 					const itemPct =
 						item.totalAmount > 0
@@ -39,7 +39,7 @@ export function MonthlyBillContent({
 					return (
 						<div
 							key={item.id ?? item.name}
-							className="flex items-center justify-between gap-4 text-base"
+							className="flex flex-col items-start gap-2 text-base sm:flex-row sm:items-center sm:justify-between sm:gap-4"
 						>
 							<div className="flex min-w-0 items-center gap-2.5">
 								<InstitutionMark
@@ -49,7 +49,7 @@ export function MonthlyBillContent({
 								/>
 								<span className="truncate font-medium">{item.name}</span>
 							</div>
-							<div className="flex shrink-0 items-center gap-2 tabular-nums text-lg">
+							<div className="flex shrink-0 items-center gap-2 tabular-nums text-base sm:text-lg">
 								<span>{fmt(item.paidAmount)}</span>
 								<span className="text-muted-foreground">
 									/ {fmt(item.totalAmount)}

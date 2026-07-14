@@ -6,12 +6,12 @@ import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 export function AppShell({ children }: { children: React.ReactNode }) {
 	return (
 		<MonetaryVisibilityProvider>
-			<SidebarProvider onOpenChange={() => {}} open>
+			<SidebarProvider defaultOpen>
 				<AppSidebar />
 				<SidebarInset>
 					<AppHeader />
-					<div className="flex flex-1 flex-col px-8 md:px-8">
-						<div className="mx-auto w-full">{children}</div>
+					<div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-8">
+						<div className="mx-auto w-full min-w-0">{children}</div>
 					</div>
 				</SidebarInset>
 			</SidebarProvider>
