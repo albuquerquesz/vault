@@ -13,11 +13,13 @@ export function TransactionsTable({
 	expenses,
 	monthLabel,
 	month,
+	hasActiveSearch = false,
 }: {
 	expenses: FinanceExpense[];
 	monthLabel: string;
 	/** YYYY-MM — used for cache invalidation after bulk delete. */
 	month: string;
+	hasActiveSearch?: boolean;
 }) {
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 	const deleteExpenses = useDeleteExpenses(month);
@@ -56,10 +58,14 @@ export function TransactionsTable({
 		return (
 			<div className="grid gap-3 px-6 py-12 text-center">
 				<p className="text-sm font-medium text-foreground">
-					Nenhuma transação em {monthLabel}
+					{hasActiveSearch
+						? "Nenhum resultado para a busca"
+						: `Nenhuma transação em ${monthLabel}`}
 				</p>
 				<p className="max-w-md justify-self-center text-sm text-muted-foreground">
-					Quando despesas forem registradas, elas aparecerão aqui.
+					{hasActiveSearch
+						? "Tente outro termo de nota ou categoria."
+						: "Quando despesas forem registradas, elas aparecerão aqui."}
 				</p>
 			</div>
 		);

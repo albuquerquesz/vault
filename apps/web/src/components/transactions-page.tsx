@@ -8,7 +8,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
-import { useMemo } from "react";
+import { Input } from "@vault/ui/components/input";
+import { SearchIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 import { getMonthValue, useFinanceExpenses } from "@/features/finance/sdk";
 import { TransactionsPeriodStats } from "./transactions-page/transactions-period-stats";
@@ -26,11 +28,22 @@ export function TransactionsPage() {
 		() => getPreviousMonthValue(selectedMonth),
 		[selectedMonth],
 	);
+	const [searchQuery, setSearchQuery] = useState("");
 
 	const expensesQuery = useFinanceExpenses(selectedMonth);
 	const previousMonthQuery = useFinanceExpenses(previousMonth);
 
 	const expenses = expensesQuery.data ?? [];
+
+	const filteredExpenses = useMemo(() => {
+		if (!searchQuery.trim()) return expenses;
+		const query = searchQuery.toLowerCase();
+		return expenses.filter(
+			(expense) =>
+				expense.category.toLowerCase().includes(query) ||
+				expense.note?.toLowerCase().includes(query),
+		);
+	}, [expenses, searchQuery]);
 
 	const periodStats = useMemo(() => {
 		const merged = [
@@ -90,18 +103,29 @@ export function TransactionsPage() {
 			<div className="grid w-full min-w-0 grid-cols-1 gap-4 pt-6 lg:grid-cols-[3fr_2fr]">
 				<div className="min-w-0">
 					<TransactionsTable
-						expenses={expenses}
+						expenses={filteredExpenses}
+						hasActiveSearch={searchQuery.trim().length > 0}
 						month={selectedMonth}
 						monthLabel={monthLabel}
 					/>
 				</div>
 
 				<div className="flex min-w-0 flex-col gap-8">
-					<div className="financial-panel-border flex h-[300px] w-full items-start p-3 sm:p-4">
+					<div className="financial-panel-border flex h-[300px] w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
 						<TransactionsPeriodStats
 							periodLabel="Últimos 30d"
 							stats={periodStats}
 						/>
+						<div className="relative w-full min-w-0">
+							<SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+							<Input
+								aria-label="Buscar transações"
+								className="w-full rounded-md border-border/70 !bg-transparent pl-10 shadow-none dark:!bg-transparent dark:hover:!bg-transparent dark:focus-visible:!bg-transparent"
+								onChange={(event) => setSearchQuery(event.target.value)}
+								placeholder="Buscar por nota ou categoria"
+								value={searchQuery}
+							/>
+						</div>
 					</div>
 					<div className="financial-panel-border h-[300px] w-full" />
 				</div>

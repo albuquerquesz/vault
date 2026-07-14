@@ -25,6 +25,9 @@ export function OverviewMonthSelect({
 	options,
 	onValueChange,
 }: OverviewMonthSelectProps) {
+	const selectedLabel =
+		options.find((option) => option.value === value)?.label ?? value;
+
 	return (
 		<Select
 			value={value}
@@ -34,9 +37,14 @@ export function OverviewMonthSelect({
 				}
 			}}
 		>
-			<SelectTrigger className="h-9 w-[160px] text-sm">
+			<SelectTrigger className="h-9 min-w-[160px] text-sm">
 				<CalendarIcon className="mr-2 size-3.5 text-muted-foreground" />
-				<SelectValue />
+				<SelectValue placeholder="Mês">
+					{(selected) =>
+						options.find((option) => option.value === selected)?.label ??
+						selectedLabel
+					}
+				</SelectValue>
 			</SelectTrigger>
 			<SelectContent>
 				{options.map((option) => (
