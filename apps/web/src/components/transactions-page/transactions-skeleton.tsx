@@ -50,7 +50,25 @@ export function TransactionsSkeleton() {
 						<div className="h-5 w-24 rounded bg-muted/40" />
 					</div>
 				</div>
-				<div className="financial-panel-border min-h-48 w-full flex-1" />
+				<div className="financial-panel-border flex min-h-48 w-full flex-1 flex-col gap-4 p-4 sm:p-5">
+					<div className="space-y-2">
+						<div className="h-4 w-36 rounded bg-muted/40" />
+						<div className="h-3 w-28 rounded bg-muted/40" />
+					</div>
+					<div className="flex flex-1 flex-col justify-center gap-3">
+						{Array.from({ length: 5 }).map((_, index) => (
+							<div
+								key={`chart-bar-skel-${index}`}
+								className="h-7 rounded-md bg-muted/40"
+								style={{ width: `${55 + ((index * 13) % 40)}%` }}
+							/>
+						))}
+					</div>
+					<div className="space-y-2">
+						<div className="h-3 w-48 rounded bg-muted/40" />
+						<div className="h-3 w-40 rounded bg-muted/40" />
+					</div>
+				</div>
 			</div>
 		</div>
 	);

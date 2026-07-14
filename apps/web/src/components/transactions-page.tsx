@@ -13,6 +13,7 @@ import { SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 import { getMonthValue, useFinanceExpenses } from "@/features/finance/sdk";
+import { TransactionsCategoryBarChart } from "./transactions-page/transactions-category-bar-chart";
 import { TransactionsFilterMenu } from "./transactions-page/transactions-filter-menu";
 import { TransactionsPeriodStats } from "./transactions-page/transactions-period-stats";
 import { TransactionsSkeleton } from "./transactions-page/transactions-skeleton";
@@ -151,7 +152,9 @@ export function TransactionsPage() {
 							stats={periodStats}
 						/>
 					</div>
-					<div className="financial-panel-border min-h-48 w-full flex-1" />
+					<div className="financial-panel-border flex min-h-48 w-full flex-1 flex-col overflow-hidden">
+						<TransactionsCategoryBarChart />
+					</div>
 				</div>
 			</div>
 		</MonetaryVisibilityProvider>
