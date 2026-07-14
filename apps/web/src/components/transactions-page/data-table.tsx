@@ -14,7 +14,7 @@ import {
 	TableCell,
 	TableRow,
 } from "@vault/ui/components/table";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -25,6 +25,9 @@ interface DataTableProps<TData, TValue> {
 	getRowId?: (originalRow: TData, index: number) => string;
 	rowSelection?: RowSelectionState;
 	onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+	/** When set, inserts a group header before the first row of each group. */
+	getGroupKey?: (row: TData) => string;
+	renderGroupHeader?: (groupKey: string) => ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -34,6 +37,8 @@ export function DataTable<TData, TValue>({
 	getRowId,
 	rowSelection: controlledSelection,
 	onRowSelectionChange,
+	getGroupKey,
+	renderGroupHeader,
 }: DataTableProps<TData, TValue>) {
 	const [visibleCount, setVisibleCount] = useState(pageSize);
 	const [uncontrolledSelection, setUncontrolledSelection] =
@@ -103,29 +108,59 @@ export function DataTable<TData, TValue>({
 		getRowId,
 	});
 
+	const rows = table.getRowModel().rows;
+
 	return (
 		<div className="w-full space-y-2">
 			{/* Table shell: no heavy outer border (Resend-like). */}
 			<div className="w-full overflow-x-auto">
 				<Table className="border-separate border-spacing-0">
 					<TableBody>
-						{table.getRowModel().rows.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow
-									className="h-11 border-b border-border/40 hover:bg-muted/20 data-[state=selected]:bg-muted/20 sm:h-12"
-									key={row.id}
-									data-state={row.getIsSelected() && "selected"}
-								>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell className="px-2 py-1.5 sm:px-3" key={cell.id}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</TableCell>
-									))}
-								</TableRow>
-							))
+						{rows.length ? (
+							rows.map((row, index) => {
+								const groupKey = getGroupKey?.(row.original);
+								const previousKey =
+									index > 0
+										? getGroupKey?.(rows[index - 1]!.original)
+										: undefined;
+								const showGroupHeader =
+									Boolean(getGroupKey) &&
+									groupKey !== undefined &&
+									groupKey !== previousKey;
+
+								return (
+									<Fragment key={row.id}>
+										{showGroupHeader && groupKey !== undefined ? (
+											<TableRow className="hover:bg-transparent">
+												<TableCell
+													className="px-2 pb-1 pt-4 text-xs font-medium tracking-wide text-muted-foreground uppercase sm:px-3 sm:pt-5"
+													colSpan={columns.length}
+												>
+													{renderGroupHeader
+														? renderGroupHeader(groupKey)
+														: groupKey}
+												</TableCell>
+											</TableRow>
+										) : null}
+										<TableRow
+											className="h-9 border-b border-border/40 hover:bg-muted/20 data-[state=selected]:bg-muted/20 sm:h-10"
+											data-state={row.getIsSelected() && "selected"}
+										>
+											{row.getVisibleCells().map((cell) => (
+												<TableCell
+													className="px-2 py-1 text-xs sm:px-3 sm:text-sm"
+													key={cell.id}
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
+												</TableCell>
+											))}
+										</TableRow>
+									</Fragment>
+								);
+							})
 						) : (
 							<TableRow className="hover:bg-transparent">
 								<TableCell

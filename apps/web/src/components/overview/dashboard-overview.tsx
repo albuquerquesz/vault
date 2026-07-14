@@ -5,6 +5,7 @@ import { GoalsCard } from "@/components/overview/goals/goals-card";
 import { useDashboardOverview } from "@/components/overview/hooks/use-dashboard-overview";
 import { MonthlyBillCard } from "@/components/overview/monthly-bill/monthly-bill-card";
 import { OrderSourceMixCard } from "@/components/overview/order-source-mix/order-source-mix-card";
+import { PartialResultCard } from "@/components/overview/partial-result/partial-result-card";
 import { OverviewMonthSelect } from "@/components/overview/shared/overview-month-select";
 
 export function DashboardOverview() {
@@ -30,8 +31,13 @@ export function DashboardOverview() {
 				<MonthlyBillCard month={selectedMonth} />
 			</div>
 			<div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-10">
-				<div className="xl:col-span-4">
-					<GoalsCard />
+				<div className="flex min-h-0 flex-col gap-4 xl:col-span-4 xl:h-full">
+					<div className="min-h-0 flex-1">
+						<GoalsCard className="min-h-0 sm:min-h-0 xl:min-h-0" />
+					</div>
+					<div className="min-h-0 flex-1">
+						<PartialResultCard month={selectedMonth} />
+					</div>
 				</div>
 				<div className="xl:col-span-6">
 					<DailySpendBarCard month={selectedMonth} />

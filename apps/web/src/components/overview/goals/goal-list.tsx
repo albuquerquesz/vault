@@ -54,7 +54,7 @@ export function GoalList({
 				return (
 					<div
 						key={goal.id}
-						className="flex items-center justify-between gap-3 py-1.5"
+						className="flex items-center justify-between gap-3 py-1"
 					>
 						<div className="flex min-w-0 flex-1 items-center gap-2">
 							{goal.url ? (
@@ -62,14 +62,14 @@ export function GoalList({
 									href={goal.url}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="min-w-0 truncate text-lg font-medium underline-offset-4 hover:underline"
+									className="min-w-0 truncate text-sm font-medium underline-offset-4 hover:underline"
 									title={goal.name}
 								>
 									{displayName}
 								</a>
 							) : (
 								<span
-									className="min-w-0 truncate text-lg font-medium"
+									className="min-w-0 truncate text-sm font-medium"
 									title={goal.name}
 								>
 									{displayName}
@@ -83,14 +83,14 @@ export function GoalList({
 									className="shrink-0 text-muted-foreground hover:text-foreground"
 									aria-label={`Abrir link da meta ${goal.name}`}
 								>
-									<ExternalLinkIcon className="size-4" />
+									<ExternalLinkIcon className="size-3.5" />
 								</a>
 							) : null}
 						</div>
 
 						<div className="flex shrink-0 items-center gap-1">
 							<AnimatedNumber
-								className="text-xl font-semibold tabular-nums text-white"
+								className="text-sm font-semibold tabular-nums text-white"
 								format={(value) => currencyFmt.format(value)}
 								value={goal.targetAmount}
 							/>

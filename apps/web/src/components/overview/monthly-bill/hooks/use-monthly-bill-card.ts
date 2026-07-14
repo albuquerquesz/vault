@@ -1,6 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+import {
+	getMonthValue,
+	useFinanceMonthlyBills,
+} from "@/features/finance/sdk";
 import { type PluggyAccount, usePluggyAccounts } from "@/features/pluggy/sdk";
 
 export type CreditCardListItem = {
@@ -8,9 +12,9 @@ export type CreditCardListItem = {
 	name: string;
 	/** Best-effort institution label for brand mark (bank / Open Finance). */
 	provider: string | null;
-	/** Outstanding balance (used credit). */
+	/** Amount paid toward the invoice (or used balance when from Pluggy bills). */
 	paidAmount: number;
-	/** Credit limit when available; otherwise balance. */
+	/** Invoice total for the selected month. */
 	totalAmount: number;
 };
 
@@ -41,7 +45,6 @@ function resolveCardInstitution(
 		(account) => account.pluggyItemId === card.pluggyItemId,
 	);
 
-	// Prefer BANK / checking labels (usually the legal institution name).
 	const bankHint = siblings.find((account) => {
 		if (account.type !== "BANK") return false;
 		return Boolean(
@@ -52,7 +55,6 @@ function resolveCardInstitution(
 		return bankHint.name.trim();
 	}
 
-	// Any sibling (including the card itself) with a clear institution name.
 	const anyHint = siblings.find(
 		(account) =>
 			account.name?.trim() && INSTITUTION_NAME_HINT.test(account.name),
@@ -61,7 +63,6 @@ function resolveCardInstitution(
 		return anyHint.name.trim();
 	}
 
-	// Fall back to card name (e.g. "Mercado Pago") or generic provider.
 	if (card.name?.trim() && INSTITUTION_NAME_HINT.test(card.name)) {
 		return card.name.trim();
 	}
@@ -69,46 +70,67 @@ function resolveCardInstitution(
 	return itemProvider;
 }
 
+function resolveProviderForBillName(
+	billName: string,
+	accounts: PluggyAccount[],
+): string | null {
+	const normalized = billName.trim().toLowerCase();
+	if (!normalized) return null;
+
+	const matchingCard = accounts.find(
+		(account) =>
+			account.type === "CREDIT" &&
+			account.name?.trim().toLowerCase() === normalized,
+	);
+
+	if (!matchingCard) {
+		// Fall back to institution hints on the bill name itself (e.g. "Mercado Pago").
+		if (INSTITUTION_NAME_HINT.test(billName)) {
+			return billName.trim();
+		}
+		return null;
+	}
+
+	return resolveCardInstitution(matchingCard, accounts);
+}
+
 /**
- * Lists connected Pluggy credit cards for the dashboard card.
- * `month` is ignored (cards are not month-scoped); kept for call-site compatibility.
+ * Monthly credit-card invoices for the selected month.
+ * Data comes from `monthly_bill` / `monthly_bill_item` (materialized from Pluggy bills by due date).
  */
-export function useMonthlyBillCard(_month?: string) {
+export function useMonthlyBillCard(month?: string) {
+	const resolvedMonth = month ?? getMonthValue();
+	const billsQuery = useFinanceMonthlyBills(resolvedMonth);
 	const accountsQuery = usePluggyAccounts();
 
 	const items = useMemo<CreditCardListItem[]>(() => {
+		const billItems = billsQuery.data?.items ?? [];
 		const accounts = accountsQuery.data ?? [];
-		return accounts
-			.filter((account) => account.type === "CREDIT")
-			.map((card) => {
-				const balance = Number(card.balance) || 0;
-				const available = Number(card.availableBalance) || 0;
-				const limit = available > 0 ? balance + available : balance;
 
-				return {
-					id: card.id,
-					name:
-						card.name?.trim() ||
-						card.brand?.trim() ||
-						card.provider ||
-						"Cartão",
-					provider: resolveCardInstitution(card, accounts),
-					paidAmount: balance,
-					totalAmount: limit,
-				};
-			})
-			.sort((left, right) => right.paidAmount - left.paidAmount);
-	}, [accountsQuery.data]);
+		return billItems
+			.map((item) => ({
+				id: item.id,
+				name: item.name,
+				provider: resolveProviderForBillName(item.name, accounts),
+				paidAmount: item.paidAmount,
+				totalAmount: item.totalAmount,
+			}))
+			.sort((left, right) => right.totalAmount - left.totalAmount);
+	}, [accountsQuery.data, billsQuery.data?.items]);
 
-	const totalBill = useMemo(
-		() => items.reduce((sum, item) => sum + item.paidAmount, 0),
-		[items],
-	);
+	const totalBill = useMemo(() => {
+		const bill = billsQuery.data?.bills[0];
+		if (bill) {
+			return bill.totalBill;
+		}
+		return items.reduce((sum, item) => sum + item.totalAmount, 0);
+	}, [billsQuery.data?.bills, items]);
 
 	return {
-		isLoading: accountsQuery.isPending,
-		isError: accountsQuery.isError,
+		isLoading: billsQuery.isPending,
+		isError: billsQuery.isError,
 		bill: items.length > 0 ? { totalBill } : null,
 		items,
+		month: resolvedMonth,
 	};
 }

@@ -8,105 +8,37 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@vault/ui/components/card";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
-import {
-	type FinanceExpense,
-	getMonthValue,
-	useFinanceExpenses,
-	useFinanceExpensesYear,
-} from "@/features/finance/sdk";
-import { buildYearChartData } from "./transactions-page/build-daily-chart-data";
-import { TransactionsFilters } from "./transactions-page/transactions-filters";
+import { getMonthValue, useFinanceExpenses } from "@/features/finance/sdk";
+import { TransactionsPeriodStats } from "./transactions-page/transactions-period-stats";
 import { TransactionsSkeleton } from "./transactions-page/transactions-skeleton";
-import {
-	TransactionsChartStatsBar,
-	TransactionsSpendChart,
-} from "./transactions-page/transactions-spend-chart";
 import { TransactionsTable } from "./transactions-page/transactions-table";
-import type {
-	TransactionsActiveFilterChip,
-	TransactionsMonthOption,
+import {
+	buildPeriodStats,
+	filterLastNDays,
+	getPreviousMonthValue,
 } from "./transactions-page/utils";
 
-function applyExpenseFilters(
-	expenses: FinanceExpense[],
-	categoryFilter: string,
-	searchQuery: string,
-): FinanceExpense[] {
-	let filtered = [...expenses];
-	if (categoryFilter !== "all") {
-		filtered = filtered.filter(
-			(expense) => expense.category === categoryFilter,
-		);
-	}
-	if (searchQuery.trim()) {
-		const query = searchQuery.toLowerCase();
-		filtered = filtered.filter(
-			(expense) =>
-				expense.category.toLowerCase().includes(query) ||
-				expense.note?.toLowerCase().includes(query),
-		);
-	}
-	return filtered;
-}
-
 export function TransactionsPage() {
-	const currentMonth = useMemo(() => getMonthValue(), []);
-	const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-	const [searchQuery, setSearchQuery] = useState("");
-	const [categoryFilter, setCategoryFilter] = useState("all");
-
-	const chartYear = useMemo(
-		() => Number(selectedMonth.slice(0, 4)) || new Date().getFullYear(),
+	const selectedMonth = useMemo(() => getMonthValue(), []);
+	const previousMonth = useMemo(
+		() => getPreviousMonthValue(selectedMonth),
 		[selectedMonth],
 	);
 
 	const expensesQuery = useFinanceExpenses(selectedMonth);
-	const yearExpensesQuery = useFinanceExpensesYear(chartYear);
+	const previousMonthQuery = useFinanceExpenses(previousMonth);
 
-	const filteredExpenses = useMemo(() => {
-		const data = expensesQuery.data;
-		if (!data) return [];
-		return applyExpenseFilters(data, categoryFilter, searchQuery);
-	}, [expensesQuery.data, categoryFilter, searchQuery]);
+	const expenses = expensesQuery.data ?? [];
 
-	/** Chart: full calendar year (default), still respects category/search. */
-	const yearFilteredExpenses = useMemo(() => {
-		const yearExpenses = yearExpensesQuery.data ?? [];
-		return applyExpenseFilters(yearExpenses, categoryFilter, searchQuery);
-	}, [yearExpensesQuery.data, categoryFilter, searchQuery]);
-
-	const chartData = useMemo(
-		() => buildYearChartData(chartYear, yearFilteredExpenses),
-		[chartYear, yearFilteredExpenses],
-	);
-
-	const chartStats = useMemo(() => {
-		const totalOut = yearFilteredExpenses.reduce(
-			(sum, expense) => sum + expense.amount,
-			0,
-		);
-		return {
-			count: yearFilteredExpenses.length,
-			totalOut,
-			// Expenses-only dataset today; reserved for future income.
-			totalIn: 0,
-		};
-	}, [yearFilteredExpenses]);
-
-	const categories = useMemo(() => {
-		const source = yearExpensesQuery.data ?? expensesQuery.data ?? [];
-		const values = new Set(
-			source
-				.map((expense) => expense.category?.trim())
-				.filter((category): category is string => Boolean(category)),
-		);
-
-		return Array.from(values).sort((left, right) =>
-			left.localeCompare(right, "pt-BR"),
-		);
-	}, [yearExpensesQuery.data, expensesQuery.data]);
+	const periodStats = useMemo(() => {
+		const merged = [
+			...(previousMonthQuery.data ?? []),
+			...(expensesQuery.data ?? []),
+		];
+		return buildPeriodStats(filterLastNDays(merged, 30));
+	}, [expensesQuery.data, previousMonthQuery.data]);
 
 	const monthLabel = useMemo(() => {
 		const date = new Date(`${selectedMonth}-01T12:00:00`);
@@ -115,46 +47,6 @@ export function TransactionsPage() {
 			year: "numeric",
 		});
 	}, [selectedMonth]);
-
-	const monthOptions = useMemo(() => {
-		const options: TransactionsMonthOption[] = [];
-		const date = new Date();
-		for (let index = 0; index < 6; index++) {
-			const next = new Date(date.getFullYear(), date.getMonth() - index, 1);
-			const value = getMonthValue(next);
-			const label = next.toLocaleDateString("pt-BR", {
-				month: "short",
-				year: "numeric",
-			});
-			options.push({ value, label });
-		}
-		return options;
-	}, []);
-
-	const hasActiveFilters =
-		categoryFilter !== "all" || searchQuery.trim().length > 0;
-
-	const activeFilterChips = useMemo(() => {
-		const chips: TransactionsActiveFilterChip[] = [];
-		if (categoryFilter !== "all") {
-			chips.push({
-				label: `Categoria: ${categoryFilter}`,
-				onRemove: () => setCategoryFilter("all"),
-			});
-		}
-		if (searchQuery.trim()) {
-			chips.push({
-				label: `Busca: ${searchQuery.trim()}`,
-				onRemove: () => setSearchQuery(""),
-			});
-		}
-		return chips;
-	}, [categoryFilter, searchQuery]);
-
-	const clearFilters = () => {
-		setCategoryFilter("all");
-		setSearchQuery("");
-	};
 
 	if (expensesQuery.isPending) {
 		return (
@@ -195,35 +87,23 @@ export function TransactionsPage() {
 	return (
 		<MonetaryVisibilityProvider>
 			{/* Full width like overview — no max-w-[1200px] PageContent cap */}
-			<div className="grid w-full min-w-0 gap-4 pt-6">
-				<Card className="financial-panel-border relative w-full min-w-0 gap-0 overflow-visible rounded-none ring-0">
-					<CardContent className="relative flex flex-col gap-4 overflow-visible p-3 pb-11 sm:p-4 sm:pb-12">
-						<TransactionsFilters
-							selectedMonth={selectedMonth}
-							onSelectedMonthChange={setSelectedMonth}
-							monthOptions={monthOptions}
-							categoryFilter={categoryFilter}
-							onCategoryFilterChange={setCategoryFilter}
-							categories={categories}
-							searchQuery={searchQuery}
-							onSearchQueryChange={setSearchQuery}
-							activeFilterChips={activeFilterChips}
-						/>
-
-						<TransactionsSpendChart data={chartData} />
-						<TransactionsChartStatsBar stats={chartStats} />
-					</CardContent>
-				</Card>
-
+			<div className="grid w-full min-w-0 grid-cols-1 gap-4 pt-6 lg:grid-cols-[3fr_2fr]">
 				<div className="min-w-0">
 					<TransactionsTable
-						expenses={filteredExpenses}
-						hasActiveFilters={hasActiveFilters}
+						expenses={expenses}
 						month={selectedMonth}
 						monthLabel={monthLabel}
-						activeFilterChips={activeFilterChips}
-						onClearFilters={clearFilters}
 					/>
+				</div>
+
+				<div className="flex min-w-0 flex-col gap-8">
+					<div className="financial-panel-border flex h-[300px] w-full items-start p-3 sm:p-4">
+						<TransactionsPeriodStats
+							periodLabel="Últimos 30d"
+							stats={periodStats}
+						/>
+					</div>
+					<div className="financial-panel-border h-[300px] w-full" />
 				</div>
 			</div>
 		</MonetaryVisibilityProvider>

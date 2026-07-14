@@ -1,42 +1,35 @@
 "use client";
 
 import type { RowSelectionState } from "@tanstack/react-table";
-import { Button } from "@vault/ui/components/button";
 import { useEffect, useMemo, useState } from "react";
 import type { FinanceExpense } from "@/features/finance/sdk";
 import { useDeleteExpenses } from "@/features/finance/sdk";
 import { transactionsColumns } from "./columns";
 import { DataTable } from "./data-table";
 import { TransactionsSelectionToolbar } from "./selection-toolbar";
-import type { TransactionsActiveFilterChip } from "./utils";
+import { formatTransactionDayLabel } from "./utils";
 
 export function TransactionsTable({
 	expenses,
-	hasActiveFilters,
 	monthLabel,
 	month,
-	activeFilterChips,
-	onClearFilters,
 }: {
 	expenses: FinanceExpense[];
-	hasActiveFilters: boolean;
 	monthLabel: string;
 	/** YYYY-MM — used for cache invalidation after bulk delete. */
 	month: string;
-	activeFilterChips: TransactionsActiveFilterChip[];
-	onClearFilters: () => void;
 }) {
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 	const deleteExpenses = useDeleteExpenses(month);
 
-	// Page already filters; keep newest-first display order.
+	// Keep newest-first display order.
 	const orderedExpenses = useMemo(
 		() =>
 			[...expenses].sort((a, b) => b.expenseDate.localeCompare(a.expenseDate)),
 		[expenses],
 	);
 
-	// Drop selection when the visible dataset changes (month / filters).
+	// Drop selection when the visible dataset changes.
 	useEffect(() => {
 		setRowSelection({});
 	}, [orderedExpenses]);
@@ -63,26 +56,11 @@ export function TransactionsTable({
 		return (
 			<div className="grid gap-3 px-6 py-12 text-center">
 				<p className="text-sm font-medium text-foreground">
-					{hasActiveFilters
-						? "Nenhum resultado para os filtros atuais"
-						: `Nenhuma transação em ${monthLabel}`}
+					Nenhuma transação em {monthLabel}
 				</p>
 				<p className="max-w-md justify-self-center text-sm text-muted-foreground">
-					{hasActiveFilters
-						? activeFilterChips.length > 0
-							? `Nenhum lançamento corresponde a ${activeFilterChips
-									.map((chip) => chip.label.toLowerCase())
-									.join(" e ")}.`
-							: "Tente limpar os filtros para expandir a lista."
-						: "Quando despesas forem registradas, elas aparecerão aqui."}
+					Quando despesas forem registradas, elas aparecerão aqui.
 				</p>
-				{hasActiveFilters ? (
-					<div>
-						<Button onClick={onClearFilters} variant="outline">
-							Limpar filtros
-						</Button>
-					</div>
-				) : null}
 			</div>
 		);
 	}
@@ -92,9 +70,11 @@ export function TransactionsTable({
 			<DataTable
 				columns={transactionsColumns}
 				data={orderedExpenses}
+				getGroupKey={(row) => row.expenseDate}
 				getRowId={(row) => row.id}
 				onRowSelectionChange={setRowSelection}
 				pageSize={10}
+				renderGroupHeader={(date) => formatTransactionDayLabel(date)}
 				rowSelection={rowSelection}
 			/>
 

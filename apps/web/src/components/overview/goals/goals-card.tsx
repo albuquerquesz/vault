@@ -22,7 +22,11 @@ function GoalsLoadingState() {
 	);
 }
 
-export function GoalsCard() {
+type GoalsCardProps = {
+	className?: string;
+};
+
+export function GoalsCard({ className }: GoalsCardProps) {
 	const {
 		goals,
 		handleComplete,
@@ -47,30 +51,33 @@ export function GoalsCard() {
 	return (
 		<>
 			<OverviewCardShell
+				className={className}
 				title="Metas"
 				icon={<Target className="size-4 text-muted-foreground" />}
 				tooltip="Acompanhe o progresso das suas metas financeiras"
-				contentClassName="flex flex-1 flex-col space-y-4"
+				contentClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
 				footer={
 					<Button className="ml-auto" size="sm" onClick={openCreate}>
 						Nova meta
 					</Button>
 				}
 			>
-				{isLoading ? (
-					<GoalsLoadingState />
-				) : isError ? (
-					<OverviewCardErrorState message="Não foi possível carregar as metas." />
-				) : goals.length === 0 ? (
-					<OverviewCardEmptyState message="Nenhuma meta definida" />
-				) : (
-					<GoalList
-						goals={goals}
-						onComplete={handleComplete}
-						onDelete={handleDelete}
-						onEdit={openEdit}
-					/>
-				)}
+				<div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+					{isLoading ? (
+						<GoalsLoadingState />
+					) : isError ? (
+						<OverviewCardErrorState message="Não foi possível carregar as metas." />
+					) : goals.length === 0 ? (
+						<OverviewCardEmptyState message="Nenhuma meta definida" />
+					) : (
+						<GoalList
+							goals={goals}
+							onComplete={handleComplete}
+							onDelete={handleDelete}
+							onEdit={openEdit}
+						/>
+					)}
+				</div>
 			</OverviewCardShell>
 
 			<CreateGoalDialog

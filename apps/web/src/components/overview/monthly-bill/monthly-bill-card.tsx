@@ -26,13 +26,13 @@ export function MonthlyBillCard({ month }: { month?: string }) {
 		<OverviewCardShell
 			title="Cartões"
 			icon={<CreditCardIcon className="size-4 text-muted-foreground" />}
-			tooltip="Saldos dos cartões de crédito conectados via Open Finance"
+			tooltip="Faturas de cartão de crédito do mês selecionado (Open Finance)"
 			contentClassName="flex flex-1 flex-col"
 		>
 			{isError ? (
-				<OverviewCardErrorState message="Não foi possível carregar os cartões." />
+				<OverviewCardErrorState message="Não foi possível carregar as faturas de cartão." />
 			) : !bill || items.length === 0 ? (
-				<OverviewCardEmptyState message="Nenhum cartão conectado." />
+				<OverviewCardEmptyState message="Nenhuma fatura de cartão neste mês." />
 			) : (
 				<MonthlyBillContent totalBill={bill.totalBill} items={items} />
 			)}
