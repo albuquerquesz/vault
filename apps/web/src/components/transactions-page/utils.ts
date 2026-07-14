@@ -3,6 +3,8 @@
 import type { LucideIcon } from "lucide-react";
 import type { FinanceExpense } from "@/features/finance/sdk";
 import {
+	CATEGORY_BAR_FALLBACKS,
+	CATEGORY_BAR_FILLS,
 	CATEGORY_COLOR_FALLBACKS,
 	CATEGORY_COLORS,
 	CATEGORY_DOT_COLORS,
@@ -39,6 +41,18 @@ export function getCategoryDotColor(category: string) {
 
 	const index = hashCategory(key) % CATEGORY_DOT_FALLBACKS.length;
 	return CATEGORY_DOT_FALLBACKS[index] ?? CATEGORY_DOT_COLORS.Outros;
+}
+
+/** Solid fill color for category chart bars (matches badge/dot hues). */
+export function getCategoryBarFill(category: string) {
+	const key = category.trim();
+	const mapped = CATEGORY_BAR_FILLS[key];
+	if (mapped) {
+		return mapped;
+	}
+
+	const index = hashCategory(key) % CATEGORY_BAR_FALLBACKS.length;
+	return CATEGORY_BAR_FALLBACKS[index] ?? CATEGORY_BAR_FILLS.Outros;
 }
 
 export function getCategoryIcon(category: string): LucideIcon {

@@ -7,11 +7,28 @@ import {
 	ChartTooltipContent,
 } from "@vault/ui/components/chart";
 import { useMemo } from "react";
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts";
+import {
+	Bar,
+	BarChart,
+	CartesianGrid,
+	Cell,
+	LabelList,
+	XAxis,
+	YAxis,
+} from "recharts";
 import type { FinanceExpense } from "@/features/finance/sdk";
-import { formatBRL } from "./utils";
+import { formatBRL, getCategoryBarFill } from "./utils";
 
 const MAX_NAMED_CATEGORIES = 6;
+/** Vertical bar thickness (px). */
+const BAR_SIZE = 38;
+/** Row pitch for chart min-height (bar + gap). */
+const BAR_ROW_HEIGHT = 44;
+
+const LABEL_STYLE = {
+	fontFamily: '"Space Grotesk", sans-serif',
+	fontWeight: 500,
+} as const;
 
 const chartConfig = {
 	total: {
@@ -23,11 +40,62 @@ const chartConfig = {
 	},
 } satisfies ChartConfig;
 
+type ChartBox = { x?: number; y?: number; width?: number; height?: number };
+
+type BarLabelProps = {
+	x?: number | string;
+	y?: number | string;
+	width?: number | string;
+	height?: number | string;
+	value?: number | string;
+	parentViewBox?: ChartBox;
+	viewBox?: ChartBox;
+};
+
+function toNumber(value: number | string | undefined, fallback = 0) {
+	const n = Number(value);
+	return Number.isFinite(n) ? n : fallback;
+}
+
+/**
+ * Pins every amount to the right edge of the plot (justify-between with
+ * category labels on the left inside the bar).
+ */
+function AmountEdgeLabel(props: BarLabelProps) {
+	const y = toNumber(props.y);
+	const height = toNumber(props.height);
+	const barX = toNumber(props.x);
+	const barWidth = toNumber(props.width);
+	const box = props.parentViewBox ?? props.viewBox;
+
+	// Prefer full plot width so all values share one right edge.
+	const rightX = box?.width
+		? toNumber(box.x) + toNumber(box.width) - 4
+		: barX + barWidth + 8;
+	const cy = y + height / 2;
+	const amount = toNumber(props.value);
+
+	return (
+		<text
+			className="fill-foreground font-medium"
+			dominantBaseline="middle"
+			fontSize={14}
+			style={LABEL_STYLE}
+			textAnchor="end"
+			x={rightX}
+			y={cy}
+		>
+			{formatBRL(amount)}
+		</text>
+	);
+}
+
 type CategorySpendRow = {
 	category: string;
 	/** Short label for bar (truncated if long). */
 	label: string;
 	total: number;
+	fill: string;
 };
 
 function truncateCategory(name: string, max = 18) {
@@ -36,6 +104,15 @@ function truncateCategory(name: string, max = 18) {
 		return trimmed;
 	}
 	return `${trimmed.slice(0, max - 1)}…`;
+}
+
+function toRow(category: string, total: number): CategorySpendRow {
+	return {
+		category,
+		total,
+		label: truncateCategory(category),
+		fill: getCategoryBarFill(category),
+	};
 }
 
 /**
@@ -61,10 +138,7 @@ export function buildCategorySpendRows(
 	}
 
 	if (sorted.length <= maxNamed) {
-		return sorted.map((row) => ({
-			...row,
-			label: truncateCategory(row.category),
-		}));
+		return sorted.map((row) => toRow(row.category, row.total));
 	}
 
 	const head = sorted.slice(0, maxNamed);
@@ -73,15 +147,8 @@ export function buildCategorySpendRows(
 		.reduce((sum, row) => sum + row.total, 0);
 
 	return [
-		...head.map((row) => ({
-			...row,
-			label: truncateCategory(row.category),
-		})),
-		{
-			category: "Outros",
-			label: "Outros",
-			total: tailTotal,
-		},
+		...head.map((row) => toRow(row.category, row.total)),
+		toRow("Outros", tailTotal),
 	];
 }
 
@@ -127,15 +194,17 @@ export function TransactionsCategoryBarChart({
 			</div>
 
 			<ChartContainer
-				className="aspect-auto min-h-48 w-full flex-1"
+				className="aspect-auto min-h-40 w-full flex-1"
 				config={chartConfig}
-				style={{ minHeight: Math.max(192, categoryCount * 36) }}
+				style={{
+					minHeight: Math.max(160, categoryCount * BAR_ROW_HEIGHT),
+				}}
 			>
 				<BarChart
 					accessibilityLayer
 					data={chartData}
 					layout="vertical"
-					margin={{ right: 72, left: 4 }}
+					margin={{ right: 88, left: 4, top: 4, bottom: 4 }}
 				>
 					<CartesianGrid horizontal={false} />
 					<YAxis
@@ -164,20 +233,23 @@ export function TransactionsCategoryBarChart({
 							return row?.category ?? "";
 						}}
 					/>
-					<Bar dataKey="total" fill="var(--color-total)" radius={4}>
+					<Bar barSize={BAR_SIZE} dataKey="total" radius={3}>
+						{chartData.map((row) => (
+							<Cell key={row.category} fill={row.fill} />
+						))}
 						<LabelList
-							className="fill-(--color-label)"
+							className="fill-white font-medium"
 							dataKey="label"
 							fontSize={12}
 							offset={8}
 							position="insideLeft"
+							style={LABEL_STYLE}
 						/>
 						<LabelList
-							className="fill-foreground"
+							content={(props) => (
+								<AmountEdgeLabel {...(props as BarLabelProps)} />
+							)}
 							dataKey="total"
-							fontSize={12}
-							formatter={(value) => formatBRL(Number(value) || 0)}
-							offset={8}
 							position="right"
 						/>
 					</Bar>

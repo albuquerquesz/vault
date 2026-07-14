@@ -160,3 +160,43 @@ export const CATEGORY_DOT_FALLBACKS = [
 	"bg-lime-500",
 	"bg-sky-500",
 ] as const;
+
+/**
+ * Solid chart fills (hex) aligned with badge/dot accents above.
+ * Tailwind-500 equivalents for recharts `fill` (SVG cannot use `bg-*` classes).
+ */
+export const CATEGORY_BAR_FILLS: Record<string, string> = {
+	Moradia: "#f59e0b", // amber-500
+	Alimentação: "#f97316", // orange-500
+	Transporte: "#3b82f6", // blue-500
+	Saúde: "#ef4444", // red-500
+	Lazer: "#a855f7", // purple-500
+	Outros: "#71717a", // zinc-500
+	"Food delivery": "#f97316", // orange-500
+	Groceries: "#84cc16", // lime-500
+	"Gas stations": "#3b82f6", // blue-500
+	Healthcare: "#f43f5e", // rose-500
+	Pharmacy: "#10b981", // emerald-500
+	Shopping: "#d946ef", // fuchsia-500
+	Restaurants: "#f59e0b", // amber-500
+	Transport: "#0ea5e9", // sky-500
+	Transfers: "#64748b", // slate-500
+	Entertainment: "#8b5cf6", // violet-500
+	Education: "#6366f1", // indigo-500
+	Services: "#06b6d4", // cyan-500
+	Travel: "#14b8a6", // teal-500
+	"Credit card payment": "#71717a", // zinc-500
+};
+
+export const CATEGORY_BAR_FALLBACKS = [
+	"#f59e0b", // amber
+	"#f97316", // orange
+	"#3b82f6", // blue
+	"#f43f5e", // rose
+	"#a855f7", // purple
+	"#10b981", // emerald
+	"#06b6d4", // cyan
+	"#d946ef", // fuchsia
+	"#84cc16", // lime
+	"#0ea5e9", // sky
+] as const;
