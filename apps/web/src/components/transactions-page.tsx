@@ -12,7 +12,6 @@ import { Input } from "@vault/ui/components/input";
 import { SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
-import { PartialResultCard } from "@/components/overview/partial-result/partial-result-card";
 import { getMonthValue, useFinanceExpenses } from "@/features/finance/sdk";
 import { TransactionsFilterMenu } from "./transactions-page/transactions-filter-menu";
 import { TransactionsPeriodStats } from "./transactions-page/transactions-period-stats";
@@ -128,7 +127,7 @@ export function TransactionsPage() {
 					/>
 				</div>
 
-				<div className="flex min-w-0 flex-col gap-8">
+				<div className="flex min-w-0 flex-col gap-4">
 					<div className="financial-panel-border flex w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
 						<div className="flex w-full min-w-0 items-center gap-2">
 							<div className="relative min-w-0 flex-1">
@@ -152,11 +151,7 @@ export function TransactionsPage() {
 							stats={periodStats}
 						/>
 					</div>
-					<PartialResultCard
-						className="w-full"
-						month={selectedMonth}
-						showLink={false}
-					/>
+					<div className="financial-panel-border min-h-48 w-full flex-1" />
 				</div>
 			</div>
 		</MonetaryVisibilityProvider>

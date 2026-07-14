@@ -15,9 +15,14 @@ const brlCurrencyFmt = new Intl.NumberFormat("pt-BR", {
 	currency: "BRL",
 });
 
-/** Format a numeric amount as BRL (e.g. 40 → "R$ 40,00"). */
+/** Format a numeric amount in reais as BRL (e.g. 40 → "R$ 40,00"). */
 export function formatBrlAmount(amount: number): string {
 	return brlCurrencyFmt.format(amount);
+}
+
+/** Format an integer amount in cents as BRL (e.g. 4000 → "R$ 40,00"). */
+export function formatBrlFromCents(cents: number): string {
+	return brlCurrencyFmt.format(cents / 100);
 }
 
 /**
@@ -38,7 +43,7 @@ export function maskBrlInput(raw: string): string {
 	return brlCurrencyFmt.format(cents / 100);
 }
 
-/** Parse a masked BRL string back to a number ("R$ 40,00" → 40). */
+/** Parse a masked BRL string back to reais ("R$ 40,00" → 40). */
 export function parseBrlInput(formatted: string): number {
 	const digits = formatted.replace(/\D/g, "");
 	if (!digits) {
@@ -46,6 +51,16 @@ export function parseBrlInput(formatted: string): number {
 	}
 
 	return Number.parseInt(digits, 10) / 100;
+}
+
+/** Parse a masked BRL string back to integer cents ("R$ 40,00" → 4000). */
+export function parseBrlInputToCents(formatted: string): number {
+	const digits = formatted.replace(/\D/g, "");
+	if (!digits) {
+		return Number.NaN;
+	}
+
+	return Number.parseInt(digits, 10);
 }
 
 export function useGoalsCard() {

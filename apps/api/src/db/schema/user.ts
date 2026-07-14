@@ -7,6 +7,7 @@ import { session } from "./session.js";
 
 export type UserSettings = {
 	theme?: "light" | "dark" | null;
+	/** Monthly income in integer cents (e.g. R$ 4.500,00 → 450000). */
 	monthlyIncome?: number | null;
 	incomeDay?: number | null;
 };

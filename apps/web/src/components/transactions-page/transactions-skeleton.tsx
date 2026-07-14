@@ -37,7 +37,7 @@ export function TransactionsSkeleton() {
 				</div>
 			</div>
 
-			<div className="flex min-w-0 flex-col gap-8">
+			<div className="flex min-w-0 flex-col gap-4">
 				<div className="financial-panel-border flex w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
 					<div className="flex w-full items-center gap-2">
 						<div className="h-9 min-w-0 flex-1 rounded-md bg-muted/40" />
@@ -50,23 +50,7 @@ export function TransactionsSkeleton() {
 						<div className="h-5 w-24 rounded bg-muted/40" />
 					</div>
 				</div>
-				<div className="financial-panel-border flex w-full flex-col gap-4 p-5">
-					<div className="space-y-3">
-						<div className="h-4 w-28 rounded bg-muted/40" />
-						<div className="h-8 w-36 rounded bg-muted/40" />
-						<div className="h-4 w-40 rounded bg-muted/40" />
-					</div>
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<div className="h-4 w-16 rounded bg-muted/40" />
-							<div className="h-5 w-24 rounded bg-muted/40" />
-						</div>
-						<div className="space-y-2">
-							<div className="h-4 w-14 rounded bg-muted/40" />
-							<div className="h-5 w-24 rounded bg-muted/40" />
-						</div>
-					</div>
-				</div>
+				<div className="financial-panel-border min-h-48 w-full flex-1" />
 			</div>
 		</div>
 	);

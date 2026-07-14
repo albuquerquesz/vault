@@ -14,7 +14,8 @@ import {
 
 const preferencesSchema = z.object({
 	theme: z.enum(["light", "dark"]).nullish(),
-	monthlyIncome: z.coerce.number().positive().max(999999999).nullish(),
+	/** Monthly income in integer cents (e.g. R$ 4.500,00 → 450000). */
+	monthlyIncome: z.coerce.number().int().positive().max(99_999_999_99).nullish(),
 	incomeDay: z.coerce.number().int().min(1).max(28).nullish(),
 });
 

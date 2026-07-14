@@ -8,6 +8,7 @@ import { apiFetch, queryClient } from "@/utils/api";
 
 export interface UserPreferences {
 	theme: "light" | "dark" | null;
+	/** Monthly income in integer cents (e.g. R$ 4.500,00 → 450000). */
 	monthlyIncome: number | null;
 	incomeDay: number | null;
 }
@@ -20,6 +21,7 @@ export interface UserProfile {
 
 export interface UpdatePreferencesInput {
 	theme?: "light" | "dark" | null;
+	/** Monthly income in integer cents (e.g. R$ 4.500,00 → 450000). */
 	monthlyIncome?: number | null;
 	incomeDay?: number | null;
 }

@@ -34,6 +34,11 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
+import {
+	formatBrlFromCents,
+	maskBrlInput,
+	parseBrlInputToCents,
+} from "@/components/overview/goals/hooks/use-goals-card";
 import { PageContent } from "@/components/page-content";
 import { PluggyConnectWidget } from "@/components/pluggy-connect-widget";
 import { useTheme } from "@/components/theme-provider";
@@ -238,10 +243,14 @@ function GeneralSettings() {
 		string | null
 	>(null);
 
-	// Sync income/day from API prefs
+	// Sync income/day from API prefs (monthlyIncome is stored in cents)
 	React.useEffect(() => {
 		if (prefs) {
-			setIncomeAmount(prefs.monthlyIncome?.toString() ?? "");
+			setIncomeAmount(
+				prefs.monthlyIncome != null && prefs.monthlyIncome > 0
+					? formatBrlFromCents(prefs.monthlyIncome)
+					: "",
+			);
 			setIncomeDay(prefs.incomeDay?.toString() ?? "");
 		}
 	}, [prefs]);
@@ -255,17 +264,44 @@ function GeneralSettings() {
 
 	const selectedTheme = theme ?? "system";
 
+	const handleIncomeAmountChange = (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		const masked = maskBrlInput(event.currentTarget.value);
+		// Always write masked value back so rejected keystrokes don't stick.
+		event.currentTarget.value = masked;
+		setIncomeAmount(masked);
+	};
+
+	const handleIncomeDayChange = (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		const digits = event.currentTarget.value.replace(/\D/g, "").slice(0, 2);
+		if (!digits) {
+			event.currentTarget.value = "";
+			setIncomeDay("");
+			return;
+		}
+
+		const day = Math.min(Number.parseInt(digits, 10), 28);
+		const next = Number.isNaN(day) || day < 1 ? "" : String(day);
+		event.currentTarget.value = next;
+		setIncomeDay(next);
+	};
+
 	const handleSaveIncome = () => {
-		const monthlyIncomeValue = incomeAmount
-			? parseFloat(incomeAmount.replace(",", "."))
+		const monthlyIncomeCents = incomeAmount
+			? parseBrlInputToCents(incomeAmount)
 			: null;
-		const incomeDayValue = incomeDay ? parseInt(incomeDay, 10) : null;
+		const incomeDayValue = incomeDay ? Number.parseInt(incomeDay, 10) : null;
 
 		updatePreferences.mutate({
 			monthlyIncome:
-				monthlyIncomeValue === null || Number.isNaN(monthlyIncomeValue)
+				monthlyIncomeCents === null ||
+				Number.isNaN(monthlyIncomeCents) ||
+				monthlyIncomeCents <= 0
 					? null
-					: monthlyIncomeValue,
+					: monthlyIncomeCents,
 			incomeDay:
 				incomeDayValue === null ||
 				Number.isNaN(incomeDayValue) ||
@@ -351,10 +387,27 @@ function GeneralSettings() {
 						<Label htmlFor="settings-income-amount">Valor mensal</Label>
 						<Input
 							id="settings-income-amount"
-							inputMode="decimal"
+							type="text"
+							inputMode="numeric"
+							autoComplete="off"
 							placeholder="R$ 0,00"
 							value={incomeAmount}
-							onChange={(event) => setIncomeAmount(event.target.value)}
+							onKeyDown={(event) => {
+								if (event.ctrlKey || event.metaKey || event.altKey) {
+									return;
+								}
+								if (event.key.length === 1 && !/^\d$/.test(event.key)) {
+									event.preventDefault();
+								}
+							}}
+							onChange={handleIncomeAmountChange}
+							onPaste={(event) => {
+								event.preventDefault();
+								const text = event.clipboardData.getData("text") ?? "";
+								const digits =
+									incomeAmount.replace(/\D/g, "") + text.replace(/\D/g, "");
+								setIncomeAmount(maskBrlInput(digits));
+							}}
 							className="h-9 rounded-md px-3 text-sm"
 						/>
 					</div>
@@ -383,12 +436,33 @@ function GeneralSettings() {
 						<Label htmlFor="settings-income-day">Dia do mês</Label>
 						<Input
 							id="settings-income-day"
-							max="28"
-							min="1"
+							type="text"
+							inputMode="numeric"
+							autoComplete="off"
 							placeholder="1"
-							type="number"
 							value={incomeDay}
-							onChange={(event) => setIncomeDay(event.target.value)}
+							onKeyDown={(event) => {
+								if (event.ctrlKey || event.metaKey || event.altKey) {
+									return;
+								}
+								if (event.key.length === 1 && !/^\d$/.test(event.key)) {
+									event.preventDefault();
+								}
+							}}
+							onChange={handleIncomeDayChange}
+							onPaste={(event) => {
+								event.preventDefault();
+								const text = event.clipboardData.getData("text") ?? "";
+								const digits = text.replace(/\D/g, "").slice(0, 2);
+								if (!digits) {
+									setIncomeDay("");
+									return;
+								}
+								const day = Math.min(Number.parseInt(digits, 10), 28);
+								setIncomeDay(
+									Number.isNaN(day) || day < 1 ? "" : String(day),
+								);
+							}}
 							className="h-9 rounded-md px-3 text-sm"
 						/>
 					</div>
