@@ -6,7 +6,6 @@ import { Checkbox } from "@vault/ui/components/checkbox";
 import { cn } from "@vault/ui/lib/utils";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { InstitutionMark } from "@/components/institution-mark";
-import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import type { FinanceTransaction } from "@/features/finance/sdk";
 import { formatBRL, getCategoryColor, getCategoryIcon } from "./utils";
 
@@ -24,7 +23,7 @@ export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 				row.original.isDeletable || row.original.isHideable;
 
 			return (
-				<div className="flex min-w-0 max-w-md items-center gap-2">
+				<div className="flex min-w-0 max-w-[19rem] items-center gap-2 lg:max-w-[16rem] xl:max-w-[19rem]">
 					<Checkbox
 						aria-label="Selecionar transação"
 						checked={row.getIsSelected()}
@@ -43,7 +42,13 @@ export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 						provider={row.original.sourceProvider}
 						size="md"
 					/>
-					<p className="min-w-0 truncate text-xs font-medium text-foreground sm:text-sm">
+					<p
+						className="min-w-0 flex-1 truncate text-xs font-medium text-foreground sm:text-sm"
+						title={
+							row.original.description ||
+							(row.original.kind === "income" ? "Entrada" : "Despesa")
+						}
+					>
 						{row.original.description ||
 							(row.original.kind === "income" ? "Entrada" : "Despesa")}
 					</p>
@@ -62,13 +67,14 @@ export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 			return (
 				<Badge
 					className={cn(
-						"h-5 gap-1 rounded-sm border-0 px-1.5 text-[11px] font-medium sm:h-6 sm:text-xs",
+						"h-5 max-w-[11rem] gap-1 rounded-sm border-0 px-1.5 text-[11px] font-medium sm:h-6 sm:max-w-[12rem] sm:text-xs",
 						getCategoryColor(category),
 					)}
+					title={category}
 					variant="secondary"
 				>
 					<Icon aria-hidden className="size-2.5 shrink-0 sm:size-3" />
-					{category}
+					<span className="truncate">{category}</span>
 				</Badge>
 			);
 		},
@@ -92,11 +98,7 @@ export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 						)}
 					/>
 					<span className="text-white">
-						<MaskedMonetaryValue
-							format={formatBRL}
-							prefix="R$"
-							value={Math.abs(amount)}
-						/>
+						{formatBRL(Math.abs(amount))}
 					</span>
 				</div>
 			);

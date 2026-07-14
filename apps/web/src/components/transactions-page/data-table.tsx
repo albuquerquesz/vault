@@ -14,6 +14,7 @@ import {
 	TableCell,
 	TableRow,
 } from "@vault/ui/components/table";
+import { cn } from "@vault/ui/lib/utils";
 import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 interface DataTableProps<TData, TValue> {
@@ -119,7 +120,7 @@ export function DataTable<TData, TValue>({
 		<div className="w-full space-y-2">
 			{/* Table shell: no heavy outer border (Resend-like). */}
 			<div className="w-full overflow-x-auto">
-				<Table className="border-separate border-spacing-0">
+				<Table className="w-full table-fixed border-separate border-spacing-0">
 					<TableBody>
 						{rows.length ? (
 							rows.map((row, index) => {
@@ -151,9 +152,14 @@ export function DataTable<TData, TValue>({
 											className="h-9 border-b border-border/40 hover:bg-muted/20 data-[state=selected]:bg-muted/20 sm:h-10"
 											data-state={row.getIsSelected() && "selected"}
 										>
-											{row.getVisibleCells().map((cell) => (
+											{row.getVisibleCells().map((cell, cellIndex) => (
 												<TableCell
-													className="px-2 py-1 text-xs sm:px-3 sm:text-sm"
+													className={cn(
+														"px-2 py-1 text-xs sm:px-3 sm:text-sm",
+														cellIndex === 0 && "w-[46%]",
+														cellIndex === 1 && "w-[26%]",
+														cellIndex === 2 && "w-[28%] min-w-[8.5rem]",
+													)}
 													key={cell.id}
 												>
 													{flexRender(
