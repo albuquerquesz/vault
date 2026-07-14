@@ -5,9 +5,12 @@ import {
 	eq,
 	gte,
 	inArray,
+	isNull,
 	lte,
 	not,
+	notInArray,
 	or,
+	sql,
 	sum,
 } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
@@ -19,10 +22,16 @@ import {
 	monthlyBill,
 	monthlyBillItem,
 	monthlyBudget,
+	pluggyAccounts,
+	pluggyItems,
+	pluggyTransactions,
 	savingsTarget,
 } from "../db/schema";
 import { requireSession } from "../index";
-import { PLUGGY_IGNORED_EXPENSE_CATEGORIES } from "../services/pluggy";
+import {
+	PLUGGY_IGNORED_EXPENSE_CATEGORIES,
+	rebuildExpensesFromStoredTransactions,
+} from "../services/pluggy";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -33,12 +42,28 @@ const expenseInput = z.object({
 	note: z.string().trim().max(280).optional(),
 });
 
+const transactionIdsInput = z.object({
+	ids: z.array(z.string().uuid()).min(1).max(100),
+});
+
 function getMonthBounds(month: string) {
 	const start = `${month}-01`;
 	const endDate = new Date(`${month}-01T00:00:00.000Z`);
 	endDate.setUTCMonth(endDate.getUTCMonth() + 1);
 	endDate.setUTCDate(0);
 	return { start, end: endDate.toISOString().slice(0, 10) };
+}
+
+function getPreviousMonthValue(month: string) {
+	const [year, monthNumber] = month.split("-").map(Number);
+	if (!year || !monthNumber) {
+		return month;
+	}
+
+	const date = new Date(year, monthNumber - 2, 1);
+	const previousYear = date.getFullYear();
+	const previousMonth = String(date.getMonth() + 1).padStart(2, "0");
+	return `${previousYear}-${previousMonth}`;
 }
 
 function buildVisibleExpensesWhere(params: {
@@ -54,9 +79,215 @@ function buildVisibleExpensesWhere(params: {
 		lte(expense.expenseDate, end),
 		or(
 			not(eq(expense.source, "pluggy")),
-			not(inArray(expense.category, [...PLUGGY_IGNORED_EXPENSE_CATEGORIES])),
+			notInArray(expense.category, [...PLUGGY_IGNORED_EXPENSE_CATEGORIES]),
 		),
 	);
+}
+
+function buildManualExpensesWhere(params: {
+	userId: string;
+	start: string;
+	end: string;
+}) {
+	const { userId, start, end } = params;
+
+	return and(
+		eq(expense.userId, userId),
+		gte(expense.expenseDate, start),
+		lte(expense.expenseDate, end),
+		not(eq(expense.source, "pluggy")),
+	);
+}
+
+function buildVisiblePluggyTransactionsWhere(params: {
+	userId: string;
+	start: string;
+	end: string;
+}) {
+	const { userId, start, end } = params;
+
+	return and(
+		eq(pluggyItems.userId, userId),
+		gte(pluggyTransactions.date, start),
+		lte(pluggyTransactions.date, end),
+		isNull(pluggyTransactions.hiddenAt),
+		or(
+			sql`${pluggyTransactions.category} is null`,
+			notInArray(
+				pluggyTransactions.category,
+				[...PLUGGY_IGNORED_EXPENSE_CATEGORIES],
+			),
+		),
+	);
+}
+
+type FinanceTransactionRecord = {
+	id: string;
+	date: string;
+	amount: number;
+	category: string;
+	description: string | null;
+	source: "manual" | "pluggy";
+	sourceExternalId: string | null;
+	sourceItemId: string | null;
+	sourceProvider: string | null;
+	sourceAccountName: string | null;
+	sourceAccountType: string | null;
+	sourceAccountSubtype: string | null;
+	sourceAccountBrand: string | null;
+	createdAt: Date;
+	updatedAt: Date | null;
+	kind: "income" | "expense";
+	isDeletable: boolean;
+	isHideable: boolean;
+};
+
+async function listFinanceTransactions(params: {
+	userId: string;
+	month: string;
+}) {
+	const { userId, month } = params;
+	const { start, end } = getMonthBounds(month);
+
+	const [manualExpenses, pluggyRows] = await Promise.all([
+		db
+			.select()
+			.from(expense)
+			.where(buildManualExpensesWhere({ userId, start, end }))
+			.orderBy(desc(expense.expenseDate), desc(expense.createdAt)),
+		db
+			.select({
+				id: pluggyTransactions.id,
+				date: pluggyTransactions.date,
+				amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number),
+				description: pluggyTransactions.description,
+				category: pluggyTransactions.category,
+				sourceItemId: pluggyTransactions.pluggyItemId,
+				sourceProvider: pluggyItems.provider,
+				sourceAccountName: pluggyAccounts.name,
+				sourceAccountType: pluggyAccounts.type,
+				sourceAccountSubtype: pluggyAccounts.subtype,
+				sourceAccountBrand: pluggyAccounts.brand,
+				createdAt: sql<Date>`coalesce(${pluggyTransactions.createdAt}, now())`.mapWith(
+					Date,
+				),
+			})
+			.from(pluggyTransactions)
+			.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
+			.leftJoin(
+				pluggyAccounts,
+				eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
+			)
+			.where(buildVisiblePluggyTransactionsWhere({ userId, start, end }))
+			.orderBy(desc(pluggyTransactions.date), desc(pluggyTransactions.createdAt)),
+	]);
+
+	const transactions = [
+		...pluggyRows.map<FinanceTransactionRecord>((row) => ({
+			id: row.id,
+			date: row.date,
+			amount: row.amount,
+			category: row.category?.trim() || "Outros",
+			description: row.description ?? null,
+			source: "pluggy",
+			sourceExternalId: null,
+			sourceItemId: row.sourceItemId,
+			sourceProvider: row.sourceProvider,
+			sourceAccountName: row.sourceAccountName,
+			sourceAccountType: row.sourceAccountType,
+			sourceAccountSubtype: row.sourceAccountSubtype,
+			sourceAccountBrand: row.sourceAccountBrand,
+				createdAt: new Date(row.createdAt),
+			updatedAt: null,
+			kind: row.amount < 0 ? "expense" : "income",
+			isDeletable: false,
+			isHideable: row.amount < 0,
+		})),
+		...manualExpenses.map<FinanceTransactionRecord>((row) => ({
+			id: row.id,
+			date: row.expenseDate,
+			amount: -Number(row.amount),
+			category: row.category,
+			description: row.note ?? null,
+			source: "manual",
+			sourceExternalId: row.sourceExternalId ?? null,
+			sourceItemId: row.sourceItemId ?? null,
+			sourceProvider: row.sourceProvider ?? null,
+			sourceAccountName: row.sourceAccountName ?? null,
+			sourceAccountType: row.sourceAccountType ?? null,
+			sourceAccountSubtype: row.sourceAccountSubtype ?? null,
+			sourceAccountBrand: row.sourceAccountBrand ?? null,
+			createdAt: row.createdAt,
+			updatedAt: row.updatedAt,
+			kind: "expense",
+			isDeletable: true,
+			isHideable: false,
+		})),
+	];
+
+	return transactions.sort((left, right) => {
+		const dateDiff = right.date.localeCompare(left.date);
+		if (dateDiff !== 0) {
+			return dateDiff;
+		}
+
+		const updatedDiff =
+			(right.updatedAt ?? right.createdAt).getTime() -
+			(left.updatedAt ?? left.createdAt).getTime();
+		if (updatedDiff !== 0) {
+			return updatedDiff;
+		}
+
+		return right.createdAt.getTime() - left.createdAt.getTime();
+	});
+}
+
+async function getPartialResultMetrics(params: {
+	userId: string;
+	month: string;
+}) {
+	const { userId, month } = params;
+	const { start, end } = getMonthBounds(month);
+
+	const [manualExpensesResult, pluggyTransactionsResult] = await Promise.all([
+		db
+			.select({ totalSpent: sum(expense.amount).mapWith(Number) })
+			.from(expense)
+			.where(buildManualExpensesWhere({ userId, start, end }))
+			.limit(1)
+			.then((rows) => rows[0]),
+		db
+			.select({
+				amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number),
+			})
+			.from(pluggyTransactions)
+			.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
+			.where(buildVisiblePluggyTransactionsWhere({ userId, start, end })),
+	]);
+
+	let income = 0;
+	let pluggySpent = 0;
+
+	for (const transaction of pluggyTransactionsResult) {
+		const amount = transaction.amount;
+		if (amount > 0) {
+			income += amount;
+			continue;
+		}
+
+		if (amount < 0) {
+			pluggySpent += Math.abs(amount);
+		}
+	}
+
+	const spent = pluggySpent + (manualExpensesResult?.totalSpent ?? 0);
+	const result = income - spent;
+
+	return {
+		income,
+		spent,
+		result,
+	};
 }
 
 function serializeExpense(r: typeof expense.$inferSelect) {
@@ -87,6 +318,31 @@ function serializeSavingsTarget(r: typeof savingsTarget.$inferSelect) {
 }
 
 export function registerFinanceRoutes(server: FastifyInstance) {
+	server.route({
+		method: "GET",
+		url: "/transactions",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const month = (req.query as { month: string }).month;
+				if (!monthPattern.test(month))
+					return reply
+						.status(400)
+						.send({ error: "Invalid month format. Use YYYY-MM" });
+
+				const records = await listFinanceTransactions({
+					userId: session.user.id,
+					month,
+				});
+				return reply.send(records);
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send({ error: "Authentication required" });
+				throw error;
+			}
+		},
+	});
+
 	server.route({
 		method: "GET",
 		url: "/expenses",
@@ -158,11 +414,82 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 				const deleted = await db
 					.delete(expense)
 					.where(
-						and(eq(expense.userId, session.user.id), inArray(expense.id, ids)),
+						and(
+							eq(expense.userId, session.user.id),
+							not(eq(expense.source, "pluggy")),
+							inArray(expense.id, ids),
+						),
 					)
 					.returning({ id: expense.id });
 
 				return reply.send({ deleted: deleted.length });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/transactions/hide",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { ids } = transactionIdsInput.parse(req.body);
+
+				const ownedTransactions = await db
+					.select({
+						id: pluggyTransactions.id,
+						pluggyItemId: pluggyTransactions.pluggyItemId,
+						amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number),
+					})
+					.from(pluggyTransactions)
+					.innerJoin(
+						pluggyItems,
+						eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
+					)
+					.where(
+						and(
+							eq(pluggyItems.userId, session.user.id),
+							inArray(pluggyTransactions.id, ids),
+						),
+					);
+
+				const hideableIds = ownedTransactions
+					.filter((row) => row.amount < 0)
+					.map((row) => row.id);
+				const itemIds = Array.from(
+					new Set(
+						ownedTransactions
+							.filter((row) => row.amount < 0)
+							.map((row) => row.pluggyItemId),
+					),
+				);
+
+				if (hideableIds.length === 0) {
+					return reply.send({ hidden: 0 });
+				}
+
+				const hidden = await db
+					.update(pluggyTransactions)
+					.set({ hiddenAt: new Date() })
+					.where(inArray(pluggyTransactions.id, hideableIds))
+					.returning({ id: pluggyTransactions.id });
+
+				await Promise.all(
+					itemIds.map((localItemId) =>
+						rebuildExpensesFromStoredTransactions({
+							userId: session.user.id,
+							localItemId,
+						}),
+					),
+				);
+
+				return reply.send({ hidden: hidden.length });
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send({ error: "Authentication required" });
@@ -269,6 +596,53 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 					remainingBudget,
 					remainingDays,
 					dailyCap: remainingDays > 0 ? remainingBudget / remainingDays : 0,
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send({ error: "Authentication required" });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/partial-result",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const query = req.query as { month: string };
+				if (!monthPattern.test(query.month))
+					return reply
+						.status(400)
+						.send({ error: "Invalid month format. Use YYYY-MM" });
+
+				const previousMonth = getPreviousMonthValue(query.month);
+				const [currentMonthMetrics, previousMonthMetrics] = await Promise.all([
+					getPartialResultMetrics({
+						userId: session.user.id,
+						month: query.month,
+					}),
+					getPartialResultMetrics({
+						userId: session.user.id,
+						month: previousMonth,
+					}),
+				]);
+
+				const changePercent =
+					previousMonthMetrics.result === 0
+						? null
+						: ((currentMonthMetrics.result - previousMonthMetrics.result) /
+								Math.abs(previousMonthMetrics.result)) *
+							100;
+
+				return reply.send({
+					month: query.month,
+					income: currentMonthMetrics.income,
+					spent: currentMonthMetrics.spent,
+					result: currentMonthMetrics.result,
+					previousResult: previousMonthMetrics.result,
+					changePercent,
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)

@@ -30,6 +30,7 @@ export const pluggyTransactions = pgTable(
 		amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
 		description: varchar("description", { length: 500 }),
 		category: varchar("category", { length: 100 }),
+		hiddenAt: timestamp("hidden_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 	},
 	(table) => [

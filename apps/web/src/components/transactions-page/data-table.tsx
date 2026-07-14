@@ -23,6 +23,7 @@ interface DataTableProps<TData, TValue> {
 	pageSize?: number;
 	/** Stable row id for selection across infinite-scroll batches. */
 	getRowId?: (originalRow: TData, index: number) => string;
+	enableRowSelection?: boolean | ((row: TData) => boolean);
 	rowSelection?: RowSelectionState;
 	onRowSelectionChange?: OnChangeFn<RowSelectionState>;
 	/** When set, inserts a group header before the first row of each group. */
@@ -35,6 +36,7 @@ export function DataTable<TData, TValue>({
 	data,
 	pageSize = 10,
 	getRowId,
+	enableRowSelection = true,
 	rowSelection: controlledSelection,
 	onRowSelectionChange,
 	getGroupKey,
@@ -103,7 +105,10 @@ export function DataTable<TData, TValue>({
 		columns,
 		state: { rowSelection },
 		onRowSelectionChange: setRowSelection,
-		enableRowSelection: true,
+		enableRowSelection:
+			typeof enableRowSelection === "function"
+				? (row) => enableRowSelection(row.original)
+				: enableRowSelection,
 		getCoreRowModel: getCoreRowModel(),
 		getRowId,
 	});

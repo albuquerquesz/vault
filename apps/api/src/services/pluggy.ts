@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { createPluggyClient, PluggyApiError } from "../clients/pluggy/index.js";
 import type {
 	CreatePluggyConnectTokenInput,
@@ -29,7 +29,7 @@ export type {
 	RemotePluggyItem as PluggyItem,
 };
 
-const INITIAL_SYNC_WINDOW_DAYS = 90;
+const INITIAL_SYNC_WINDOW_MONTHS = 6;
 export const PLUGGY_ORPHANED_STATUS = "ITEM_NOT_FOUND";
 export const PLUGGY_IGNORED_EXPENSE_CATEGORIES = [
 	"Transfer - Internal",
@@ -173,7 +173,9 @@ async function resolveProviderName(
 function buildInitialSyncWindow() {
 	const now = new Date();
 	const startDate = new Date(
-		now.getTime() - INITIAL_SYNC_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+		now.getFullYear(),
+		now.getMonth() - (INITIAL_SYNC_WINDOW_MONTHS - 1),
+		1,
 	);
 
 	return {
@@ -610,7 +612,12 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 			pluggyAccounts,
 			eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
 		)
-		.where(eq(pluggyTransactions.pluggyItemId, localItemId));
+		.where(
+			and(
+				eq(pluggyTransactions.pluggyItemId, localItemId),
+				isNull(pluggyTransactions.hiddenAt),
+			),
+		);
 
 	const outgoing = mapPluggyTransactionsToExpenses({
 		userId,

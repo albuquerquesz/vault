@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { PluggyApiError, PluggyAuthError } from "../clients/pluggy/index.js";
@@ -310,7 +310,12 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					if (!item) return reply.send([]);
 
 					const transactions = await transactionsBase()
-						.where(eq(pluggyItems.id, item.id))
+						.where(
+							and(
+								isNull(pluggyTransactions.hiddenAt),
+								eq(pluggyItems.id, item.id),
+							),
+						)
 						.orderBy(desc(pluggyTransactions.date))
 						.limit(limit);
 					return reply.send(transactions);
@@ -343,6 +348,7 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 					const transactions = await transactionsBase()
 						.where(
 							and(
+								isNull(pluggyTransactions.hiddenAt),
 								eq(pluggyTransactions.pluggyAccountId, account.id),
 								eq(pluggyItems.userId, session.user.id),
 							),
@@ -361,7 +367,12 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 				if (userItems.length === 0) return reply.send([]);
 
 				const transactions = await transactionsBase()
-					.where(eq(pluggyItems.userId, session.user.id))
+					.where(
+						and(
+							isNull(pluggyTransactions.hiddenAt),
+							eq(pluggyItems.userId, session.user.id),
+						),
+					)
 					.orderBy(desc(pluggyTransactions.date))
 					.limit(limit);
 				return reply.send(transactions);

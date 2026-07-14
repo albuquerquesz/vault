@@ -85,6 +85,13 @@
 			"when": 1784120000000,
 			"tag": "0011_pluggy_bills",
 			"breakpoints": true
+		},
+		{
+			"idx": 12,
+			"version": "7",
+			"when": 1784500000000,
+			"tag": "0012_pluggy_hidden_transactions",
+			"breakpoints": true
 		}
 	]
 }

@@ -33,10 +33,13 @@ export function DashboardOverview() {
 			<div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-10">
 				<div className="flex min-h-0 flex-col gap-4 xl:col-span-4 xl:h-full">
 					<div className="min-h-0 flex-1">
-						<GoalsCard className="min-h-0 sm:min-h-0 xl:min-h-0" />
+						<PartialResultCard
+							className="min-h-0 sm:min-h-0 xl:min-h-0"
+							month={selectedMonth}
+						/>
 					</div>
 					<div className="min-h-0 flex-1">
-						<PartialResultCard month={selectedMonth} />
+						<GoalsCard className="min-h-0 sm:min-h-0 xl:min-h-0" />
 					</div>
 				</div>
 				<div className="xl:col-span-6">

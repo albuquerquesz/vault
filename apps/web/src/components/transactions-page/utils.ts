@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import type { FinanceExpense } from "@/features/finance/sdk";
+import type { FinanceTransaction } from "@/features/finance/sdk";
 import {
 	CATEGORY_BAR_FALLBACKS,
 	CATEGORY_BAR_FILLS,
@@ -119,8 +119,18 @@ export function formatBRLNegative(value: number) {
 	return `-${formatBRL(value).replace("-", "")}`;
 }
 
-export function sumExpenses(expenses: FinanceExpense[]) {
-	return expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+export function isExpenseTransaction(transaction: FinanceTransaction) {
+	return transaction.amount < 0 || transaction.kind === "expense";
+}
+
+export function sumExpenseAmounts(transactions: FinanceTransaction[]) {
+	return transactions.reduce((sum, transaction) => {
+		if (!isExpenseTransaction(transaction)) {
+			return sum;
+		}
+
+		return sum + Math.abs(Number(transaction.amount));
+	}, 0);
 }
 
 /** Previous calendar month as `YYYY-MM` relative to a month key or Date. */
@@ -137,16 +147,16 @@ export function getPreviousMonthValue(monthOrDate: string | Date = new Date()): 
 
 /** Keep expenses on or after the local calendar day `days` ago (inclusive of today). */
 export function filterLastNDays(
-	expenses: FinanceExpense[],
+	transactions: FinanceTransaction[],
 	days: number,
 	now = new Date(),
-): FinanceExpense[] {
+): FinanceTransaction[] {
 	const cutoff = new Date(now);
 	cutoff.setHours(12, 0, 0, 0);
 	cutoff.setDate(cutoff.getDate() - (days - 1));
 	const cutoffKey = localDateKey(cutoff);
 
-	return expenses.filter((expense) => expense.expenseDate.slice(0, 10) >= cutoffKey);
+	return transactions.filter((transaction) => transaction.date.slice(0, 10) >= cutoffKey);
 }
 
 export type TransactionsPeriodStats = {
@@ -156,13 +166,24 @@ export type TransactionsPeriodStats = {
 };
 
 export function buildPeriodStats(
-	expenses: FinanceExpense[],
+	transactions: FinanceTransaction[],
 ): TransactionsPeriodStats {
 	return {
-		count: expenses.length,
-		totalOut: sumExpenses(expenses),
-		// Expenses-only dataset today; reserved for future income.
-		totalIn: 0,
+		count: transactions.length,
+		totalOut: transactions.reduce((sum, transaction) => {
+			if (!isExpenseTransaction(transaction)) {
+				return sum;
+			}
+
+			return sum + Math.abs(Number(transaction.amount));
+		}, 0),
+		totalIn: transactions.reduce((sum, transaction) => {
+			if (isExpenseTransaction(transaction)) {
+				return sum;
+			}
+
+			return sum + Number(transaction.amount);
+		}, 0),
 	};
 }
 
@@ -178,8 +199,8 @@ export const EMPTY_TRANSACTIONS_FILTERS: TransactionsFilters = {
 	categories: [],
 };
 
-export function getExpenseAccountKey(expense: FinanceExpense): string {
-	const name = expense.sourceAccountName?.trim();
+export function getTransactionAccountKey(transaction: FinanceTransaction): string {
+	const name = transaction.sourceAccountName?.trim();
 	return name && name.length > 0 ? name : "Sem conta";
 }
 
@@ -192,41 +213,43 @@ export function hasActiveTransactionFilters(filters: TransactionsFilters): boole
 }
 
 export function applyTransactionFilters(
-	expenses: FinanceExpense[],
+	transactions: FinanceTransaction[],
 	filters: TransactionsFilters,
-): FinanceExpense[] {
-	let next = expenses;
+): FinanceTransaction[] {
+	let next = transactions;
 
 	if (filters.accounts.length > 0) {
 		const accounts = new Set(filters.accounts);
-		next = next.filter((expense) => accounts.has(getExpenseAccountKey(expense)));
+		next = next.filter((transaction) =>
+			accounts.has(getTransactionAccountKey(transaction)),
+		);
 	}
 
 	if (filters.dates.length > 0) {
 		const dates = new Set(filters.dates.map((date) => date.slice(0, 10)));
-		next = next.filter((expense) =>
-			dates.has(expense.expenseDate.slice(0, 10)),
+		next = next.filter((transaction) =>
+			dates.has(transaction.date.slice(0, 10)),
 		);
 	}
 
 	if (filters.categories.length > 0) {
 		const categories = new Set(filters.categories);
-		next = next.filter((expense) => categories.has(expense.category));
+		next = next.filter((transaction) => categories.has(transaction.category));
 	}
 
 	return next;
 }
 
-export function collectFilterOptions(expenses: FinanceExpense[]) {
+export function collectFilterOptions(transactions: FinanceTransaction[]) {
 	const accounts = new Set<string>();
 	const dates = new Set<string>();
 	const categories = new Set<string>();
 
-	for (const expense of expenses) {
-		accounts.add(getExpenseAccountKey(expense));
-		dates.add(expense.expenseDate.slice(0, 10));
-		if (expense.category?.trim()) {
-			categories.add(expense.category.trim());
+	for (const transaction of transactions) {
+		accounts.add(getTransactionAccountKey(transaction));
+		dates.add(transaction.date.slice(0, 10));
+		if (transaction.category?.trim()) {
+			categories.add(transaction.category.trim());
 		}
 	}
 

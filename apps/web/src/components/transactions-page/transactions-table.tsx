@@ -2,20 +2,23 @@
 
 import type { RowSelectionState } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import type { FinanceExpense } from "@/features/finance/sdk";
-import { useDeleteExpenses } from "@/features/finance/sdk";
+import {
+	type FinanceTransaction,
+	useDeleteExpenses,
+	useHideTransactions,
+} from "@/features/finance/sdk";
 import { transactionsColumns } from "./columns";
 import { DataTable } from "./data-table";
 import { TransactionsSelectionToolbar } from "./selection-toolbar";
 import { formatTransactionDayLabel } from "./utils";
 
 export function TransactionsTable({
-	expenses,
+	transactions,
 	monthLabel,
 	month,
 	hasActiveFilters = false,
 }: {
-	expenses: FinanceExpense[];
+	transactions: FinanceTransaction[];
 	monthLabel: string;
 	/** YYYY-MM — used for cache invalidation after bulk delete. */
 	month: string;
@@ -23,38 +26,64 @@ export function TransactionsTable({
 }) {
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 	const deleteExpenses = useDeleteExpenses(month);
+	const hideTransactions = useHideTransactions(month);
 
 	// Keep newest-first display order.
-	const orderedExpenses = useMemo(
+	const orderedTransactions = useMemo(
 		() =>
-			[...expenses].sort((a, b) => b.expenseDate.localeCompare(a.expenseDate)),
-		[expenses],
+			[...transactions].sort((a, b) => b.date.localeCompare(a.date)),
+		[transactions],
 	);
 
 	// Drop selection when the visible dataset changes.
 	useEffect(() => {
 		setRowSelection({});
-	}, [orderedExpenses]);
+	}, [orderedTransactions]);
 
-	const selectedIds = useMemo(
-		() => Object.keys(rowSelection).filter((id) => rowSelection[id]),
-		[rowSelection],
+	const selectedTransactions = useMemo(
+		() =>
+			orderedTransactions.filter((transaction) => rowSelection[transaction.id]),
+		[orderedTransactions, rowSelection],
 	);
-	const selectedCount = selectedIds.length;
+	const selectedManualIds = useMemo(
+		() =>
+			selectedTransactions
+				.filter((transaction) => transaction.isDeletable)
+				.map((transaction) => transaction.id),
+		[selectedTransactions],
+	);
+	const selectedHideableIds = useMemo(
+		() =>
+			selectedTransactions
+				.filter((transaction) => transaction.isHideable)
+				.map((transaction) => transaction.id),
+		[selectedTransactions],
+	);
+	const selectedCount = selectedTransactions.length;
+	const isMutating =
+		deleteExpenses.isPending || hideTransactions.isPending;
 
-	const handleDelete = () => {
-		if (selectedIds.length === 0 || deleteExpenses.isPending) {
+	const handleDelete = async () => {
+		if (selectedCount === 0 || isMutating) {
 			return;
 		}
 
-		deleteExpenses.mutate(selectedIds, {
-			onSuccess: () => {
-				setRowSelection({});
-			},
-		});
+		try {
+			if (selectedManualIds.length > 0) {
+				await deleteExpenses.mutateAsync(selectedManualIds);
+			}
+
+			if (selectedHideableIds.length > 0) {
+				await hideTransactions.mutateAsync(selectedHideableIds);
+			}
+
+			setRowSelection({});
+		} catch {
+			// Mutations already expose their own error state/UI upstream.
+		}
 	};
 
-	if (expenses.length === 0) {
+	if (transactions.length === 0) {
 		return (
 			<div className="grid gap-3 px-6 py-12 text-center">
 				<p className="text-sm font-medium text-foreground">
@@ -65,7 +94,7 @@ export function TransactionsTable({
 				<p className="max-w-md justify-self-center text-sm text-muted-foreground">
 					{hasActiveFilters
 						? "Tente limpar a busca ou os filtros para expandir a lista."
-						: "Quando despesas forem registradas, elas aparecerão aqui."}
+						: "Quando transações forem sincronizadas ou registradas, elas aparecerão aqui."}
 				</p>
 			</div>
 		);
@@ -75,8 +104,9 @@ export function TransactionsTable({
 		<>
 			<DataTable
 				columns={transactionsColumns}
-				data={orderedExpenses}
-				getGroupKey={(row) => row.expenseDate}
+				data={orderedTransactions}
+				enableRowSelection={(row) => row.isDeletable || row.isHideable}
+				getGroupKey={(row) => row.date}
 				getRowId={(row) => row.id}
 				onRowSelectionChange={setRowSelection}
 				pageSize={10}
@@ -87,9 +117,16 @@ export function TransactionsTable({
 			{/* Portal docks to viewport bottom — kept after table so it never sits in table layout. */}
 			{selectedCount > 0 ? (
 				<TransactionsSelectionToolbar
-					isDeleting={deleteExpenses.isPending}
+					actionLabel={
+						selectedManualIds.length > 0 && selectedHideableIds.length > 0
+							? "Excluir e ocultar"
+							: selectedHideableIds.length > 0
+								? "Ocultar"
+								: "Excluir"
+					}
+					isDeleting={isMutating}
 					onClear={() => setRowSelection({})}
-					onDelete={handleDelete}
+					onDelete={() => void handleDelete()}
 					selectedCount={selectedCount}
 				/>
 			) : null}

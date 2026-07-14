@@ -39,7 +39,7 @@ export function TransactionsPeriodStats({
 				title="Total de saídas"
 			>
 				<ArrowDownIcon
-					className="size-3.5 shrink-0 text-emerald-500"
+					className="size-3.5 shrink-0 text-red-500"
 					aria-hidden
 				/>
 				<span className="text-foreground">
@@ -51,7 +51,10 @@ export function TransactionsPeriodStats({
 				className="flex flex-1 items-center justify-center gap-1 text-xs font-medium tabular-nums sm:text-sm"
 				title="Total de entradas"
 			>
-				<ArrowUpIcon className="size-3.5 shrink-0 text-red-500" aria-hidden />
+				<ArrowUpIcon
+					className="size-3.5 shrink-0 text-emerald-500"
+					aria-hidden
+				/>
 				<span className="text-foreground">
 					<MaskedMonetaryValue format={formatBRL} value={stats.totalIn} />
 				</span>

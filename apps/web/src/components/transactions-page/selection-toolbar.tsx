@@ -15,12 +15,14 @@ export function TransactionsSelectionToolbar({
 	selectedCount,
 	onClear,
 	onDelete,
+	actionLabel = "Excluir",
 	isDeleting = false,
 	className,
 }: {
 	selectedCount: number;
 	onClear: () => void;
 	onDelete: () => void;
+	actionLabel?: string;
 	isDeleting?: boolean;
 	className?: string;
 }) {
@@ -88,7 +90,7 @@ export function TransactionsSelectionToolbar({
 					) : (
 						<Trash2Icon className="size-3.5" />
 					)}
-					Excluir
+					{actionLabel}
 				</Button>
 
 				<Button

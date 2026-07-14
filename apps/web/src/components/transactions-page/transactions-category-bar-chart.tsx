@@ -16,8 +16,8 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import type { FinanceExpense } from "@/features/finance/sdk";
-import { formatBRL, getCategoryBarFill } from "./utils";
+import type { FinanceTransaction } from "@/features/finance/sdk";
+import { formatBRL, getCategoryBarFill, isExpenseTransaction } from "./utils";
 
 const MAX_NAMED_CATEGORIES = 6;
 /** Vertical bar thickness (px). */
@@ -121,14 +121,21 @@ function toRow(category: string, total: number): CategorySpendRow {
  * Aggregate expense amounts by category, keep top N, roll the rest into "Outros".
  */
 export function buildCategorySpendRows(
-	expenses: FinanceExpense[],
+	transactions: FinanceTransaction[],
 	maxNamed = MAX_NAMED_CATEGORIES,
 ): CategorySpendRow[] {
 	const totals = new Map<string, number>();
 
-	for (const expense of expenses) {
-		const key = expense.category.trim() || "Outros";
-		totals.set(key, (totals.get(key) ?? 0) + (Number(expense.amount) || 0));
+	for (const transaction of transactions) {
+		if (!isExpenseTransaction(transaction)) {
+			continue;
+		}
+
+		const key = transaction.category.trim() || "Outros";
+		totals.set(
+			key,
+			(totals.get(key) ?? 0) + Math.abs(Number(transaction.amount) || 0),
+		);
 	}
 
 	const sorted = [...totals.entries()]
@@ -155,18 +162,18 @@ export function buildCategorySpendRows(
 }
 
 type TransactionsCategoryBarChartProps = {
-	expenses: FinanceExpense[];
+	transactions: FinanceTransaction[];
 	/** e.g. "julho de 2026" */
 	periodLabel?: string;
 };
 
 export function TransactionsCategoryBarChart({
-	expenses,
+	transactions,
 	periodLabel,
 }: TransactionsCategoryBarChartProps) {
 	const chartData = useMemo(
-		() => buildCategorySpendRows(expenses),
-		[expenses],
+		() => buildCategorySpendRows(transactions),
+		[transactions],
 	);
 
 	const categoryCount = chartData.length;

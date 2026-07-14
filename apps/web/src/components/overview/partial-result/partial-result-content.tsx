@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 import { Delta, DeltaIcon } from "@/components/delta";
 import {
 	MaskedMonetaryText,
@@ -25,29 +24,14 @@ function formatChangePercent(value: number) {
 
 type PartialResultContentProps = {
 	metrics: PartialResultMetrics;
-	/** Hide the overview link when the card is already on /transactions. */
-	showLink?: boolean;
 };
 
-export function PartialResultContent({
-	metrics,
-	showLink = true,
-}: PartialResultContentProps) {
+export function PartialResultContent({ metrics }: PartialResultContentProps) {
 	const { income, spent, result, previousResult, changePercent } = metrics;
 
 	return (
 		<div className="flex h-full min-h-0 w-full flex-col justify-between gap-4">
 			<div className="space-y-3">
-				<div className="flex items-start justify-between gap-2">
-					<p className="text-sm text-muted-foreground">Resultado Parcial</p>
-					{showLink ? (
-						<DashboardCardLinkButton
-							label="Abrir transações"
-							to="/transactions"
-						/>
-					) : null}
-				</div>
-
 				<div className="flex flex-wrap items-center gap-2">
 					<span className="text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
 						<MaskedMonetaryValue format={formatCurrency} value={result} />

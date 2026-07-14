@@ -12,7 +12,7 @@ import { Input } from "@vault/ui/components/input";
 import { SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
-import { getMonthValue, useFinanceExpenses } from "@/features/finance/sdk";
+import { getMonthValue, useFinanceTransactions } from "@/features/finance/sdk";
 import { TransactionsCategoryBarChart } from "./transactions-page/transactions-category-bar-chart";
 import { TransactionsFilterMenu } from "./transactions-page/transactions-filter-menu";
 import { TransactionsPeriodStats } from "./transactions-page/transactions-period-stats";
@@ -39,33 +39,33 @@ export function TransactionsPage() {
 		EMPTY_TRANSACTIONS_FILTERS,
 	);
 
-	const expensesQuery = useFinanceExpenses(selectedMonth);
-	const previousMonthQuery = useFinanceExpenses(previousMonth);
+	const transactionsQuery = useFinanceTransactions(selectedMonth);
+	const previousMonthQuery = useFinanceTransactions(previousMonth);
 
-	const expenses = expensesQuery.data ?? [];
+	const transactions = transactionsQuery.data ?? [];
 
-	const filteredExpenses = useMemo(() => {
-		let next = applyTransactionFilters(expenses, appliedFilters);
+	const filteredTransactions = useMemo(() => {
+		let next = applyTransactionFilters(transactions, appliedFilters);
 
 		if (searchQuery.trim()) {
 			const query = searchQuery.toLowerCase();
 			next = next.filter(
-				(expense) =>
-					expense.category.toLowerCase().includes(query) ||
-					expense.note?.toLowerCase().includes(query),
+				(transaction) =>
+					transaction.category.toLowerCase().includes(query) ||
+					transaction.description?.toLowerCase().includes(query),
 			);
 		}
 
 		return next;
-	}, [expenses, appliedFilters, searchQuery]);
+	}, [transactions, appliedFilters, searchQuery]);
 
 	const periodStats = useMemo(() => {
 		const merged = [
 			...(previousMonthQuery.data ?? []),
-			...(expensesQuery.data ?? []),
+			...(transactionsQuery.data ?? []),
 		];
 		return buildPeriodStats(filterLastNDays(merged, 30));
-	}, [expensesQuery.data, previousMonthQuery.data]);
+	}, [transactionsQuery.data, previousMonthQuery.data]);
 
 	const monthLabel = useMemo(() => {
 		const date = new Date(`${selectedMonth}-01T12:00:00`);
@@ -79,7 +79,7 @@ export function TransactionsPage() {
 		searchQuery.trim().length > 0 ||
 		hasActiveTransactionFilters(appliedFilters);
 
-	if (expensesQuery.isPending) {
+	if (transactionsQuery.isPending) {
 		return (
 			<div className="w-full min-w-0 pt-6">
 				<TransactionsSkeleton />
@@ -87,7 +87,7 @@ export function TransactionsPage() {
 		);
 	}
 
-	if (expensesQuery.isError) {
+	if (transactionsQuery.isError) {
 		return (
 			<div className="w-full min-w-0 pt-6">
 				<Card className="financial-panel-border ring-0">
@@ -105,7 +105,7 @@ export function TransactionsPage() {
 							para recarregar a lista deste mês.
 						</p>
 						<div>
-							<Button onClick={() => void expensesQuery.refetch()}>
+							<Button onClick={() => void transactionsQuery.refetch()}>
 								Tentar novamente
 							</Button>
 						</div>
@@ -121,7 +121,7 @@ export function TransactionsPage() {
 			<div className="grid w-full min-w-0 grid-cols-1 gap-4 pt-6 lg:grid-cols-[3fr_2fr]">
 				<div className="min-w-0">
 					<TransactionsTable
-						expenses={filteredExpenses}
+						transactions={filteredTransactions}
 						hasActiveFilters={hasActiveFilters}
 						month={selectedMonth}
 						monthLabel={monthLabel}
@@ -144,7 +144,7 @@ export function TransactionsPage() {
 							</div>
 							<TransactionsFilterMenu
 								appliedFilters={appliedFilters}
-								expenses={expenses}
+								transactions={transactions}
 								onAppliedFiltersChange={setAppliedFilters}
 							/>
 						</div>
@@ -155,7 +155,7 @@ export function TransactionsPage() {
 					</div>
 					<div className="financial-panel-border flex w-full flex-col overflow-hidden">
 						<TransactionsCategoryBarChart
-							expenses={filteredExpenses}
+							transactions={filteredTransactions}
 							periodLabel={monthLabel}
 						/>
 					</div>

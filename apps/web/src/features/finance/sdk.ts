@@ -29,6 +29,27 @@ export interface FinanceExpense {
 	updatedAt: Date;
 }
 
+export interface FinanceTransaction {
+	id: string;
+	date: string;
+	amount: number;
+	category: string;
+	description: string | null;
+	source: "manual" | "pluggy";
+	sourceExternalId: string | null;
+	sourceItemId: string | null;
+	sourceProvider: string | null;
+	sourceAccountName: string | null;
+	sourceAccountType: string | null;
+	sourceAccountSubtype: string | null;
+	sourceAccountBrand: string | null;
+	createdAt: Date;
+	updatedAt: Date | null;
+	kind: "income" | "expense";
+	isDeletable: boolean;
+	isHideable: boolean;
+}
+
 export interface FinanceMonthlyOverview {
 	month: string;
 	income: number;
@@ -37,6 +58,15 @@ export interface FinanceMonthlyOverview {
 	remainingBudget: number;
 	remainingDays: number;
 	dailyCap: number;
+}
+
+export interface FinancePartialResult {
+	month: string;
+	income: number;
+	spent: number;
+	result: number;
+	previousResult: number;
+	changePercent: number | null;
 }
 
 export interface FinanceMonthlyBill {
@@ -130,7 +160,9 @@ function invalidateFinanceMonthQueries(
 ) {
 	return Promise.all([
 		client.invalidateQueries({ queryKey: ["expenses", month] }),
+		client.invalidateQueries({ queryKey: ["transactions", month] }),
 		client.invalidateQueries({ queryKey: ["overview", month, today] }),
+		client.invalidateQueries({ queryKey: ["partialResult"] }),
 	]);
 }
 
@@ -143,6 +175,16 @@ export const financeSdk = {
 			queryFn: () =>
 				apiFetch<FinanceExpense[]>(
 					`/api/finance/expenses?month=${encodeURIComponent(month)}`,
+				),
+		} as const;
+	},
+
+	listTransactionsOptions(month = getMonthValue()) {
+		return {
+			queryKey: ["transactions", month],
+			queryFn: () =>
+				apiFetch<FinanceTransaction[]>(
+					`/api/finance/transactions?month=${encodeURIComponent(month)}`,
 				),
 		} as const;
 	},
@@ -163,6 +205,16 @@ export const financeSdk = {
 			queryFn: () =>
 				apiFetch<FinanceMonthlyOverview>(
 					`/api/finance/overview?month=${encodeURIComponent(month)}&today=${encodeURIComponent(today)}`,
+				),
+		} as const;
+	},
+
+	partialResultOptions(month = getMonthValue()) {
+		return {
+			queryKey: ["partialResult", month],
+			queryFn: () =>
+				apiFetch<FinancePartialResult>(
+					`/api/finance/partial-result?month=${encodeURIComponent(month)}`,
 				),
 		} as const;
 	},
@@ -210,6 +262,23 @@ export const financeSdk = {
 			mutationFn: (ids: string[]) =>
 				apiFetch<{ deleted: number }>("/api/finance/expenses", {
 					method: "DELETE",
+					body: { ids },
+				}),
+			onSuccess: async () => {
+				await invalidateFinanceMonthQueries(client, month, today);
+			},
+		} as const;
+	},
+
+	hideTransactionsMutationOptions(
+		month = getMonthValue(),
+		client: QueryClient = queryClient,
+		today = getTodayValue(),
+	) {
+		return {
+			mutationFn: (ids: string[]) =>
+				apiFetch<{ hidden: number }>("/api/finance/transactions/hide", {
+					method: "POST",
 					body: { ids },
 				}),
 			onSuccess: async () => {
@@ -287,6 +356,23 @@ export function useFinanceExpenses(month = getMonthValue()) {
 	return query;
 }
 
+export function useFinanceTransactions(month = getMonthValue()) {
+	const cached = getCachedData<FinanceTransaction[]>("listTransactions", month);
+
+	const query = useQuery({
+		...financeSdk.listTransactionsOptions(month),
+		initialData: cached ?? undefined,
+	});
+
+	useEffect(() => {
+		if (query.data) {
+			setCachedData("listTransactions", month, query.data);
+		}
+	}, [query.data, month]);
+
+	return query;
+}
+
 export function useFinanceMonthlyOverview(
 	month = getMonthValue(),
 	today = getTodayValue(),
@@ -314,12 +400,38 @@ export function useFinanceMonthlyBills(month = getMonthValue()) {
 	return useQuery(financeSdk.listMonthlyBillsOptions(month));
 }
 
+export function useFinancePartialResult(month = getMonthValue()) {
+	const cached = getCachedData<FinancePartialResult>("getPartialResult", month);
+
+	const query = useQuery({
+		...financeSdk.partialResultOptions(month),
+		initialData: cached ?? undefined,
+	});
+
+	useEffect(() => {
+		if (query.data) {
+			setCachedData("getPartialResult", month, query.data);
+		}
+	}, [query.data, month]);
+
+	return query;
+}
+
 export function useCreateExpense(
 	month = getMonthValue(),
 	today = getTodayValue(),
 ) {
 	return useMutation(
 		financeSdk.createExpenseMutationOptions(month, queryClient, today),
+	);
+}
+
+export function useHideTransactions(
+	month = getMonthValue(),
+	today = getTodayValue(),
+) {
+	return useMutation(
+		financeSdk.hideTransactionsMutationOptions(month, queryClient, today),
 	);
 }
 

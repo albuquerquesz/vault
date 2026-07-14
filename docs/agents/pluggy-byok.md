@@ -24,7 +24,7 @@ Leia este documento antes de alterar:
 4. frontend envia `{ pluggyItemId }` para `POST /api/pluggy/items`
 5. backend chama `GET /items/{id}`
 6. backend faz upsert em `pluggy_items`
-7. backend sincroniza contas, **faturas de cartão** (`GET /bills?accountId=` para contas `CREDIT`) e transações dos últimos 90 dias
+7. backend sincroniza contas, **faturas de cartão** (`GET /bills?accountId=` para contas `CREDIT`) e transações do mês atual + 5 meses anteriores
 8. faturas gravadas em `pluggy_bills` e materializadas em `monthly_bill` / `monthly_bill_item` (source=`pluggy`)
 9. frontend invalida `pluggy-items`, `pluggy-accounts`, `pluggy-transactions` e `monthlyBills`
 
@@ -79,9 +79,11 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
 - `pluggy_items` deve permanecer idempotente por `userId + pluggyItemId`.
 - `pluggy_accounts` deve permanecer idempotente por `pluggyItemId + pluggyAccountId`.
 - `pluggy_transactions` deve permanecer idempotente por `pluggyItemId + pluggyTransactionId`.
+- Transações ocultadas pelo usuário devem ser persistidas localmente em `pluggy_transactions` e preservadas em syncs futuros.
 - `pluggy_bills` deve permanecer idempotente por `pluggyAccountId + pluggyBillId`.
 - O sync inicial deve sincronizar contas antes de faturas/transações, porque ambos dependem do mapeamento `pluggy_account_id`.
 - Após upsert de `pluggy_bills`, materializar `monthly_bill` + `monthly_bill_item` (source=`pluggy`) por mês de `dueDate` (YYYY-MM). Não apagar itens manuais (`source=manual`).
+- A reconstrução de despesas derivadas da Pluggy deve ignorar transações ocultadas localmente.
 - Se a persistência do item funcionar e o sync falhar, o item não deve ser desfeito. A API deve retornar sucesso parcial com `sync.status = "failed"`.
 
 ## Regras de UX

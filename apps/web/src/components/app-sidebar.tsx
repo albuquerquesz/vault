@@ -15,7 +15,6 @@ import { cn } from "@vault/ui/lib/utils";
 import { footerNavLinks, useNavLinks } from "@/components/app-shared";
 import { LatestChange } from "@/components/latest-change";
 import { LogoIcon } from "@/components/logo";
-import { MonetaryVisibilityToggle } from "@/components/monetary-visibility";
 
 export function AppSidebar() {
 	const navLinks = useNavLinks();
@@ -28,17 +27,15 @@ export function AppSidebar() {
 				"**:data-[slot=sidebar-menu-button]:[&>span]:text-foreground/75",
 			)}
 			collapsible="icon"
+			style={{ fontFamily: '"Space Grotesk", sans-serif' }}
 			variant="sidebar"
 		>
-			<SidebarHeader className="h-14 justify-center border-b px-2">
-				<div className="flex w-full items-center justify-between">
-					<div className="flex min-w-0 items-center gap-2">
-						<LogoIcon />
-						<span className="truncate font-medium text-xl text-foreground!">
-							Vault
-						</span>
-					</div>
-					<MonetaryVisibilityToggle />
+			<SidebarHeader className="h-14 justify-center border-b px-2 group-data-[collapsible=icon]:px-0">
+				<div className="flex w-full min-w-0 items-center gap-2 group-data-[collapsible=icon]:justify-center">
+					<LogoIcon className="size-6 shrink-0" />
+					<span className="truncate font-medium text-xl text-foreground! group-data-[collapsible=icon]:hidden">
+						Vault
+					</span>
 				</div>
 			</SidebarHeader>
 			<SidebarContent className="px-3 pt-4">

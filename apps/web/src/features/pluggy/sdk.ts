@@ -113,7 +113,9 @@ export function usePluggyRegisterItem() {
 				qc.invalidateQueries({ queryKey: ["pluggy-items"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-transactions"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-accounts"] }),
+				qc.invalidateQueries({ queryKey: ["transactions"] }),
 				qc.invalidateQueries({ queryKey: ["monthlyBills"] }),
+				qc.invalidateQueries({ queryKey: ["partialResult"] }),
 			]);
 		},
 	});
@@ -131,7 +133,9 @@ export function usePluggyDeleteItem() {
 				qc.invalidateQueries({ queryKey: ["pluggy-items"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-transactions"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-accounts"] }),
+				qc.invalidateQueries({ queryKey: ["transactions"] }),
 				qc.invalidateQueries({ queryKey: ["monthlyBills"] }),
+				qc.invalidateQueries({ queryKey: ["partialResult"] }),
 			]);
 		},
 	});
@@ -181,7 +185,9 @@ export function usePluggySync() {
 				qc.invalidateQueries({ queryKey: ["pluggy-items"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-transactions"] }),
 				qc.invalidateQueries({ queryKey: ["pluggy-accounts"] }),
+				qc.invalidateQueries({ queryKey: ["transactions"] }),
 				qc.invalidateQueries({ queryKey: ["monthlyBills"] }),
+				qc.invalidateQueries({ queryKey: ["partialResult"] }),
 			]);
 		},
 	});

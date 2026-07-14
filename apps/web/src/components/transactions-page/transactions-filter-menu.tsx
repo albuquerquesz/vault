@@ -21,7 +21,7 @@ import {
 	TagsIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { FinanceExpense } from "@/features/finance/sdk";
+import type { FinanceTransaction } from "@/features/finance/sdk";
 import {
 	collectFilterOptions,
 	EMPTY_TRANSACTIONS_FILTERS,
@@ -37,18 +37,21 @@ function toggleValue(values: string[], value: string): string[] {
 }
 
 export function TransactionsFilterMenu({
-	expenses,
+	transactions,
 	appliedFilters,
 	onAppliedFiltersChange,
 }: {
-	expenses: FinanceExpense[];
+	transactions: FinanceTransaction[];
 	appliedFilters: TransactionsFilters;
 	onAppliedFiltersChange: (filters: TransactionsFilters) => void;
 }) {
 	const [open, setOpen] = useState(false);
 	const [draft, setDraft] = useState<TransactionsFilters>(appliedFilters);
 
-	const options = useMemo(() => collectFilterOptions(expenses), [expenses]);
+	const options = useMemo(
+		() => collectFilterOptions(transactions),
+		[transactions],
+	);
 	const isActive = hasActiveTransactionFilters(appliedFilters);
 
 	useEffect(() => {

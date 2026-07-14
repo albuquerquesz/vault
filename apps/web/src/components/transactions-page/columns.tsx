@@ -7,40 +7,49 @@ import { cn } from "@vault/ui/lib/utils";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { InstitutionMark } from "@/components/institution-mark";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
-import type { FinanceExpense } from "@/features/finance/sdk";
+import type { FinanceTransaction } from "@/features/finance/sdk";
 import { formatBRL, getCategoryColor, getCategoryIcon } from "./utils";
 
-/** All `FinanceExpense` rows are outflows today; keep the branch for future income. */
 function isExpenseAmount(amount: number) {
-	return amount >= 0;
+	return amount < 0;
 }
 
-export const transactionsColumns: ColumnDef<FinanceExpense>[] = [
+export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 	{
-		accessorKey: "note",
+		accessorKey: "description",
 		header: "Descrição",
 		enableSorting: false,
-		cell: ({ row }) => (
-			<div className="flex min-w-0 max-w-md items-center gap-2">
-				<Checkbox
-					aria-label="Selecionar transação"
-					checked={row.getIsSelected()}
-					className="size-3.5 shrink-0 aspect-square rounded-[2px]"
-					onCheckedChange={(checked) => {
-						row.toggleSelected(checked === true);
-					}}
-					onClick={(event) => event.stopPropagation()}
-				/>
-				<InstitutionMark
-					name={row.original.sourceAccountName}
-					provider={row.original.sourceProvider}
-					size="md"
-				/>
-				<p className="min-w-0 truncate text-xs font-medium text-foreground sm:text-sm">
-					{row.original.note || "Despesa"}
-				</p>
-			</div>
-		),
+		cell: ({ row }) => {
+			const selectable =
+				row.original.isDeletable || row.original.isHideable;
+
+			return (
+				<div className="flex min-w-0 max-w-md items-center gap-2">
+					<Checkbox
+						aria-label="Selecionar transação"
+						checked={row.getIsSelected()}
+						className="size-3.5 shrink-0 aspect-square rounded-[2px]"
+						disabled={!selectable}
+						onCheckedChange={(checked) => {
+							if (!selectable) {
+								return;
+							}
+							row.toggleSelected(checked === true);
+						}}
+						onClick={(event) => event.stopPropagation()}
+					/>
+					<InstitutionMark
+						name={row.original.sourceAccountName}
+						provider={row.original.sourceProvider}
+						size="md"
+					/>
+					<p className="min-w-0 truncate text-xs font-medium text-foreground sm:text-sm">
+						{row.original.description ||
+							(row.original.kind === "income" ? "Entrada" : "Despesa")}
+					</p>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "category",
@@ -69,7 +78,7 @@ export const transactionsColumns: ColumnDef<FinanceExpense>[] = [
 		header: () => <div className="w-full text-right">Valor</div>,
 		enableSorting: false,
 		cell: ({ row }) => {
-			const amount = Number(row.original.amount);
+			const amount = row.original.amount;
 			const isExpense = isExpenseAmount(amount);
 			const DirectionIcon = isExpense ? ArrowDownIcon : ArrowUpIcon;
 
