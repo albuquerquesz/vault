@@ -5,6 +5,7 @@ import { env } from "./db/env";
 import * as schema from "./db/schema/auth";
 
 const frontAuthErrorUrl = `${env.CORS_ORIGIN.replace(/\/$/, "")}/auth/error`;
+const authBaseUrlFallback = env.BETTER_AUTH_URL.replace(/\/$/, "");
 
 export function createAuth() {
 	const db = createDb();
@@ -19,7 +20,16 @@ export function createAuth() {
 			enabled: true,
 		},
 		secret: env.BETTER_AUTH_SECRET,
-		baseURL: env.BETTER_AUTH_URL,
+		baseURL: {
+			allowedHosts: [
+				"vault-web-six.vercel.app",
+				"vault-api-phi.vercel.app",
+				"localhost:3000",
+				"localhost:3001",
+			],
+			fallback: authBaseUrlFallback,
+			protocol: "https",
+		},
 		socialProviders: {
 			google: {
 				clientId: env.GOOGLE_CLIENT_ID,
@@ -32,6 +42,7 @@ export function createAuth() {
 				secure: true,
 				httpOnly: true,
 			},
+			trustedProxyHeaders: true,
 		},
 		onAPIError: {
 			errorURL: frontAuthErrorUrl,
