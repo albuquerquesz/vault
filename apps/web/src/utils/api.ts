@@ -1,8 +1,21 @@
 import { QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { env } from "@/common/env";
 
 const SANITIZED_ERROR = "Something went wrong. Please try again.";
+
+export class ApiError extends Error {
+	status: number;
+
+	constructor(message: string, status: number) {
+		super(message);
+		this.name = "ApiError";
+		this.status = status;
+	}
+
+	get isAuthError() {
+		return this.status === 401 || this.status === 403;
+	}
+}
 
 function sanitizeError(message: string): string {
 	const patterns = [
@@ -48,6 +61,23 @@ function sanitizeError(message: string): string {
 
 export const queryClient = new QueryClient({
 	defaultOptions: {
+		queries: {
+			retry: (failureCount, error) => {
+				if (error instanceof ApiError) {
+					if (error.isAuthError) {
+						return false;
+					}
+
+					if (error.status >= 500) {
+						return failureCount < 3;
+					}
+
+					return false;
+				}
+
+				return failureCount < 3;
+			},
+		},
 		mutations: {
 			onSettled: () => {},
 			onError: (error) => {
@@ -74,10 +104,9 @@ export async function apiFetch<T>(
 		body?: unknown;
 	},
 ): Promise<T> {
-	const url = `${env.VITE_SERVER_URL}${path}`;
 	const hasBody = options?.body !== undefined;
 
-	const response = await fetch(url, {
+	const response = await fetch(path, {
 		method: options?.method ?? "GET",
 		headers: hasBody ? { "Content-Type": "application/json" } : undefined,
 		credentials: "include",
@@ -93,7 +122,7 @@ export async function apiFetch<T>(
 		} catch {
 			// Not JSON, use raw text
 		}
-		throw new Error(message);
+		throw new ApiError(message, response.status);
 	}
 
 	if (

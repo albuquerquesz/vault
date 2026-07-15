@@ -147,14 +147,20 @@ export function nextIncomeDate(incomeDay: number, month = getMonthValue()) {
 
 // Hooks
 
-export function useUserPreferences() {
+export function useUserPreferences(options?: { enabled?: boolean }) {
 	const opts = settingsSdk.preferencesOptions();
-	return useQuery(opts);
+	return useQuery({
+		...opts,
+		...(options ?? {}),
+	});
 }
 
-export function useUserProfile() {
+export function useUserProfile(options?: { enabled?: boolean }) {
 	const opts = settingsSdk.profileOptions();
-	return useQuery(opts);
+	return useQuery({
+		...opts,
+		...(options ?? {}),
+	});
 }
 
 export function useUpdatePreferences() {

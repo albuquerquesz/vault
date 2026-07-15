@@ -163,11 +163,15 @@ const THEME_OPTIONS = [
 ] as const;
 
 function ConnectedAccountsList() {
-	const { data: items, isLoading } = usePluggyItems();
+	const { data: session, isPending: isSessionPending } = authClient.useSession();
+	const isAuthenticated = !isSessionPending && Boolean(session?.user);
+	const { data: items, isLoading } = usePluggyItems({
+		enabled: isAuthenticated,
+	});
 	const deleteItem = usePluggyDeleteItem();
 	const [deletingId, setDeletingId] = React.useState<string | null>(null);
 
-	if (isLoading) {
+	if (isSessionPending || isLoading) {
 		return <p className="text-sm text-muted-foreground">Carregando contas…</p>;
 	}
 
@@ -222,8 +226,11 @@ function ConnectedAccountsList() {
 
 function GeneralSettings() {
 	const { theme, setTheme } = useTheme();
-	const { data: session } = authClient.useSession();
-	const { data: prefs, isLoading: prefsLoading } = useUserPreferences();
+	const { data: session, isPending: isSessionPending } = authClient.useSession();
+	const isAuthenticated = !isSessionPending && Boolean(session?.user);
+	const { data: prefs, isLoading: prefsLoading } = useUserPreferences({
+		enabled: isAuthenticated,
+	});
 	const updatePreferences = useUpdatePreferences();
 
 	// Local editing state — synced from prefs on load
@@ -235,7 +242,7 @@ function GeneralSettings() {
 		data: pluggyStatus,
 		isLoading: isLoadingPluggyStatus,
 		isFetching: isFetchingPluggyStatus,
-	} = usePluggyCredentialsStatus({ enabled: Boolean(session?.user) });
+	} = usePluggyCredentialsStatus({ enabled: isAuthenticated });
 	const savePluggyCredentials = useSavePluggyCredentials();
 	const deletePluggyCredentials = useDeletePluggyCredentials();
 	const registerItem = usePluggyRegisterItem();
@@ -329,7 +336,7 @@ function GeneralSettings() {
 		);
 	};
 
-	if (prefsLoading) {
+	if (isSessionPending || prefsLoading) {
 		return <p className="text-sm text-muted-foreground">Carregando…</p>;
 	}
 
@@ -644,8 +651,11 @@ function GeneralSettings() {
 
 function AccountSettings() {
 	const navigate = useNavigate();
-	const { data: session } = authClient.useSession();
-	const { data: profile, isLoading: profileLoading } = useUserProfile();
+	const { data: session, isPending: isSessionPending } = authClient.useSession();
+	const isAuthenticated = !isSessionPending && Boolean(session?.user);
+	const { data: profile, isLoading: profileLoading } = useUserProfile({
+		enabled: isAuthenticated,
+	});
 	const updateProfile = useUpdateProfile();
 	const updateAvatar = useUpdateAvatar();
 
@@ -709,7 +719,7 @@ function AccountSettings() {
 		event.target.value = "";
 	};
 
-	if (profileLoading) {
+	if (isSessionPending || profileLoading) {
 		return <p className="text-sm text-muted-foreground">Carregando…</p>;
 	}
 

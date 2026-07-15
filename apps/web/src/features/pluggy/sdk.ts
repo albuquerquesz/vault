@@ -1,10 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/utils/api";
 
-const API_BASE =
-	import.meta.env.VITE_API_BASE ??
-	`http://${import.meta.env.DEV ? "localhost" : "100.100.100.100"}:3000`;
-
 export interface PluggyItem {
 	id: string;
 	pluggyItemId: string;
@@ -71,30 +67,6 @@ export interface PluggySyncResult {
 	};
 }
 
-async function readApiError(res: Response): Promise<string> {
-	const text = await res.text().catch(() => "");
-	if (!text) {
-		return `HTTP ${res.status}`;
-	}
-
-	try {
-		const data = JSON.parse(text) as { error?: string; message?: string };
-		return data.error ?? data.message ?? text;
-	} catch {
-		return text;
-	}
-}
-
-async function fetcher<T>(path: string): Promise<T> {
-	const res = await fetch(`${API_BASE}${path}`, {
-		credentials: "include",
-	});
-	if (!res.ok) {
-		throw new Error(await readApiError(res));
-	}
-	return res.json();
-}
-
 // ─── Connect Token ──────────────────────────────────────────────────────────
 
 export function usePluggyConnectToken() {
@@ -108,10 +80,11 @@ export function usePluggyConnectToken() {
 
 // ─── Items ──────────────────────────────────────────────────────────────────
 
-export function usePluggyItems() {
+export function usePluggyItems(options?: { enabled?: boolean }) {
 	return useQuery<PluggyItem[]>({
 		queryKey: ["pluggy-items"],
-		queryFn: () => fetcher<PluggyItem[]>("/api/pluggy/items"),
+		queryFn: () => apiFetch<PluggyItem[]>("/api/pluggy/items"),
+		...(options ?? {}),
 	});
 }
 
@@ -164,7 +137,7 @@ export function usePluggyDeleteItem() {
 export function usePluggyAccounts() {
 	return useQuery<PluggyAccount[]>({
 		queryKey: ["pluggy-accounts"],
-		queryFn: () => fetcher<PluggyAccount[]>("/api/pluggy/accounts"),
+		queryFn: () => apiFetch<PluggyAccount[]>("/api/pluggy/accounts"),
 	});
 }
 
@@ -182,7 +155,7 @@ export function usePluggyTransactions(params?: {
 			const qs = new URLSearchParams({ limit: String(limit) });
 			if (itemId) qs.set("itemId", itemId);
 			if (accountId) qs.set("accountId", accountId);
-			return fetcher<PluggyTransaction[]>(
+			return apiFetch<PluggyTransaction[]>(
 				`/api/pluggy/transactions?${qs.toString()}`,
 			);
 		},
