@@ -32,6 +32,9 @@ const LABEL_STYLE = {
 	fontWeight: 500,
 } as const;
 
+const LABEL_FOREGROUND_FILL = "var(--foreground)";
+const LABEL_INVERSE_FILL = "var(--background)";
+
 const chartConfig = {
 	total: {
 		label: "Gasto",
@@ -59,6 +62,31 @@ function toNumber(value: number | string | undefined, fallback = 0) {
 	return Number.isFinite(n) ? n : fallback;
 }
 
+function normalizeHex(hex: string) {
+	const value = hex.trim().replace(/^#/, "");
+	if (value.length === 3) {
+		return value
+			.split("")
+			.map((char) => char.repeat(2))
+			.join("");
+	}
+	return value;
+}
+
+function getCategoryLabelFill(fill: string) {
+	const hex = normalizeHex(fill);
+	if (!/^[\da-fA-F]{6}$/.test(hex)) {
+		return LABEL_INVERSE_FILL;
+	}
+
+	const r = Number.parseInt(hex.slice(0, 2), 16);
+	const g = Number.parseInt(hex.slice(2, 4), 16);
+	const b = Number.parseInt(hex.slice(4, 6), 16);
+	const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+	return luminance > 0.62 ? LABEL_FOREGROUND_FILL : LABEL_INVERSE_FILL;
+}
+
 /**
  * Pins every amount to the right edge of the plot (justify-between with
  * category labels on the left inside the bar).
@@ -79,8 +107,8 @@ function AmountEdgeLabel(props: BarLabelProps) {
 
 	return (
 		<text
-			className="fill-foreground font-medium"
 			dominantBaseline="middle"
+			fill={LABEL_FOREGROUND_FILL}
 			fontSize={14}
 			style={LABEL_STYLE}
 			textAnchor="end"
@@ -88,6 +116,31 @@ function AmountEdgeLabel(props: BarLabelProps) {
 			y={cy}
 		>
 			{formatBRL(amount)}
+		</text>
+	);
+}
+
+function CategoryInsideLabel(props: BarLabelProps & { payload?: CategorySpendRow }) {
+	const x = toNumber(props.x);
+	const y = toNumber(props.y);
+	const height = toNumber(props.height);
+	const row = props.payload;
+
+	if (!row?.label) {
+		return null;
+	}
+
+	return (
+		<text
+			dominantBaseline="middle"
+			fill={getCategoryLabelFill(row.fill)}
+			fontSize={12}
+			style={LABEL_STYLE}
+			textAnchor="start"
+			x={x + 8}
+			y={y + height / 2}
+		>
+			{row.label}
 		</text>
 	);
 }
@@ -243,17 +296,23 @@ export function TransactionsCategoryBarChart({
 							return row?.category ?? "";
 						}}
 					/>
-					<Bar barSize={BAR_SIZE} dataKey="total" radius={3}>
+					<Bar
+						barSize={BAR_SIZE}
+						dataKey="total"
+						fill="var(--color-total)"
+						radius={3}
+					>
 						{chartData.map((row) => (
 							<Cell key={row.category} fill={row.fill} />
 						))}
 						<LabelList
-							className="fill-white font-medium"
+							content={(props) => (
+								<CategoryInsideLabel
+									{...(props as BarLabelProps & { payload?: CategorySpendRow })}
+								/>
+							)}
 							dataKey="label"
-							fontSize={12}
-							offset={8}
 							position="insideLeft"
-							style={LABEL_STYLE}
 						/>
 						<LabelList
 							content={(props) => (
