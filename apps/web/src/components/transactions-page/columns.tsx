@@ -89,7 +89,8 @@ export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 			const DirectionIcon = isExpense ? ArrowDownIcon : ArrowUpIcon;
 
 			return (
-				<div className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-center justify-end gap-1.5 text-xs font-medium tabular-nums whitespace-nowrap sm:text-sm">
+				<div className="flex w-full justify-end">
+					<div className="inline-flex items-center gap-1.5 text-xs font-medium tabular-nums whitespace-nowrap sm:text-sm">
 					<DirectionIcon
 						aria-label={isExpense ? "Saída" : "Entrada"}
 						className={cn(
@@ -97,9 +98,10 @@ export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 							isExpense ? "text-red-500" : "text-emerald-500",
 						)}
 					/>
-					<span className="text-right text-foreground">
+					<span className="text-foreground">
 						{formatBRL(Math.abs(amount))}
 					</span>
+					</div>
 				</div>
 			);
 		},
