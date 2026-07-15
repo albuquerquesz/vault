@@ -4,6 +4,8 @@ import { createDb } from "./db";
 import { env } from "./db/env";
 import * as schema from "./db/schema/auth";
 
+const frontAuthErrorUrl = `${env.CORS_ORIGIN.replace(/\/$/, "")}/auth/error`;
+
 export function createAuth() {
 	const db = createDb();
 
@@ -30,6 +32,9 @@ export function createAuth() {
 				secure: true,
 				httpOnly: true,
 			},
+		},
+		onAPIError: {
+			errorURL: frontAuthErrorUrl,
 		},
 		plugins: [],
 	});

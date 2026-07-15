@@ -15,6 +15,7 @@ import { Route as PluggyRouteImport } from './routes/pluggy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardDailyExpensesRouteImport } from './routes/dashboard.daily-expenses'
+import { Route as AuthErrorRouteImport } from './routes/auth.error'
 
 const TransactionsRoute = TransactionsRouteImport.update({
   id: '/transactions',
@@ -46,6 +47,11 @@ const DashboardDailyExpensesRoute = DashboardDailyExpensesRouteImport.update({
   path: '/dashboard/daily-expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthErrorRoute = AuthErrorRouteImport.update({
+  id: '/auth/error',
+  path: '/auth/error',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/pluggy'
     | '/settings'
     | '/transactions'
+    | '/auth/error'
     | '/dashboard/daily-expenses'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/pluggy'
     | '/settings'
     | '/transactions'
+    | '/auth/error'
     | '/dashboard/daily-expenses'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/pluggy'
     | '/settings'
     | '/transactions'
+    | '/auth/error'
     | '/dashboard/daily-expenses'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   PluggyRoute: typeof PluggyRoute
   SettingsRoute: typeof SettingsRoute
   TransactionsRoute: typeof TransactionsRoute
+  AuthErrorRoute: typeof AuthErrorRoute
   DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
 }
 
@@ -152,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDailyExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/error': {
+      id: '/auth/error'
+      path: '/auth/error'
+      fullPath: '/auth/error'
+      preLoaderRoute: typeof AuthErrorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   PluggyRoute: PluggyRoute,
   SettingsRoute: SettingsRoute,
   TransactionsRoute: TransactionsRoute,
+  AuthErrorRoute: AuthErrorRoute,
   DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,
 }
 export const routeTree = rootRouteImport

@@ -19,6 +19,7 @@ function RouteComponent() {
 		await authClient.signIn.social({
 			provider: "google",
 			callbackURL: `${window.location.origin}/`,
+			errorCallbackURL: `${window.location.origin}/auth/error`,
 		});
 	}
 

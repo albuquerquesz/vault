@@ -40,7 +40,9 @@ function RootComponent() {
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
-	const forcedTheme = pathname === "/login" ? "dark" : undefined;
+	const isStandaloneAuthPage =
+		pathname === "/login" || pathname === "/auth/error";
+	const forcedTheme = isStandaloneAuthPage ? "dark" : undefined;
 
 	return (
 		<>
@@ -53,7 +55,7 @@ function RootComponent() {
 				storageKey="vite-ui-theme"
 			>
 				<TooltipProvider delay={800}>
-					{pathname === "/login" ? (
+					{isStandaloneAuthPage ? (
 						<div className="grid h-svh grid-rows-[auto_1fr]">
 							<Outlet />
 						</div>

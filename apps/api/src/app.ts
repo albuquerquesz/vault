@@ -4,6 +4,23 @@ import { auth } from "./auth.js";
 import { env } from "./common/env.js";
 import { registerRoutes } from "./routers/index.js";
 
+const frontAuthErrorUrlBase = `${env.CORS_ORIGIN.replace(/\/$/, "")}/auth/error`;
+
+function buildFrontAuthErrorUrl(
+	query: Record<string, string | undefined>,
+): string {
+	const url = new URL(frontAuthErrorUrlBase);
+
+	for (const key of ["error", "error_description", "state"]) {
+		const value = query[key];
+		if (value) {
+			url.searchParams.set(key, value);
+		}
+	}
+
+	return url.toString();
+}
+
 const baseCorsConfig = {
 	origin: env.CORS_ORIGIN,
 	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -52,7 +69,19 @@ export async function registerServer(fastify: FastifyInstance) {
 
 	await registerRoutes(fastify);
 
-	fastify.get("/", async () => "OK");
+	fastify.get("/", async (request, reply) => {
+		const query = request.query as Record<string, string | undefined>;
+		if (query.error || query.state) {
+			return reply.redirect(buildFrontAuthErrorUrl(query));
+		}
+
+		return "OK";
+	});
+
+	fastify.get("/error", async (request, reply) => {
+		const query = request.query as Record<string, string | undefined>;
+		return reply.redirect(buildFrontAuthErrorUrl(query));
+	});
 }
 
 export async function createServer() {
