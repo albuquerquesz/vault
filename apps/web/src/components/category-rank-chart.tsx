@@ -104,14 +104,14 @@ type CategoryRankChartProps = {
 };
 
 export function CategoryRankChart({ loading = false }: CategoryRankChartProps) {
-	if (loading) {
-		return <HomeCardSkeleton variant="category" />;
-	}
-
 	const { chartConfig, pieData } = React.useMemo(
 		() => buildSlices(consolidateTopFourAndOthers(data)),
 		[],
 	);
+
+	if (loading) {
+		return <HomeCardSkeleton variant="category" />;
+	}
 
 	return (
 		<Card className="financial-panel-border h-full min-h-[32rem] ring-0 md:col-span-2">

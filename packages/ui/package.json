@@ -7,6 +7,7 @@
 		"./globals.css": "./src/styles/globals.css",
 		"./lib/*": "./src/lib/*.ts",
 		"./components/*": "./src/components/*.tsx",
+		"./components/charts/*": "./src/components/charts/*",
 		"./hooks/*": "./src/hooks/*.ts",
 		"./postcss.config": "./postcss.config.mjs"
 	},
@@ -21,6 +22,9 @@
 		"@visx/event": "4.0.1-alpha.0",
 		"@visx/gradient": "4.0.1-alpha.0",
 		"@visx/grid": "4.0.1-alpha.0",
+		"@visx/group": "4.0.1-alpha.0",
+		"@visx/heatmap": "4.0.1-alpha.0",
+		"@visx/pattern": "4.0.1-alpha.0",
 		"@visx/responsive": "4.0.1-alpha.0",
 		"@visx/scale": "4.0.1-alpha.0",
 		"@visx/shape": "4.0.1-alpha.0",
@@ -41,6 +45,8 @@
 		"tw-animate-css": "^1.3.4"
 	},
 	"devDependencies": {
+		"@types/d3-array": "^3.2.2",
+		"@types/d3-shape": "^3.1.8",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"@vault/config": "workspace:*",

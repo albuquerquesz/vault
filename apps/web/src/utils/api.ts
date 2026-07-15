@@ -96,7 +96,10 @@ export async function apiFetch<T>(
 		throw new Error(message);
 	}
 
-	if (response.status === 204 || response.headers.get("content-length") === "0") {
+	if (
+		response.status === 204 ||
+		response.headers.get("content-length") === "0"
+	) {
 		return undefined as T;
 	}
 

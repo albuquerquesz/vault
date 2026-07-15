@@ -75,7 +75,9 @@ function SidebarProvider({
 			const openState = typeof value === "function" ? value(open) : value;
 			if (setOpenProp) {
 				setOpenProp(openState);
-			} else {
+				// cookie below still runs
+			}
+			if (!setOpenProp) {
 				_setOpen(openState);
 			}
 

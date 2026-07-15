@@ -3,6 +3,8 @@ import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
 export const env = createEnv({
+	clientPrefix: "",
+	client: {},
 	server: {
 		DATABASE_URL: z.string().min(1),
 		POSTGRES_DB: z.string().min(1).default("vault"),
@@ -15,11 +17,18 @@ export const env = createEnv({
 		CORS_ORIGIN: z.url(),
 		GOOGLE_CLIENT_ID: z.string().min(1),
 		GOOGLE_CLIENT_SECRET: z.string().min(1),
-		/** Optional platform fallback when the user has no BYOK credentials. */
-		PLUGGY_CLIENT_ID: z.string().min(1).optional(),
-		PLUGGY_CLIENT_SECRET: z.string().min(1).optional(),
 		/** Optional 32-byte key (base64). Falls back to a hash of BETTER_AUTH_SECRET. */
 		CREDENTIALS_ENCRYPTION_KEY: z.string().min(1).optional(),
+		/**
+		 * Public HTTPS URL for Pluggy webhooks.
+		 * Defaults to `${BETTER_AUTH_URL}/api/webhooks/pluggy`.
+		 */
+		PLUGGY_WEBHOOK_URL: z.url().optional(),
+		/**
+		 * Shared secret sent as `X-Vault-Webhook-Secret` when registering
+		 * webhooks via API and validated on receive when set.
+		 */
+		PLUGGY_WEBHOOK_SECRET: z.string().min(8).optional(),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),

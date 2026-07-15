@@ -12,10 +12,7 @@ import {
 	TooltipTrigger,
 } from "@vault/ui/components/tooltip";
 import { cn } from "@vault/ui/lib/utils";
-import {
-	Clock3Icon,
-	Info,
-} from "lucide-react";
+import { Clock3Icon, Info } from "lucide-react";
 
 type TrafficSourceDatum = {
 	label: string;
@@ -98,8 +95,14 @@ export function TrafficSourcesCard({
 						</CardDescription>
 					</div>
 					<Tooltip>
-						<TooltipTrigger render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />} />
-						<TooltipContent>Principais canais de origem de tráfego</TooltipContent>
+						<TooltipTrigger
+							render={() => (
+								<Info className="mt-0.5 size-4 text-muted-foreground" />
+							)}
+						/>
+						<TooltipContent>
+							Principais canais de origem de tráfego
+						</TooltipContent>
 					</Tooltip>
 				</div>
 			</CardHeader>

@@ -1,9 +1,16 @@
 import { relations } from "drizzle-orm";
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { account } from "./account";
 import { expense } from "./expense";
 import { monthlyBudget } from "./monthly-budget";
 import { session } from "./session";
+
+export type UserSettings = {
+	theme?: "light" | "dark" | null;
+	/** Monthly income in integer cents (e.g. R$ 4.500,00 → 450000). */
+	monthlyIncome?: number | null;
+	incomeDay?: number | null;
+};
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -11,6 +18,7 @@ export const user = pgTable("user", {
 	email: text("email").notNull().unique(),
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	image: text("image"),
+	settings: jsonb("settings").$type<UserSettings>().default({}).notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
 		.defaultNow()
@@ -19,8 +27,8 @@ export const user = pgTable("user", {
 });
 
 export const userRelations = relations(user, ({ many }) => ({
-	sessions: many(session),
 	accounts: many(account),
+	sessions: many(session),
 	expenses: many(expense),
-	monthlyBudgets: many(monthlyBudget),
+	budgets: many(monthlyBudget),
 }));

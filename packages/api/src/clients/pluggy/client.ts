@@ -1,9 +1,16 @@
 import type {
 	CreatePluggyConnectTokenInput,
-	PluggyConnectToken,
+	PluggyAccount,
+	PluggyAccountsPage,
 	PluggyConnector,
+	PluggyConnectToken,
 	PluggyCredentials,
+	PluggyItem,
+	PluggyRemoteAccount,
 	PluggyTransaction,
+	PluggyTransactionsPage,
+	PluggyWebhookRegistration,
+	RegisterPluggyWebhookInput,
 } from "./types";
 
 const PLUGGY_API = "https://api.pluggy.ai";
@@ -18,6 +25,18 @@ export class PluggyAuthError extends Error {
 		super(message);
 		this.name = "PluggyAuthError";
 		this.statusCode = statusCode;
+	}
+}
+
+export class PluggyApiError extends Error {
+	statusCode: number;
+	details: string;
+
+	constructor(message: string, statusCode: number, details: string) {
+		super(message);
+		this.name = "PluggyApiError";
+		this.statusCode = statusCode;
+		this.details = details;
 	}
 }
 
@@ -87,7 +106,15 @@ async function pluggyFetch(
 
 	if (!res.ok) {
 		const text = await res.text();
-		throw new Error(`Pluggy API ${res.status}: ${text}`);
+		const parsedMessage = (() => {
+			try {
+				const body = JSON.parse(text) as { message?: string };
+				return body.message ?? text;
+			} catch {
+				return text;
+			}
+		})();
+		throw new PluggyApiError(parsedMessage, res.status, text);
 	}
 
 	if (res.status === 204 || res.headers.get("content-length") === "0") {
@@ -95,6 +122,26 @@ async function pluggyFetch(
 	}
 
 	return res.json();
+}
+
+function normalizeAccount(account: PluggyRemoteAccount): PluggyAccount {
+	const availableBalance =
+		account.bankData?.availableBalance ??
+		account.creditData?.availableCreditLimit ??
+		account.balance;
+
+	return {
+		id: account.id,
+		itemId: account.itemId,
+		type: account.type,
+		subtype: account.subtype,
+		name: account.name,
+		balance: account.balance ?? account.bankData?.closingBalance,
+		availableBalance,
+		currency: account.currencyCode,
+		transferNumber: account.bankData?.transferNumber ?? account.number,
+		status: account.status,
+	};
 }
 
 export function createPluggyClient(creds: PluggyCredentials) {
@@ -108,12 +155,19 @@ export function createPluggyClient(creds: PluggyCredentials) {
 				body.itemId = input.itemId;
 			}
 
-			if (input.clientUserId) {
-				body.options = { clientUserId: input.clientUserId };
-			}
-
 			if (input.connectorId) {
 				body.connectorId = input.connectorId;
+			}
+
+			const options: Record<string, unknown> = {};
+			if (input.clientUserId) {
+				options.clientUserId = input.clientUserId;
+			}
+			if (input.webhookUrl) {
+				options.webhookUrl = input.webhookUrl;
+			}
+			if (Object.keys(options).length > 0) {
+				body.options = options;
 			}
 
 			const data = await pluggyFetch(creds, "/connect_token", {
@@ -124,45 +178,97 @@ export function createPluggyClient(creds: PluggyCredentials) {
 		},
 
 		async listConnectors(
-			countries: string[] = ["BR"],
-			isOpenFinance = true,
+			countries?: string[],
+			isOpenFinance?: boolean,
 		): Promise<PluggyConnector[]> {
-			const params = new URLSearchParams({
-				countries: JSON.stringify(countries),
-				isOpenFinance: String(isOpenFinance),
-			});
-			const response = await pluggyFetch(creds, `/connectors?${params}`);
-			const result = (response as { data?: unknown[] }).data ?? [];
+			const params = new URLSearchParams();
+			if (countries && countries.length > 0) {
+				params.set("countries", JSON.stringify(countries));
+			}
+			if (typeof isOpenFinance === "boolean") {
+				params.set("isOpenFinance", String(isOpenFinance));
+			}
+			const path = params.size > 0 ? `/connectors?${params}` : "/connectors";
+			const response = await pluggyFetch(creds, path);
+			const result =
+				(response as { results?: unknown[]; data?: unknown[] }).results ??
+				(response as { results?: unknown[]; data?: unknown[] }).data ??
+				[];
 			return result as PluggyConnector[];
 		},
 
-		async getTransactions(
-			itemId: string,
+		async listAccounts(itemId: string): Promise<PluggyAccount[]> {
+			const response = (await pluggyFetch(
+				creds,
+				`/accounts?itemId=${encodeURIComponent(itemId)}`,
+			)) as PluggyAccountsPage;
+			return response.results.map(normalizeAccount);
+		},
+
+		async getTransactionsByAccount(
+			accountId: string,
 			startDate: string,
 			endDate: string,
 		): Promise<PluggyTransaction[]> {
-			const params = new URLSearchParams({
-				start_date: startDate,
-				end_date: endDate,
-			});
-			const response = await pluggyFetch(
-				creds,
-				`/items/${itemId}/transactions?${params}`,
-			);
-			const result = (response as { data?: unknown[] }).data ?? [];
-			return result as PluggyTransaction[];
+			const transactions: PluggyTransaction[] = [];
+			let after: string | null = null;
+
+			do {
+				const params = new URLSearchParams({
+					accountId,
+					dateFrom: startDate,
+					dateTo: endDate,
+				});
+				if (after) {
+					params.set("after", after);
+				}
+
+				const response = (await pluggyFetch(
+					creds,
+					`/v2/transactions?${params}`,
+				)) as PluggyTransactionsPage;
+
+				transactions.push(...response.results);
+				after = response.next ?? null;
+			} while (after);
+
+			return transactions;
+		},
+
+		async getItem(itemId: string): Promise<PluggyItem> {
+			const response = await pluggyFetch(creds, `/items/${itemId}`);
+			return response as PluggyItem;
 		},
 
 		async deleteItem(itemId: string) {
 			await pluggyFetch(creds, `/items/${itemId}`, { method: "DELETE" });
 		},
 
-		async registerWebhook(url: string) {
+		async registerWebhook(
+			input: RegisterPluggyWebhookInput,
+		): Promise<PluggyWebhookRegistration> {
+			const body: Record<string, unknown> = {
+				url: input.url,
+				event: input.event,
+			};
+			if (input.headers && Object.keys(input.headers).length > 0) {
+				body.headers = input.headers;
+			}
+
 			const data = await pluggyFetch(creds, "/webhooks", {
 				method: "POST",
-				body: JSON.stringify({ url, events: ["item.synced"] }),
+				body: JSON.stringify(body),
 			});
-			return data as { id: string };
+			return data as PluggyWebhookRegistration;
+		},
+
+		async listWebhooks(): Promise<PluggyWebhookRegistration[]> {
+			const response = await pluggyFetch(creds, "/webhooks");
+			const page = response as {
+				results?: PluggyWebhookRegistration[];
+				data?: PluggyWebhookRegistration[];
+			};
+			return page.results ?? page.data ?? [];
 		},
 
 		async deleteWebhook(webhookId: string) {

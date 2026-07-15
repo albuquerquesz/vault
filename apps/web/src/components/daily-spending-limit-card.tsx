@@ -75,7 +75,9 @@ function DailySpendingLimitCard() {
 					</CardDescription>
 					<Tooltip>
 						<TooltipTrigger
-							render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />}
+							render={() => (
+								<Info className="mt-0.5 size-4 text-muted-foreground" />
+							)}
 						/>
 						<TooltipContent>
 							Defina uma meta de economia e veja quanto pode gastar por dia.
@@ -134,7 +136,10 @@ function DailySpendingLimitCard() {
 
 								<div className="flex flex-col gap-4">
 									<div className="flex flex-col gap-1.5">
-										<label htmlFor="savings-pct" className="text-sm font-medium">
+										<label
+											htmlFor="savings-pct"
+											className="text-sm font-medium"
+										>
 											Porcentagem de economia
 										</label>
 										<div className="flex items-center gap-2">
@@ -144,7 +149,7 @@ function DailySpendingLimitCard() {
 												min={1}
 												max={99}
 												value={percentage}
-												onChange={e => setPercentage(Number(e.target.value))}
+												onChange={(e) => setPercentage(Number(e.target.value))}
 												className="flex-1"
 											/>
 											<span className="text-sm text-muted-foreground">%</span>
@@ -154,7 +159,9 @@ function DailySpendingLimitCard() {
 									{income > 0 && percentage > 0 && (
 										<div className="space-y-2 rounded-lg border bg-muted/50 p-3">
 											<div className="flex items-center justify-between text-sm">
-												<span className="text-muted-foreground">Renda mensal</span>
+												<span className="text-muted-foreground">
+													Renda mensal
+												</span>
 												<span className="font-medium">
 													{formatCurrency(income)}
 												</span>
@@ -187,13 +194,13 @@ function DailySpendingLimitCard() {
 									)}
 
 									<div className="flex justify-end gap-2">
-										<Button
-											variant="ghost"
-											onClick={() => setOpen(false)}
-										>
+										<Button variant="ghost" onClick={() => setOpen(false)}>
 											Cancelar
 										</Button>
-										<Button onClick={handleSave} disabled={upsertMutation.isPending}>
+										<Button
+											onClick={handleSave}
+											disabled={upsertMutation.isPending}
+										>
 											{upsertMutation.isPending ? "Salvando..." : "Salvar"}
 										</Button>
 									</div>

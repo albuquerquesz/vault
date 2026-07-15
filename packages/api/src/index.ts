@@ -1,11 +1,11 @@
-import type { Context } from "./context";
-import { auth } from "./auth";
-import { fromNodeHeaders } from "better-auth/node";
 import type { IncomingHttpHeaders } from "node:http";
+import { fromNodeHeaders } from "better-auth/node";
+import { auth } from "./auth";
+import type { Context } from "./context";
 
-export async function requireSession(
-	req: { headers: IncomingHttpHeaders },
-): Promise<NonNullable<Context["session"]>> {
+export async function requireSession(req: {
+	headers: IncomingHttpHeaders;
+}): Promise<NonNullable<Context["session"]>> {
 	const session = await auth.api.getSession({
 		headers: fromNodeHeaders(req.headers),
 	});

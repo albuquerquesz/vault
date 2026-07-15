@@ -1,143 +1,140 @@
 {
-  "schemaVersion": 2,
-  "generatedAt": "2026-07-06T00:00:00.000Z",
-  "title": "Design System: Vault",
-  "metadata": {
-    "mode": "scan",
-    "register": "product",
-    "creativeNorthStar": "Silent Control Panel",
-    "surfacePhilosophy": "flat and restrained",
-    "strategicReferences": [
-      "Efferd",
-      "Vercel"
-    ]
-  },
-  "extensions": {
-    "colorMeta": {
-      "paper-canvas": {
-        "role": "neutral",
-        "displayName": "Paper Canvas",
-        "canonical": "oklch(1 0 0)",
-        "usage": "Default light canvas and card background."
-      },
-      "ink-text": {
-        "role": "neutral",
-        "displayName": "Ink Text",
-        "canonical": "oklch(0.145 0 0)",
-        "usage": "Primary copy, icons, and default strong actions."
-      },
-      "quiet-surface": {
-        "role": "neutral",
-        "displayName": "Quiet Surface",
-        "canonical": "oklch(0.97 0 0)",
-        "usage": "Muted panels, hover fills, and selected neutral states."
-      },
-      "night-panel": {
-        "role": "neutral",
-        "displayName": "Night Panel",
-        "canonical": "oklch(0.205 0 0)",
-        "usage": "Dark popovers and concentrated panel backgrounds."
-      },
-      "auth-accent-signal": {
-        "role": "accent",
-        "displayName": "Auth Accent Signal",
-        "canonical": "oklch(0.488 0.243 264.376)",
-        "usage": "Sparse selected-state or branded-auth emphasis."
-      },
-      "chart-fog": {
-        "role": "chart",
-        "displayName": "Chart Fog",
-        "canonical": "oklch(0.92 0 0)",
-        "usage": "Lightest grayscale chart band."
-      },
-      "chart-carbon": {
-        "role": "chart",
-        "displayName": "Chart Carbon",
-        "canonical": "oklch(0.34 0 0)",
-        "usage": "Darkest grayscale chart band."
-      }
-    },
-    "typographyMeta": {
-      "display": {
-        "displayName": "Display",
-        "purpose": "Large page greetings and highest-emphasis product headings."
-      },
-      "headline": {
-        "displayName": "Headline",
-        "purpose": "Route titles, modal titles, and section-leading headings."
-      },
-      "title": {
-        "displayName": "Title",
-        "purpose": "Card headers, navigation text, and medium-emphasis labels."
-      },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Operational copy, table text, helper text, and form content."
-      },
-      "label": {
-        "displayName": "Label",
-        "purpose": "Compact controls, button text, and small metadata."
-      }
-    },
-    "elevation": {
-      "philosophy": "flat by default",
-      "narrative": "Depth is conveyed through contrast, borders, panel separation, and sparse shadow use on overlays."
-    }
-  },
-  "components": [
-    {
-      "name": "Buttons",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Compact, familiar, high-contrast actions that stay quiet unless the action is primary."
-    },
-    {
-      "name": "Cards",
-      "kind": "card",
-      "refersTo": "card-panel",
-      "description": "Structural containers separated by border, tonal shift, and measured padding instead of heavy lift."
-    },
-    {
-      "name": "Inputs",
-      "kind": "input",
-      "refersTo": "input-field",
-      "description": "Thin, legible, operational fields with restrained fills and a clear ring on focus."
-    },
-    {
-      "name": "Navigation",
-      "kind": "nav",
-      "refersTo": "nav-item-active",
-      "description": "Sidebar-first product navigation with muted defaults, predictable active states, and compact sticky framing."
-    }
-  ],
-  "narrative": {
-    "northStar": "Silent Control Panel",
-    "overview": "Vault is a calm, task-first financial tool for developers. The authenticated app defines the visual system: quiet panels, clear navigation, compact controls, and dense operational data presented without spectacle. The login screen is secondary, darker, and slightly more branded, but it should still hand the user back into the app without changing the visual language.",
-    "keyCharacteristics": [
-      "Visually quiet and technically fluent",
-      "Flat by default",
-      "Neutral-first with one sparse accent role",
-      "Operational rather than promotional"
-    ],
-    "componentNarrative": {
-      "buttons": "Use contrast and border logic before color. Primary buttons are rare and direct.",
-      "cards": "Cards organize work; they are not decorative islands.",
-      "inputs": "Inputs should read like instruments, not marketing widgets.",
-      "navigation": "Navigation should feel persistent, predictable, and low-noise."
-    },
-    "guardrails": {
-      "dos": [
-        "Keep the authenticated app as the default reference surface.",
-        "Use the existing OKLCH tokens in packages/ui/src/styles/globals.css as the canonical source of truth.",
-        "Reserve Space Grotesk for headings and use Inter for operational UI.",
-        "Use borders, tonal layers, and spacing before adding shadow."
-      ],
-      "donts": [
-        "Do not use crypto-style neon, glow-heavy, hype-driven interfaces.",
-        "Do not use generic blue corporate banking dashboards that feel bureaucratic or impersonal.",
-        "Do not use bloated SaaS dashboards filled with decorative cards, fake metrics, and visual noise that makes the product feel templated.",
-        "Do not let login or hero treatments redefine the default product system."
-      ]
-    }
-  }
+	"schemaVersion": 2,
+	"generatedAt": "2026-07-06T00:00:00.000Z",
+	"title": "Design System: Vault",
+	"metadata": {
+		"mode": "scan",
+		"register": "product",
+		"creativeNorthStar": "Silent Control Panel",
+		"surfacePhilosophy": "flat and restrained",
+		"strategicReferences": ["Efferd", "Vercel"]
+	},
+	"extensions": {
+		"colorMeta": {
+			"paper-canvas": {
+				"role": "neutral",
+				"displayName": "Paper Canvas",
+				"canonical": "oklch(1 0 0)",
+				"usage": "Default light canvas and card background."
+			},
+			"ink-text": {
+				"role": "neutral",
+				"displayName": "Ink Text",
+				"canonical": "oklch(0.145 0 0)",
+				"usage": "Primary copy, icons, and default strong actions."
+			},
+			"quiet-surface": {
+				"role": "neutral",
+				"displayName": "Quiet Surface",
+				"canonical": "oklch(0.97 0 0)",
+				"usage": "Muted panels, hover fills, and selected neutral states."
+			},
+			"night-panel": {
+				"role": "neutral",
+				"displayName": "Night Panel",
+				"canonical": "oklch(0.205 0 0)",
+				"usage": "Dark popovers and concentrated panel backgrounds."
+			},
+			"auth-accent-signal": {
+				"role": "accent",
+				"displayName": "Auth Accent Signal",
+				"canonical": "oklch(0.488 0.243 264.376)",
+				"usage": "Sparse selected-state or branded-auth emphasis."
+			},
+			"chart-fog": {
+				"role": "chart",
+				"displayName": "Chart Fog",
+				"canonical": "oklch(0.92 0 0)",
+				"usage": "Lightest grayscale chart band."
+			},
+			"chart-carbon": {
+				"role": "chart",
+				"displayName": "Chart Carbon",
+				"canonical": "oklch(0.34 0 0)",
+				"usage": "Darkest grayscale chart band."
+			}
+		},
+		"typographyMeta": {
+			"display": {
+				"displayName": "Display",
+				"purpose": "Large page greetings and highest-emphasis product headings."
+			},
+			"headline": {
+				"displayName": "Headline",
+				"purpose": "Route titles, modal titles, and section-leading headings."
+			},
+			"title": {
+				"displayName": "Title",
+				"purpose": "Card headers, navigation text, and medium-emphasis labels."
+			},
+			"body": {
+				"displayName": "Body",
+				"purpose": "Operational copy, table text, helper text, and form content."
+			},
+			"label": {
+				"displayName": "Label",
+				"purpose": "Compact controls, button text, and small metadata."
+			}
+		},
+		"elevation": {
+			"philosophy": "flat by default",
+			"narrative": "Depth is conveyed through contrast, borders, panel separation, and sparse shadow use on overlays."
+		}
+	},
+	"components": [
+		{
+			"name": "Buttons",
+			"kind": "button",
+			"refersTo": "button-primary",
+			"description": "Compact, familiar, high-contrast actions that stay quiet unless the action is primary."
+		},
+		{
+			"name": "Cards",
+			"kind": "card",
+			"refersTo": "card-panel",
+			"description": "Structural containers separated by border, tonal shift, and measured padding instead of heavy lift."
+		},
+		{
+			"name": "Inputs",
+			"kind": "input",
+			"refersTo": "input-field",
+			"description": "Thin, legible, operational fields with restrained fills and a clear ring on focus."
+		},
+		{
+			"name": "Navigation",
+			"kind": "nav",
+			"refersTo": "nav-item-active",
+			"description": "Sidebar-first product navigation with muted defaults, predictable active states, and compact sticky framing."
+		}
+	],
+	"narrative": {
+		"northStar": "Silent Control Panel",
+		"overview": "Vault is a calm, task-first financial tool for developers. The authenticated app defines the visual system: quiet panels, clear navigation, compact controls, and dense operational data presented without spectacle. The login screen is secondary, darker, and slightly more branded, but it should still hand the user back into the app without changing the visual language.",
+		"keyCharacteristics": [
+			"Visually quiet and technically fluent",
+			"Flat by default",
+			"Neutral-first with one sparse accent role",
+			"Operational rather than promotional"
+		],
+		"componentNarrative": {
+			"buttons": "Use contrast and border logic before color. Primary buttons are rare and direct.",
+			"cards": "Cards organize work; they are not decorative islands.",
+			"inputs": "Inputs should read like instruments, not marketing widgets.",
+			"navigation": "Navigation should feel persistent, predictable, and low-noise."
+		},
+		"guardrails": {
+			"dos": [
+				"Keep the authenticated app as the default reference surface.",
+				"Use the existing OKLCH tokens in packages/ui/src/styles/globals.css as the canonical source of truth.",
+				"Reserve Space Grotesk for headings and use Inter for operational UI.",
+				"Use borders, tonal layers, and spacing before adding shadow."
+			],
+			"donts": [
+				"Do not use crypto-style neon, glow-heavy, hype-driven interfaces.",
+				"Do not use generic blue corporate banking dashboards that feel bureaucratic or impersonal.",
+				"Do not use bloated SaaS dashboards filled with decorative cards, fake metrics, and visual noise that makes the product feel templated.",
+				"Do not let login or hero treatments redefine the default product system."
+			]
+		}
+	}
 }

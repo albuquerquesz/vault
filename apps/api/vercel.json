@@ -1,0 +1,19 @@
+{
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"installCommand": "bun install",
+	"buildCommand": "mkdir -p public && echo ok > public/.gitkeep",
+	"outputDirectory": "public",
+	"framework": null,
+	"functions": {
+		"api/[...path].ts": {
+			"maxDuration": 60,
+			"includeFiles": "src/**"
+		}
+	},
+	"rewrites": [
+		{
+			"source": "/(.*)",
+			"destination": "/api"
+		}
+	]
+}

@@ -14,10 +14,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@vault/ui/components/tooltip";
-import {
-	Info,
-	ReceiptTextIcon,
-} from "lucide-react";
+import { Info, ReceiptTextIcon } from "lucide-react";
 import { formatDate } from "@/components/formater";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { useFinanceExpenses } from "@/features/finance/sdk";
@@ -65,10 +62,14 @@ export function LastTransactionsTable() {
 					<div className="flex items-center justify-between gap-2">
 						<div className="flex items-center gap-2">
 							<ReceiptTextIcon className="size-4 text-muted-foreground" />
-							<CardDescription className="text-base">Últimas transações</CardDescription>
+							<CardDescription className="text-base">
+								Últimas transações
+							</CardDescription>
 						</div>
 						<Tooltip>
-							<TooltipTrigger render={() => <Info className="size-4 text-muted-foreground" />} />
+							<TooltipTrigger
+								render={() => <Info className="size-4 text-muted-foreground" />}
+							/>
 							<TooltipContent>Últimas transações registradas</TooltipContent>
 						</Tooltip>
 					</div>
@@ -95,10 +96,17 @@ export function LastTransactionsTable() {
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
 						<ReceiptTextIcon className="size-4 text-muted-foreground" />
-						<CardDescription className="text-base">Últimas transações</CardDescription>
+						<CardDescription className="text-base">
+							Últimas transações
+						</CardDescription>
 					</div>
 					<Tooltip>
-						<TooltipTrigger delay={800} render={() => <Info className="mt-0.5 size-4 text-muted-foreground" />} />
+						<TooltipTrigger
+							delay={800}
+							render={() => (
+								<Info className="mt-0.5 size-4 text-muted-foreground" />
+							)}
+						/>
 						<TooltipContent>Últimas transações registradas</TooltipContent>
 					</Tooltip>
 				</div>

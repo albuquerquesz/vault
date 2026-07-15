@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { PluggyAuthError } from "../clients/pluggy";
 import { requireSession } from "../index";
+import { pluggyConnectorProvider } from "../services/connectors";
 import {
 	deletePluggyCredentials,
 	getPluggyCredentialsStatus,
@@ -9,7 +10,6 @@ import {
 	resolvePluggyCredentials,
 	savePluggyCredentials,
 } from "../services/connectors/credentials";
-import { pluggyConnectorProvider } from "../services/connectors";
 
 function sendKnownError(
 	reply: { status: (code: number) => { send: (body: unknown) => unknown } },
@@ -103,13 +103,10 @@ export function registerConnectorRoutes(server: FastifyInstance) {
 				const session = await requireSession(req.raw);
 				const body = req.body as { connectorId?: string } | undefined;
 				const creds = await resolvePluggyCredentials(session.user.id);
-				const token = await pluggyConnectorProvider.createConnectToken(
-					creds,
-					{
-						clientUserId: session.user.id,
-						...(body?.connectorId && { connectorId: body.connectorId }),
-					},
-				);
+				const token = await pluggyConnectorProvider.createConnectToken(creds, {
+					clientUserId: session.user.id,
+					...(body?.connectorId && { connectorId: body.connectorId }),
+				});
 				return reply.send(token);
 			} catch (error) {
 				return sendKnownError(reply, error);

@@ -55,9 +55,9 @@ const ActivityIcon = forwardRef<ActivityIconHandle, ActivityIconProps>(
 			(e: React.MouseEvent<HTMLDivElement>) => {
 				if (isControlledRef.current) {
 					onMouseEnter?.(e);
-				} else {
-					controls.start("animate");
+					return;
 				}
+				controls.start("animate");
 			},
 			[controls, onMouseEnter],
 		);
@@ -66,9 +66,9 @@ const ActivityIcon = forwardRef<ActivityIconHandle, ActivityIconProps>(
 			(e: React.MouseEvent<HTMLDivElement>) => {
 				if (isControlledRef.current) {
 					onMouseLeave?.(e);
-				} else {
-					controls.start("normal");
+					return;
 				}
+				controls.start("normal");
 			},
 			[controls, onMouseLeave],
 		);

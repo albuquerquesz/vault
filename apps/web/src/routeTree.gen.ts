@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PluggyRouteImport } from './routes/pluggy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +19,11 @@ import { Route as DashboardDailyExpensesRouteImport } from './routes/dashboard.d
 const TransactionsRoute = TransactionsRouteImport.update({
   id: '/transactions',
   path: '/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PluggyRoute = PluggyRouteImport.update({
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
+  '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
+  '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
 }
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
+  '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
 }
@@ -69,15 +78,23 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/pluggy'
+    | '/settings'
     | '/transactions'
     | '/dashboard/daily-expenses'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/pluggy' | '/transactions' | '/dashboard/daily-expenses'
+  to:
+    | '/'
+    | '/login'
+    | '/pluggy'
+    | '/settings'
+    | '/transactions'
+    | '/dashboard/daily-expenses'
   id:
     | '__root__'
     | '/'
     | '/login'
     | '/pluggy'
+    | '/settings'
     | '/transactions'
     | '/dashboard/daily-expenses'
   fileRoutesById: FileRoutesById
@@ -86,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   PluggyRoute: typeof PluggyRoute
+  SettingsRoute: typeof SettingsRoute
   TransactionsRoute: typeof TransactionsRoute
   DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
 }
@@ -97,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/transactions'
       fullPath: '/transactions'
       preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pluggy': {
@@ -134,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   PluggyRoute: PluggyRoute,
+  SettingsRoute: SettingsRoute,
   TransactionsRoute: TransactionsRoute,
   DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,
 }

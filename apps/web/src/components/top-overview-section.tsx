@@ -1,8 +1,16 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@vault/ui/components/card";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@vault/ui/components/select";
 import { cn } from "@vault/ui/lib/utils";
 import {
+	CalendarIcon,
 	CreditCardIcon,
 	ReceiptTextIcon,
 	ScaleIcon,
@@ -10,13 +18,14 @@ import {
 	TrendingUpIcon,
 	WalletIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { DashboardCardLinkButton } from "@/components/dashboard-card-link-button";
 import {
 	MaskedMonetaryText,
 	MaskedMonetaryValue,
 } from "@/components/monetary-visibility";
+import { getMonthValue } from "@/features/finance/sdk";
 
 type SummaryCard = {
 	title: string;
@@ -31,7 +40,6 @@ type SummaryCard = {
 };
 
 export type TopOverviewSummaryCard = SummaryCard;
-export type TopOverviewRangeOption = (typeof rangeOptions)[number];
 export type TopOverviewAxisLabel = {
 	label: string;
 	index: number;
@@ -44,12 +52,8 @@ export type TopOverviewMainFlowBar = {
 	essenciais: number;
 	naoEssenciais: number;
 };
-type OverviewColumnStatus = "primary" | "secondary";
-type OverviewSegmentedColumnSegment = {
-	status: OverviewColumnStatus;
-};
 
-export type TopOverviewMainFlowRange = {
+export type TopOverviewMainFlowMonth = {
 	total: number;
 	description: string;
 	change: number;
@@ -57,6 +61,17 @@ export type TopOverviewMainFlowRange = {
 	xLabels: readonly TopOverviewAxisLabel[];
 	yTicks: readonly TopOverviewYAxisTick[];
 	legend?: readonly [string, string];
+};
+
+export type MonthOption = {
+	value: string;
+	label: string;
+};
+
+type MonthKey = string;
+type OverviewColumnStatus = "primary" | "secondary";
+type OverviewSegmentedColumnSegment = {
+	status: OverviewColumnStatus;
 };
 
 export type TopOverviewSecondaryFlow = {
@@ -73,11 +88,11 @@ type TopOverviewSectionProps = {
 	title?: string;
 	summaryCards?: TopOverviewSummaryCard[];
 	summaryDescriptions?: string[];
-	mainFlowData?: Record<TopOverviewRangeOption, TopOverviewMainFlowRange>;
+	mainFlowData?: Record<string, TopOverviewMainFlowMonth>;
 	secondaryFlow?: TopOverviewSecondaryFlow;
 	rightContent?: React.ReactNode;
 	extraRightContent?: React.ReactNode;
-	initialRange?: TopOverviewRangeOption;
+	initialMonth?: string;
 	showMainFlow?: boolean;
 };
 
@@ -125,8 +140,6 @@ const monthlyCampaignBars = [
 	18, 42, 27, 33, 21, 38, 25, 44, 31, 27, 39, 34,
 ] as const;
 
-const rangeOptions = ["14D", "1M", "3M", "6M"] as const;
-type RangeOption = TopOverviewRangeOption;
 const defaultMainFlowYTicks: readonly TopOverviewYAxisTick[] = [
 	{ value: 0, label: "0k" },
 	{ value: 5, label: "5k" },
@@ -135,42 +148,28 @@ const defaultMainFlowYTicks: readonly TopOverviewYAxisTick[] = [
 	{ value: 20, label: "20k" },
 ];
 
-const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
-	"14D": {
-		total: 198_400,
-		description: "Total movimentado nos últimos 14 dias",
-		change: 0.9,
-		legend: ["Essenciais", "Não essenciais"],
-		bars: [
-			{ essenciais: 5, naoEssenciais: 8 },
-			{ essenciais: 6, naoEssenciais: 9 },
-			{ essenciais: 6, naoEssenciais: 7 },
-			{ essenciais: 7, naoEssenciais: 10 },
-			{ essenciais: 7, naoEssenciais: 12 },
-			{ essenciais: 6, naoEssenciais: 9 },
-			{ essenciais: 7, naoEssenciais: 10 },
-			{ essenciais: 8, naoEssenciais: 11 },
-			{ essenciais: 9, naoEssenciais: 12 },
-			{ essenciais: 8, naoEssenciais: 11 },
-			{ essenciais: 10, naoEssenciais: 13 },
-			{ essenciais: 9, naoEssenciais: 12 },
-			{ essenciais: 8, naoEssenciais: 11 },
-			{ essenciais: 9, naoEssenciais: 12 },
-		],
-		xLabels: [
-			{ label: "05 Abr", index: 0 },
-			{ label: "07 Abr", index: 2 },
-			{ label: "09 Abr", index: 4 },
-			{ label: "11 Abr", index: 6 },
-			{ label: "13 Abr", index: 8 },
-			{ label: "15 Abr", index: 10 },
-			{ label: "19 Abr", index: 13 },
-		],
-		yTicks: defaultMainFlowYTicks,
-	},
-	"1M": {
+function generateMonthOptions(count = 6): MonthOption[] {
+	const now = new Date();
+	const options: MonthOption[] = [];
+	for (let i = 0; i < count; i++) {
+		const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+		const value = getMonthValue(d);
+		const label = d.toLocaleDateString("pt-BR", {
+			month: "long",
+			year: "numeric",
+		});
+		options.push({
+			value,
+			label: label.charAt(0).toUpperCase() + label.slice(1),
+		});
+	}
+	return options;
+}
+
+const mainFlowData: Record<MonthKey, TopOverviewMainFlowMonth> = {
+	"2026-07": {
 		total: 413_000,
-		description: "Total movimentado nos últimos 30 dias",
+		description: "Total movimentado em julho de 2026",
 		change: 1.5,
 		legend: ["Essenciais", "Não essenciais"],
 		bars: [
@@ -206,86 +205,245 @@ const mainFlowData: Record<RangeOption, TopOverviewMainFlowRange> = {
 			{ essenciais: 6, naoEssenciais: 8 },
 		],
 		xLabels: [
-			{ label: "22 Mar", index: 0 },
-			{ label: "26 Mar", index: 5 },
-			{ label: "30 Mar", index: 9 },
-			{ label: "03 Abr", index: 12 },
-			{ label: "07 Abr", index: 16 },
-			{ label: "11 Abr", index: 20 },
-			{ label: "15 Abr", index: 24 },
-			{ label: "19 Abr", index: 29 },
+			{ label: "1 Jul", index: 0 },
+			{ label: "5 Jul", index: 5 },
+			{ label: "10 Jul", index: 9 },
+			{ label: "15 Jul", index: 14 },
+			{ label: "20 Jul", index: 19 },
+			{ label: "25 Jul", index: 24 },
+			{ label: "30 Jul", index: 29 },
 		],
 		yTicks: defaultMainFlowYTicks,
 	},
-	"3M": {
-		total: 1_186_000,
-		description: "Total movimentado nos últimos 3 meses",
-		change: 3.8,
+	"2026-06": {
+		total: 387_000,
+		description: "Total movimentado em junho de 2026",
+		change: -2.3,
 		legend: ["Essenciais", "Não essenciais"],
 		bars: [
-			{ essenciais: 4, naoEssenciais: 8 },
-			{ essenciais: 5, naoEssenciais: 10 },
-			{ essenciais: 6, naoEssenciais: 12 },
-			{ essenciais: 7, naoEssenciais: 15 },
-			{ essenciais: 7, naoEssenciais: 13 },
-			{ essenciais: 8, naoEssenciais: 16 },
-			{ essenciais: 9, naoEssenciais: 18 },
-			{ essenciais: 8, naoEssenciais: 17 },
-			{ essenciais: 9, naoEssenciais: 20 },
-			{ essenciais: 8, naoEssenciais: 18 },
-			{ essenciais: 10, naoEssenciais: 21 },
-			{ essenciais: 11, naoEssenciais: 23 },
-			{ essenciais: 10, naoEssenciais: 20 },
-			{ essenciais: 9, naoEssenciais: 19 },
-			{ essenciais: 10, naoEssenciais: 22 },
-			{ essenciais: 11, naoEssenciais: 24 },
-			{ essenciais: 11, naoEssenciais: 22 },
-			{ essenciais: 12, naoEssenciais: 25 },
-			{ essenciais: 13, naoEssenciais: 27 },
-			{ essenciais: 12, naoEssenciais: 24 },
-			{ essenciais: 12, naoEssenciais: 27 },
-			{ essenciais: 13, naoEssenciais: 29 },
-			{ essenciais: 12, naoEssenciais: 26 },
-			{ essenciais: 11, naoEssenciais: 24 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 3, naoEssenciais: 5 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 4, naoEssenciais: 4 },
+			{ essenciais: 3, naoEssenciais: 4 },
+			{ essenciais: 7, naoEssenciais: 9 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 3, naoEssenciais: 4 },
+			{ essenciais: 7, naoEssenciais: 9 },
+			{ essenciais: 7, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 6 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 4, naoEssenciais: 4 },
+			{ essenciais: 5, naoEssenciais: 7 },
 		],
 		xLabels: [
-			{ label: "Jan", index: 0 },
-			{ label: "Fev", index: 4 },
-			{ label: "Mar", index: 8 },
-			{ label: "Abr", index: 12 },
-			{ label: "Mai", index: 16 },
-			{ label: "Jun", index: 20 },
-			{ label: "Jul", index: 23 },
+			{ label: "1 Jun", index: 0 },
+			{ label: "5 Jun", index: 5 },
+			{ label: "10 Jun", index: 9 },
+			{ label: "15 Jun", index: 14 },
+			{ label: "20 Jun", index: 19 },
+			{ label: "25 Jun", index: 24 },
+			{ label: "29 Jun", index: 28 },
 		],
 		yTicks: defaultMainFlowYTicks,
 	},
-	"6M": {
-		total: 2_447_000,
-		description: "Total movimentado nos últimos 6 meses",
-		change: 5.6,
+	"2026-05": {
+		total: 425_000,
+		description: "Total movimentado em maio de 2026",
+		change: 3.1,
 		legend: ["Essenciais", "Não essenciais"],
 		bars: [
+			{ essenciais: 6, naoEssenciais: 9 },
+			{ essenciais: 7, naoEssenciais: 10 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 9 },
+			{ essenciais: 7, naoEssenciais: 9 },
+			{ essenciais: 4, naoEssenciais: 7 },
 			{ essenciais: 3, naoEssenciais: 7 },
-			{ essenciais: 4, naoEssenciais: 9 },
-			{ essenciais: 5, naoEssenciais: 10 },
-			{ essenciais: 6, naoEssenciais: 12 },
-			{ essenciais: 5, naoEssenciais: 11 },
-			{ essenciais: 7, naoEssenciais: 13 },
-			{ essenciais: 8, naoEssenciais: 15 },
-			{ essenciais: 9, naoEssenciais: 17 },
-			{ essenciais: 8, naoEssenciais: 16 },
-			{ essenciais: 9, naoEssenciais: 18 },
-			{ essenciais: 10, naoEssenciais: 20 },
-			{ essenciais: 11, naoEssenciais: 23 },
+			{ essenciais: 6, naoEssenciais: 9 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 7, naoEssenciais: 9 },
+			{ essenciais: 7, naoEssenciais: 9 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 4, naoEssenciais: 6 },
+			{ essenciais: 8, naoEssenciais: 11 },
+			{ essenciais: 7, naoEssenciais: 9 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 7, naoEssenciais: 10 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 4, naoEssenciais: 6 },
+			{ essenciais: 8, naoEssenciais: 11 },
+			{ essenciais: 8, naoEssenciais: 10 },
+			{ essenciais: 7, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 7, naoEssenciais: 10 },
+			{ essenciais: 6, naoEssenciais: 9 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 6, naoEssenciais: 9 },
 		],
 		xLabels: [
-			{ label: "Nov", index: 0 },
-			{ label: "Dez", index: 2 },
-			{ label: "Jan", index: 4 },
-			{ label: "Fev", index: 6 },
-			{ label: "Mar", index: 8 },
-			{ label: "Abr", index: 10 },
-			{ label: "Mai", index: 11 },
+			{ label: "1 Mai", index: 0 },
+			{ label: "5 Mai", index: 5 },
+			{ label: "10 Mai", index: 9 },
+			{ label: "15 Mai", index: 14 },
+			{ label: "20 Mai", index: 19 },
+			{ label: "25 Mai", index: 24 },
+			{ label: "30 Mai", index: 29 },
+		],
+		yTicks: defaultMainFlowYTicks,
+	},
+	"2026-04": {
+		total: 398_000,
+		description: "Total movimentado em abril de 2026",
+		change: 0.8,
+		legend: ["Essenciais", "Não essenciais"],
+		bars: [
+			{ essenciais: 5, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 9 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 4, naoEssenciais: 6 },
+			{ essenciais: 5, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 4, naoEssenciais: 6 },
+			{ essenciais: 3, naoEssenciais: 6 },
+			{ essenciais: 5, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 4, naoEssenciais: 6 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 5 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 7, naoEssenciais: 9 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 9 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 7, naoEssenciais: 9 },
+			{ essenciais: 7, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 9 },
+			{ essenciais: 5, naoEssenciais: 8 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 5, naoEssenciais: 8 },
+		],
+		xLabels: [
+			{ label: "1 Abr", index: 0 },
+			{ label: "5 Abr", index: 5 },
+			{ label: "10 Abr", index: 9 },
+			{ label: "15 Abr", index: 14 },
+			{ label: "20 Abr", index: 19 },
+			{ label: "25 Abr", index: 24 },
+			{ label: "29 Abr", index: 28 },
+		],
+		yTicks: defaultMainFlowYTicks,
+	},
+	"2026-03": {
+		total: 372_000,
+		description: "Total movimentado em março de 2026",
+		change: -1.2,
+		legend: ["Essenciais", "Não essenciais"],
+		bars: [
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 3, naoEssenciais: 5 },
+			{ essenciais: 3, naoEssenciais: 5 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 4, naoEssenciais: 4 },
+			{ essenciais: 3, naoEssenciais: 4 },
+			{ essenciais: 7, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 3, naoEssenciais: 4 },
+			{ essenciais: 7, naoEssenciais: 8 },
+			{ essenciais: 7, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 6 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 4, naoEssenciais: 4 },
+			{ essenciais: 5, naoEssenciais: 7 },
+		],
+		xLabels: [
+			{ label: "1 Mar", index: 0 },
+			{ label: "5 Mar", index: 5 },
+			{ label: "10 Mar", index: 9 },
+			{ label: "15 Mar", index: 14 },
+			{ label: "20 Mar", index: 19 },
+			{ label: "25 Mar", index: 24 },
+			{ label: "30 Mar", index: 29 },
+		],
+		yTicks: defaultMainFlowYTicks,
+	},
+	"2026-02": {
+		total: 356_000,
+		description: "Total movimentado em fevereiro de 2026",
+		change: 2.4,
+		legend: ["Essenciais", "Não essenciais"],
+		bars: [
+			{ essenciais: 4, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 3, naoEssenciais: 5 },
+			{ essenciais: 3, naoEssenciais: 5 },
+			{ essenciais: 5, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 4, naoEssenciais: 5 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 4, naoEssenciais: 4 },
+			{ essenciais: 3, naoEssenciais: 4 },
+			{ essenciais: 7, naoEssenciais: 8 },
+			{ essenciais: 6, naoEssenciais: 7 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 6, naoEssenciais: 8 },
+			{ essenciais: 5, naoEssenciais: 6 },
+			{ essenciais: 3, naoEssenciais: 4 },
+		],
+		xLabels: [
+			{ label: "1 Fev", index: 0 },
+			{ label: "4 Fev", index: 4 },
+			{ label: "8 Fev", index: 7 },
+			{ label: "12 Fev", index: 11 },
+			{ label: "16 Fev", index: 15 },
+			{ label: "20 Fev", index: 19 },
+			{ label: "24 Fev", index: 21 },
 		],
 		yTicks: defaultMainFlowYTicks,
 	},
@@ -504,29 +662,29 @@ function _SummaryCard({
 	);
 }
 
-function SegmentedRanges({
+function MonthSelect({
 	value,
+	options,
 	onChange,
 }: {
-	value: RangeOption;
-	onChange: (next: RangeOption) => void;
+	value: string;
+	options: MonthOption[];
+	onChange: (value: string) => void;
 }) {
 	return (
-		<div className="inline-flex rounded-[0.9rem] border border-white/10 p-1">
-			{rangeOptions.map((option) => (
-				<button
-					key={option}
-					className={cn(
-						"rounded-[0.7rem] px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors",
-						value === option && "bg-white/8 text-foreground",
-					)}
-					onClick={() => onChange(option)}
-					type="button"
-				>
-					{option}
-				</button>
-			))}
-		</div>
+		<Select value={value} onValueChange={(v) => v && onChange(v)}>
+			<SelectTrigger className="h-9 w-[160px] border-white/10 bg-transparent text-sm">
+				<CalendarIcon className="mr-2 size-3.5 text-muted-foreground" />
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				{options.map((option) => (
+					<SelectItem key={option.value} value={option.value}>
+						{option.label}
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 	);
 }
 
@@ -785,14 +943,30 @@ function MonthlyBarChart({
 
 function MainFlowCard({
 	data,
-	initialRange = "1M",
+	initialMonth,
 }: {
-	data: Record<RangeOption, TopOverviewMainFlowRange>;
-	initialRange?: RangeOption;
+	data: Record<MonthKey, TopOverviewMainFlowMonth>;
+	initialMonth?: string;
 }) {
-	const [selectedRange, setSelectedRange] = useState<RangeOption>(initialRange);
-	const currentRange = data[selectedRange];
-	const legend = currentRange.legend ?? ["Essenciais", "Não essenciais"];
+	const currentMonth = getMonthValue();
+	const [selectedMonth, setSelectedMonth] = useState<MonthKey>(
+		initialMonth ?? currentMonth,
+	);
+	const monthOptions = useMemo(() => generateMonthOptions(6), []);
+	const currentData = data[selectedMonth];
+	const legend = currentData?.legend ?? ["Essenciais", "Não essenciais"];
+
+	if (!currentData) {
+		return (
+			<Card className="financial-panel-border top-overview-card gap-0 p-0 ring-0">
+				<CardContent className="px-5 pt-4 pb-5">
+					<p className="text-sm text-muted-foreground">
+						Sem dados para este mês.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	return (
 		<Card className="financial-panel-border top-overview-card gap-0 p-0 ring-0">
@@ -804,11 +978,11 @@ function MainFlowCard({
 								<MaskedMonetaryValue
 									animated
 									format={formatCompactCurrency}
-									value={currentRange.total}
+									value={currentData.total}
 								/>
 							</div>
 							<p className="text-sm text-muted-foreground">
-								{currentRange.description}
+								{currentData.description}
 							</p>
 							<div className="flex items-center gap-5 text-sm text-muted-foreground">
 								<div className="flex items-center gap-2">
@@ -823,21 +997,22 @@ function MainFlowCard({
 						</div>
 
 						<div className="flex flex-col items-start gap-3 lg:items-end">
-							<SegmentedRanges
-								value={selectedRange}
-								onChange={setSelectedRange}
+							<MonthSelect
+								value={selectedMonth}
+								options={monthOptions}
+								onChange={setSelectedMonth}
 							/>
 							<TrendLabel
-								change={currentRange.change}
-								description={`${currentRange.change.toFixed(1)}% vs período anterior`}
+								change={currentData.change}
+								description={`${currentData.change.toFixed(1)}% vs mês anterior`}
 							/>
 						</div>
 					</div>
 
 					<LargeBarChart
-						bars={currentRange.bars}
-						xLabels={currentRange.xLabels}
-						yTicks={currentRange.yTicks}
+						bars={currentData.bars}
+						xLabels={currentData.xLabels}
+						yTicks={currentData.yTicks}
 					/>
 				</div>
 			</CardContent>
@@ -889,7 +1064,7 @@ export function TopOverviewSection({
 	secondaryFlow,
 	rightContent,
 	extraRightContent,
-	initialRange = "1M",
+	initialMonth,
 	showMainFlow = true,
 }: TopOverviewSectionProps) {
 	const hasCustomSidePanels = rightContent || extraRightContent;
@@ -910,14 +1085,14 @@ export function TopOverviewSection({
 								<div className="h-full">{rightContent}</div>
 							</div>
 							{showMainFlow ? (
-								<MainFlowCard data={mainFlow} initialRange={initialRange} />
+								<MainFlowCard data={mainFlow} initialMonth={initialMonth} />
 							) : null}
 						</>
 					) : (
 						<div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
 							{showMainFlow ? (
 								<div className="xl:col-span-2">
-									<MainFlowCard data={mainFlow} initialRange={initialRange} />
+									<MainFlowCard data={mainFlow} initialMonth={initialMonth} />
 								</div>
 							) : null}
 							{rightContent ? (
@@ -933,7 +1108,7 @@ export function TopOverviewSection({
 				</>
 			) : showMainFlow ? (
 				<div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-					<MainFlowCard data={mainFlow} initialRange={initialRange} />
+					<MainFlowCard data={mainFlow} initialMonth={initialMonth} />
 					<SecondaryFlowCard data={secondaryFlow ?? defaultSecondaryFlow} />
 				</div>
 			) : secondaryFlow ? (

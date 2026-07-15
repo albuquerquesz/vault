@@ -7,7 +7,6 @@ import {
 } from "../../clients/pluggy";
 import type { PluggyCredentials } from "../../clients/pluggy/types";
 import { db } from "../../db";
-import { env } from "../../db/env";
 import { pluggyCredentials } from "../../db/schema";
 import {
 	decryptSecret,
@@ -28,7 +27,6 @@ export class MissingPluggyCredentialsError extends Error {
 
 export type PluggyCredentialsStatus = {
 	configured: boolean;
-	source: "user" | "platform" | null;
 	clientIdMasked: string | null;
 };
 
@@ -47,26 +45,17 @@ export async function getPluggyCredentialsStatus(
 	if (row) {
 		return {
 			configured: true,
-			source: "user",
 			clientIdMasked: maskClientId(row.clientId),
-		};
-	}
-
-	if (env.PLUGGY_CLIENT_ID && env.PLUGGY_CLIENT_SECRET) {
-		return {
-			configured: true,
-			source: "platform",
-			clientIdMasked: maskClientId(env.PLUGGY_CLIENT_ID),
 		};
 	}
 
 	return {
 		configured: false,
-		source: null,
 		clientIdMasked: null,
 	};
 }
 
+/** Only the user's own BYOK credentials — never shared platform keys. */
 export async function resolvePluggyCredentials(
 	userId: string,
 ): Promise<PluggyCredentials> {
@@ -81,13 +70,6 @@ export async function resolvePluggyCredentials(
 		return {
 			clientId: row.clientId,
 			clientSecret: decryptSecret(row.clientSecretCiphertext),
-		};
-	}
-
-	if (env.PLUGGY_CLIENT_ID && env.PLUGGY_CLIENT_SECRET) {
-		return {
-			clientId: env.PLUGGY_CLIENT_ID,
-			clientSecret: env.PLUGGY_CLIENT_SECRET,
 		};
 	}
 
@@ -126,7 +108,9 @@ export async function savePluggyCredentials(
 				updatedAt: new Date(),
 			})
 			.where(eq(pluggyCredentials.userId, userId));
-	} else {
+	}
+
+	if (!existing) {
 		await db.insert(pluggyCredentials).values({
 			userId,
 			clientId: input.clientId,
@@ -136,9 +120,25 @@ export async function savePluggyCredentials(
 
 	clearPluggyApiKeyCache(input.clientId);
 
+	// Best-effort: register client-level webhook so auto-sync pushes to us.
+	// Failures must not block credential save (localhost / duplicate / Pluggy down).
+	try {
+		const { ensurePluggyWebhookRegistered } = await import(
+			"../pluggy-webhook-config"
+		);
+		const registration = await ensurePluggyWebhookRegistered(input);
+		if (!registration.registered && registration.error) {
+			console.warn(
+				"[pluggy] webhook auto-register skipped:",
+				registration.error,
+			);
+		}
+	} catch (error) {
+		console.warn("[pluggy] webhook auto-register failed:", error);
+	}
+
 	return {
 		configured: true,
-		source: "user",
 		clientIdMasked: maskClientId(input.clientId),
 	};
 }

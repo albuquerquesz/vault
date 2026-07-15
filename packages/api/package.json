@@ -24,6 +24,7 @@
 		"db:studio": "bunx drizzle-kit studio",
 		"db:migrate": "bunx drizzle-kit migrate",
 		"db:seed": "bun run src/db/seed.ts",
+		"pluggy:reingest": "bun run src/scripts/reingest-pluggy-expenses.ts",
 		"db:start": "docker compose up -d",
 		"db:watch": "docker compose up",
 		"db:stop": "docker compose stop",

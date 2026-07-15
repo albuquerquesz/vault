@@ -1,0 +1,51 @@
+"use client";
+
+import { DailySpendBarCard } from "@/components/overview/daily-spend-bar/daily-spend-bar-card";
+import { GoalsCard } from "@/components/overview/goals/goals-card";
+import { useDashboardOverview } from "@/components/overview/hooks/use-dashboard-overview";
+import { MonthlyBillCard } from "@/components/overview/monthly-bill/monthly-bill-card";
+import { OrderSourceMixCard } from "@/components/overview/order-source-mix/order-source-mix-card";
+import { PartialResultCard } from "@/components/overview/partial-result/partial-result-card";
+import { OverviewMonthSelect } from "@/components/overview/shared/overview-month-select";
+
+export function DashboardOverview() {
+	const { firstName, monthOptions, selectedMonth, setSelectedMonth } =
+		useDashboardOverview();
+
+	return (
+		<div className="grid grid-cols-1 gap-4 pt-4 sm:pt-6">
+			<div className="mb-2 flex flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
+				<h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl xl:text-4xl">
+					Bem-vindo de volta{firstName ? `, ${firstName}!` : "!"} 👋
+				</h2>
+				<div className="w-full sm:w-auto">
+					<OverviewMonthSelect
+						onValueChange={setSelectedMonth}
+						options={monthOptions}
+						value={selectedMonth}
+					/>
+				</div>
+			</div>
+			<div className="grid grid-cols-1 gap-4 xl:h-118 xl:grid-cols-[2fr_1fr]">
+				<OrderSourceMixCard month={selectedMonth} />
+				<MonthlyBillCard month={selectedMonth} />
+			</div>
+			<div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-10">
+				<div className="flex min-h-0 flex-col gap-4 xl:col-span-4 xl:h-full">
+					<div className="min-h-0 flex-1">
+						<PartialResultCard
+							className="min-h-0 sm:min-h-0 xl:min-h-0"
+							month={selectedMonth}
+						/>
+					</div>
+					<div className="min-h-0 flex-1">
+						<GoalsCard className="min-h-0 sm:min-h-0 xl:min-h-0" />
+					</div>
+				</div>
+				<div className="xl:col-span-6">
+					<DailySpendBarCard month={selectedMonth} />
+				</div>
+			</div>
+		</div>
+	);
+}
