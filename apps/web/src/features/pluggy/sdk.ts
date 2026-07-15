@@ -49,8 +49,26 @@ export interface PluggyTransaction {
 export interface PluggySyncResult {
 	total: number;
 	synced: number;
-	status: "success" | "failed";
+	status: "success" | "partial_failure" | "failed";
 	error?: string;
+	accounts: {
+		total: number;
+		synced: number;
+		status: "success" | "failed" | "skipped";
+		error?: string;
+	};
+	bills: {
+		total: number;
+		synced: number;
+		status: "success" | "failed" | "skipped";
+		error?: string;
+	};
+	transactions: {
+		total: number;
+		synced: number;
+		status: "success" | "failed" | "skipped";
+		error?: string;
+	};
 }
 
 async function readApiError(res: Response): Promise<string> {

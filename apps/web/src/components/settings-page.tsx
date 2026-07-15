@@ -588,12 +588,21 @@ function GeneralSettings() {
 									},
 									onSuccess: (result: {
 										item: { id: string };
-										sync: { status: string; error?: string };
+										sync: {
+											status: string;
+											error?: string;
+											bills?: { status: string };
+											transactions?: { status: string; error?: string };
+										};
 									}) => {
-										if (result.sync.status === "failed") {
+										if (result.sync.status !== "success") {
 											setPluggyConnectError(
-												result.sync.error ??
-													"Conta conectada, mas a sincronização inicial falhou.",
+												result.sync.transactions?.status === "failed" &&
+													result.sync.bills?.status === "success"
+													? result.sync.transactions.error ??
+														"Conta conectada e faturas sincronizadas, mas a sincronização de transações falhou."
+													: result.sync.error ??
+														"Conta conectada, mas a sincronização inicial falhou parcialmente.",
 											);
 											return;
 										}

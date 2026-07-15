@@ -11,6 +11,7 @@ import type {
 	PluggyRemoteAccount,
 	PluggyRemoteBill,
 	PluggyTransaction,
+	PluggyTransactionsFetchResult,
 	PluggyTransactionsPage,
 	PluggyWebhookRegistration,
 	RegisterPluggyWebhookInput,
@@ -160,6 +161,14 @@ function normalizeBill(bill: PluggyRemoteBill): PluggyBill {
 	};
 }
 
+function isInvalidCursorError(error: unknown) {
+	if (!(error instanceof PluggyApiError)) {
+		return false;
+	}
+
+	return error.message.toLowerCase().includes("invalid cursor");
+}
+
 export function createPluggyClient(creds: PluggyCredentials) {
 	return {
 		async createConnectToken(
@@ -234,7 +243,7 @@ export function createPluggyClient(creds: PluggyCredentials) {
 			accountId: string,
 			startDate: string,
 			endDate: string,
-		): Promise<PluggyTransaction[]> {
+		): Promise<PluggyTransactionsFetchResult> {
 			const transactions: PluggyTransaction[] = [];
 			let after: string | null = null;
 
@@ -248,16 +257,30 @@ export function createPluggyClient(creds: PluggyCredentials) {
 					params.set("after", after);
 				}
 
-				const response = (await pluggyFetch(
-					creds,
-					`/v2/transactions?${params}`,
-				)) as PluggyTransactionsPage;
+				try {
+					const response = (await pluggyFetch(
+						creds,
+						`/v2/transactions?${params}`,
+					)) as PluggyTransactionsPage;
 
-				transactions.push(...response.results);
-				after = response.next ?? null;
+					transactions.push(...response.results);
+					after = response.next ?? null;
+				} catch (error) {
+					if (isInvalidCursorError(error)) {
+						return {
+							transactions,
+							error:
+								error instanceof PluggyApiError
+									? error.message
+									: "Invalid cursor",
+						};
+					}
+
+					throw error;
+				}
 			} while (after);
 
-			return transactions;
+			return { transactions };
 		},
 
 		async getItem(itemId: string): Promise<PluggyItem> {

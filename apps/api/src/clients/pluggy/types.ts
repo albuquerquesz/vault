@@ -66,6 +66,11 @@ export interface PluggyTransactionsPage {
 	next?: string | null;
 }
 
+export interface PluggyTransactionsFetchResult {
+	transactions: PluggyTransaction[];
+	error?: string;
+}
+
 export interface PluggyAccount {
 	id: string;
 	itemId: string;

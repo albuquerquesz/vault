@@ -7,6 +7,7 @@ import type {
 	PluggyConnectToken,
 	PluggyCredentials,
 	PluggyTransaction,
+	PluggyTransactionsFetchResult,
 	RegisterPluggyWebhookInput,
 	PluggyItem as RemotePluggyItem,
 } from "../clients/pluggy/types.js";
@@ -39,19 +40,39 @@ export const PLUGGY_IGNORED_EXPENSE_CATEGORIES = [
 	"Same person transfer",
 ] as const;
 
-export type PluggySyncResult = {
+export type PluggySyncStatus = "success" | "partial_failure" | "failed";
+export type PluggySyncPhaseStatus = "success" | "failed" | "skipped";
+
+export type PluggySyncAccountResult = {
+	pluggyAccountId: string;
+	localAccountId?: string;
 	total: number;
 	synced: number;
-	status: "success" | "failed";
+	status: PluggySyncPhaseStatus;
 	error?: string;
 };
 
-export type PluggyAccountSyncResult = {
+export type PluggySyncPhaseResult = {
 	total: number;
 	synced: number;
-	status: "success" | "failed";
+	status: PluggySyncPhaseStatus;
 	error?: string;
+	accountResults?: PluggySyncAccountResult[];
+};
+
+export type PluggySyncResult = {
+	total: number;
+	synced: number;
+	status: PluggySyncStatus;
+	error?: string;
+	accounts: PluggySyncPhaseResult;
+	bills: PluggySyncPhaseResult;
+	transactions: PluggySyncPhaseResult;
+};
+
+export type PluggyAccountSyncResult = PluggySyncPhaseResult & {
 	accountIdsByRemoteId: Map<string, string>;
+	accounts: PluggyAccount[];
 };
 
 const PLUGGY_EXPENSE_SOURCE = "pluggy";
@@ -93,6 +114,61 @@ function isPluggyItemNotFoundError(error: unknown) {
 	}
 }
 
+function skippedPhase(error: string): PluggySyncPhaseResult {
+	return {
+		total: 0,
+		synced: 0,
+		status: "skipped",
+		error,
+	};
+}
+
+function failedPhase(error: string): PluggySyncPhaseResult {
+	return {
+		total: 0,
+		synced: 0,
+		status: "failed",
+		error,
+	};
+}
+
+function toPhaseErrorMessage(error: unknown, fallback: string) {
+	if (error instanceof PluggyApiError) {
+		return error.message;
+	}
+
+	if (error instanceof Error && error.message) {
+		return error.message;
+	}
+
+	return fallback;
+}
+
+export function summarizeSyncResult(phases: {
+	accounts: PluggySyncPhaseResult;
+	bills: PluggySyncPhaseResult;
+	transactions: PluggySyncPhaseResult;
+}): PluggySyncResult {
+	const orderedPhases = [phases.accounts, phases.bills, phases.transactions];
+	const firstFailedPhase = orderedPhases.find((phase) => phase.status === "failed");
+	const hasFailure = Boolean(firstFailedPhase);
+	const hasSuccessfulPhase = orderedPhases.some(
+		(phase) => phase.status === "success",
+	);
+
+	return {
+		total: orderedPhases.reduce((sum, phase) => sum + phase.total, 0),
+		synced: orderedPhases.reduce((sum, phase) => sum + phase.synced, 0),
+		status: hasFailure
+			? hasSuccessfulPhase
+				? "partial_failure"
+				: "failed"
+			: "success",
+		error: firstFailedPhase?.error,
+		...phases,
+	};
+}
+
 /** Pluggy operations bound to the given user BYOK credentials. */
 export function createPluggyService(creds: PluggyCredentials) {
 	const client = createPluggyClient(creds);
@@ -124,7 +200,7 @@ export function createPluggyService(creds: PluggyCredentials) {
 			accountId: string;
 			startDate: string;
 			endDate: string;
-		}): Promise<PluggyTransaction[]> {
+		}): Promise<PluggyTransactionsFetchResult> {
 			return client.getTransactionsByAccount(accountId, startDate, endDate);
 		},
 
@@ -211,8 +287,9 @@ export async function syncAccountsForItem(params: {
 		return {
 			total: accounts.length,
 			synced: 0,
-			status: "success" as const,
+			status: "success",
 			accountIdsByRemoteId: new Map(),
+			accounts,
 		};
 	}
 
@@ -246,8 +323,9 @@ export async function syncAccountsForItem(params: {
 	return {
 		total: accounts.length,
 		synced: upserted.length,
-		status: "success" as const,
+		status: "success",
 		accountIdsByRemoteId,
+		accounts,
 	};
 }
 
@@ -270,67 +348,140 @@ export async function syncBillsForCreditAccounts(params: {
 	userId: string;
 	accounts: PluggyAccount[];
 	accountIdsByRemoteId: Map<string, string>;
-}): Promise<PluggySyncResult> {
+}): Promise<PluggySyncPhaseResult> {
 	const { service, userId, accounts, accountIdsByRemoteId } = params;
 	const creditAccounts = accounts.filter(
 		(account) => account.type === "CREDIT",
 	);
 
+	if (creditAccounts.length === 0) {
+		await materializeMonthlyBillsFromPluggy({ userId });
+		return {
+			total: 0,
+			synced: 0,
+			status: "skipped",
+			error: "Nenhuma conta de credito encontrada para sincronizar faturas.",
+		};
+	}
+
 	let total = 0;
 	let synced = 0;
+	const accountResults: PluggySyncAccountResult[] = [];
 
 	for (const account of creditAccounts) {
 		const localAccountId = accountIdsByRemoteId.get(account.id);
-		if (!localAccountId) continue;
-
-		const bills = await service.listBills(account.id);
-		total += bills.length;
-
-		const insertable = bills
-			.filter((bill) => Boolean(bill.id) && Boolean(bill.dueDate))
-			.map((bill) => {
-				const paidAmount = sumBillPayments(bill);
-				return {
-					pluggyAccountId: localAccountId,
-					pluggyBillId: bill.id,
-					dueDate: new Date(bill.dueDate),
-					totalAmount: bill.totalAmount.toString(),
-					paidAmount: paidAmount.toString(),
-					minimumPaymentAmount:
-						bill.minimumPaymentAmount != null
-							? bill.minimumPaymentAmount.toString()
-							: null,
-					currency: bill.totalAmountCurrencyCode ?? "BRL",
-				};
+		if (!localAccountId) {
+			accountResults.push({
+				pluggyAccountId: account.id,
+				total: 0,
+				synced: 0,
+				status: "failed",
+				error: "Conta local nao encontrada para materializar faturas.",
 			});
+			continue;
+		}
 
-		if (insertable.length === 0) continue;
+		try {
+			const bills = await service.listBills(account.id);
+			total += bills.length;
 
-		const upserted = await db
-			.insert(pluggyBills)
-			.values(insertable)
-			.onConflictDoUpdate({
-				target: [pluggyBills.pluggyAccountId, pluggyBills.pluggyBillId],
-				set: {
-					dueDate: sql.raw(`EXCLUDED.due_date`),
-					totalAmount: sql.raw(`EXCLUDED.total_amount`),
-					paidAmount: sql.raw(`EXCLUDED.paid_amount`),
-					minimumPaymentAmount: sql.raw(`EXCLUDED.minimum_payment_amount`),
-					currency: sql.raw(`EXCLUDED.currency`),
-					updatedAt: new Date(),
-				},
-			})
-			.returning({ id: pluggyBills.id });
+			const insertable = bills
+				.filter((bill) => Boolean(bill.id) && Boolean(bill.dueDate))
+				.map((bill) => {
+					const paidAmount = sumBillPayments(bill);
+					return {
+						pluggyAccountId: localAccountId,
+						pluggyBillId: bill.id,
+						dueDate: new Date(bill.dueDate),
+						totalAmount: bill.totalAmount.toString(),
+						paidAmount: paidAmount.toString(),
+						minimumPaymentAmount:
+							bill.minimumPaymentAmount != null
+								? bill.minimumPaymentAmount.toString()
+								: null,
+						currency: bill.totalAmountCurrencyCode ?? "BRL",
+					};
+				});
 
-		synced += upserted.length;
+			if (insertable.length === 0) {
+				accountResults.push({
+					pluggyAccountId: account.id,
+					localAccountId,
+					total: bills.length,
+					synced: 0,
+					status: "success",
+				});
+				continue;
+			}
+
+			const upserted = await db
+				.insert(pluggyBills)
+				.values(insertable)
+				.onConflictDoUpdate({
+					target: [pluggyBills.pluggyAccountId, pluggyBills.pluggyBillId],
+					set: {
+						dueDate: sql.raw(`EXCLUDED.due_date`),
+						totalAmount: sql.raw(`EXCLUDED.total_amount`),
+						paidAmount: sql.raw(`EXCLUDED.paid_amount`),
+						minimumPaymentAmount: sql.raw(`EXCLUDED.minimum_payment_amount`),
+						currency: sql.raw(`EXCLUDED.currency`),
+						updatedAt: new Date(),
+					},
+				})
+				.returning({ id: pluggyBills.id });
+
+			synced += upserted.length;
+			accountResults.push({
+				pluggyAccountId: account.id,
+				localAccountId,
+				total: bills.length,
+				synced: upserted.length,
+				status: "success",
+			});
+		} catch (error) {
+			if (isPluggyItemNotFoundError(error)) {
+				throw error;
+			}
+
+			const message = toPhaseErrorMessage(
+				error,
+				"Falha ao sincronizar faturas da conta.",
+			);
+			console.warn("[pluggy] bill sync failed for account", {
+				userId,
+				pluggyAccountId: account.id,
+				localAccountId,
+				error: message,
+			});
+			accountResults.push({
+				pluggyAccountId: account.id,
+				localAccountId,
+				total: 0,
+				synced: 0,
+				status: "failed",
+				error: message,
+			});
+		}
 	}
 
 	await materializeMonthlyBillsFromPluggy({ userId });
 
+	const failedAccounts = accountResults.filter(
+		(account) => account.status === "failed",
+	);
+
 	return {
 		total,
 		synced,
-		status: "success" as const,
+		status: failedAccounts.length > 0 ? "failed" : "success",
+		error:
+			failedAccounts.length > 0
+				? failedAccounts
+						.map((account) => account.error)
+						.filter(Boolean)
+						.join(" | ")
+				: undefined,
+		accountResults: accountResults,
 	};
 }
 
@@ -360,6 +511,20 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 		.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
 		.where(eq(pluggyItems.userId, userId))
 		.orderBy(asc(pluggyBills.dueDate));
+
+	const existingMonthsWithPluggyItems = await db
+		.select({ month: monthlyBill.month })
+		.from(monthlyBill)
+		.innerJoin(
+			monthlyBillItem,
+			eq(monthlyBillItem.monthlyBillId, monthlyBill.id),
+		)
+		.where(
+			and(
+				eq(monthlyBill.userId, userId),
+				eq(monthlyBillItem.source, "pluggy"),
+			),
+		);
 
 	// account+month → latest bill by dueDate
 	const byMonthAccount = new Map<
@@ -397,7 +562,12 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 		});
 	}
 
-	const months = [...new Set([...byMonthAccount.values()].map((v) => v.month))];
+	const months = [
+		...new Set([
+			...byMonthAccount.values().map((value) => value.month),
+			...existingMonthsWithPluggyItems.map((row) => row.month),
+		]),
+	].sort();
 
 	for (const month of months) {
 		const monthItems = [...byMonthAccount.values()]
@@ -481,7 +651,7 @@ async function syncTransactionsForAccount(params: {
 	pluggyAccountId: string;
 	startDate: string;
 	endDate: string;
-}): Promise<PluggySyncResult> {
+}): Promise<PluggySyncAccountResult> {
 	const {
 		service,
 		localItemId,
@@ -490,7 +660,7 @@ async function syncTransactionsForAccount(params: {
 		startDate,
 		endDate,
 	} = params;
-	const transactions = await service.getTransactionsByAccount({
+	const { transactions, error } = await service.getTransactionsByAccount({
 		accountId: pluggyAccountId,
 		startDate,
 		endDate,
@@ -510,9 +680,12 @@ async function syncTransactionsForAccount(params: {
 
 	if (insertable.length === 0) {
 		return {
+			pluggyAccountId,
+			localAccountId,
 			total: transactions.length,
 			synced: 0,
-			status: "success" as const,
+			status: error ? "failed" : "success",
+			error,
 		};
 	}
 
@@ -535,9 +708,12 @@ async function syncTransactionsForAccount(params: {
 		.returning({ id: pluggyTransactions.id });
 
 	return {
+		pluggyAccountId,
+		localAccountId,
 		total: transactions.length,
 		synced: upserted.length,
-		status: "success" as const,
+		status: error ? "failed" : "success",
+		error,
 	};
 }
 
@@ -659,59 +835,145 @@ export async function syncTransactionsForItem(params: {
 	const { service, userId, localItemId, pluggyItemId } = params;
 	const { startDate, endDate } = buildInitialSyncWindow();
 
-	// Fetch accounts from Pluggy
-	const accounts = await service.listAccounts(pluggyItemId);
+	let accountsPhase: PluggyAccountSyncResult;
 
-	if (accounts.length === 0) {
-		return { total: 0, synced: 0, status: "success" };
-	}
-
-	const accountSync = await syncAccountsForItem({
-		service,
-		localItemId,
-		pluggyItemId,
-	});
-	const accountMap = accountSync.accountIdsByRemoteId;
-
-	// Credit-card bills → pluggy_bills + monthly_bill read model
-	await syncBillsForCreditAccounts({
-		service,
-		userId,
-		accounts,
-		accountIdsByRemoteId: accountMap,
-	});
-
-	// Sync transactions per account
-	let totalTransactions = 0;
-	let syncedTransactions = 0;
-
-	for (const acc of accounts) {
-		const localAccountId = accountMap.get(acc.id);
-		if (!localAccountId) continue;
-
-		const result = await syncTransactionsForAccount({
+	try {
+		accountsPhase = await syncAccountsForItem({
 			service,
 			localItemId,
-			localAccountId,
-			pluggyAccountId: acc.id,
-			startDate,
-			endDate,
+			pluggyItemId,
 		});
+	} catch (error) {
+		if (isPluggyItemNotFoundError(error)) {
+			throw error;
+		}
 
-		totalTransactions += result.total;
-		syncedTransactions += result.synced;
+		return summarizeSyncResult({
+			accounts: failedPhase(
+				toPhaseErrorMessage(error, "Falha ao sincronizar contas da Pluggy."),
+			),
+			bills: skippedPhase(
+				"Faturas nao sincronizadas porque a etapa de contas falhou.",
+			),
+			transactions: skippedPhase(
+				"Transacoes nao sincronizadas porque a etapa de contas falhou.",
+			),
+		});
 	}
 
-	await rebuildExpensesFromStoredTransactions({
-		userId,
-		localItemId,
-	});
+	const accounts = accountsPhase.accounts;
+	if (accounts.length === 0) {
+		return summarizeSyncResult({
+			accounts: accountsPhase,
+			bills: skippedPhase(
+				"Nenhuma conta retornada pela Pluggy para sincronizar faturas.",
+			),
+			transactions: skippedPhase(
+				"Nenhuma conta retornada pela Pluggy para sincronizar transacoes.",
+			),
+		});
+	}
 
-	return {
-		total: totalTransactions,
-		synced: syncedTransactions,
-		status: "success" as const,
-	};
+	let billsPhase: PluggySyncPhaseResult;
+	try {
+		billsPhase = await syncBillsForCreditAccounts({
+			service,
+			userId,
+			accounts,
+			accountIdsByRemoteId: accountsPhase.accountIdsByRemoteId,
+		});
+	} catch (error) {
+		if (isPluggyItemNotFoundError(error)) {
+			throw error;
+		}
+
+		billsPhase = failedPhase(
+			toPhaseErrorMessage(error, "Falha ao sincronizar faturas da Pluggy."),
+		);
+	}
+
+	let transactionsPhase: PluggySyncPhaseResult;
+	try {
+		let totalTransactions = 0;
+		let syncedTransactions = 0;
+		const accountResults: PluggySyncAccountResult[] = [];
+
+		for (const account of accounts) {
+			const localAccountId = accountsPhase.accountIdsByRemoteId.get(account.id);
+			if (!localAccountId) {
+				accountResults.push({
+					pluggyAccountId: account.id,
+					total: 0,
+					synced: 0,
+					status: "failed",
+					error: "Conta local nao encontrada para sincronizar transacoes.",
+				});
+				continue;
+			}
+
+			const result = await syncTransactionsForAccount({
+				service,
+				localItemId,
+				localAccountId,
+				pluggyAccountId: account.id,
+				startDate,
+				endDate,
+			});
+
+			if (result.status === "failed") {
+				console.warn("[pluggy] transaction sync failed for account", {
+					userId,
+					localItemId,
+					localAccountId,
+					pluggyAccountId: account.id,
+					error: result.error,
+				});
+			}
+
+			totalTransactions += result.total;
+			syncedTransactions += result.synced;
+			accountResults.push(result);
+		}
+
+		await rebuildExpensesFromStoredTransactions({
+			userId,
+			localItemId,
+		});
+
+		const failedAccounts = accountResults.filter(
+			(account) => account.status === "failed",
+		);
+		transactionsPhase = {
+			total: totalTransactions,
+			synced: syncedTransactions,
+			status: failedAccounts.length > 0 ? "failed" : "success",
+			error:
+				failedAccounts.length > 0
+					? failedAccounts
+							.map((account) => account.error)
+							.filter(Boolean)
+							.join(" | ")
+					: undefined,
+			accountResults: accountResults,
+		};
+	} catch (error) {
+		if (isPluggyItemNotFoundError(error)) {
+			throw error;
+		}
+
+		transactionsPhase = failedPhase(
+			toPhaseErrorMessage(
+				error,
+				"Falha ao sincronizar transacoes da Pluggy.",
+			),
+		);
+	}
+
+	return summarizeSyncResult({
+		accounts: accountsPhase,
+		bills: billsPhase,
+		transactions: transactionsPhase,
+	});
 }
 
 export async function persistPluggyItemAndSync(params: {
@@ -755,17 +1017,26 @@ export async function persistPluggyItemAndSync(params: {
 
 		return { item, sync };
 	} catch (error) {
+		if (isPluggyItemNotFoundError(error)) {
+			throw error;
+		}
+
 		return {
 			item,
-			sync: {
-				total: 0,
-				synced: 0,
-				status: "failed" as const,
-				error:
-					error instanceof PluggyApiError
-						? error.message
-						: "Falha ao sincronizar transacoes com a Pluggy.",
-			},
+			sync: summarizeSyncResult({
+				accounts: failedPhase(
+					toPhaseErrorMessage(
+						error,
+						"Falha ao sincronizar dados iniciais com a Pluggy.",
+					),
+				),
+				bills: skippedPhase(
+					"Faturas nao sincronizadas porque a sincronizacao inicial falhou.",
+				),
+				transactions: skippedPhase(
+					"Transacoes nao sincronizadas porque a sincronizacao inicial falhou.",
+				),
+			}),
 		};
 	}
 }
