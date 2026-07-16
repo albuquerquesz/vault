@@ -6,6 +6,7 @@ import { cn } from "@vault/ui/lib/utils";
 import { Loader2Icon, Trash2Icon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { MOBILE_BOTTOM_TAB_BAR_HEIGHT } from "@/components/mobile-bottom-tab-bar";
 
 /** Matches `SIDEBAR_WIDTH` / `SIDEBAR_WIDTH_ICON` in @vault/ui sidebar. */
 const SIDEBAR_OFFSET_EXPANDED = "16rem";
@@ -46,17 +47,23 @@ export function TransactionsSelectionToolbar({
 		: state === "expanded"
 			? SIDEBAR_OFFSET_EXPANDED
 			: SIDEBAR_OFFSET_ICON;
+	const bottomOffset = isMobile
+		? `calc(${MOBILE_BOTTOM_TAB_BAR_HEIGHT} + env(safe-area-inset-bottom, 0px))`
+		: "0px";
+	const bottomPadding = isMobile
+		? "0.75rem"
+		: "max(1.5rem, env(safe-area-inset-bottom, 0px))";
 
 	return createPortal(
 		<div
 			className="pointer-events-none fixed bottom-0 z-[200] flex justify-center px-4 pt-2 transition-[left] duration-200 ease-linear"
 			style={{
 				position: "fixed",
-				bottom: 0,
+				bottom: bottomOffset,
 				left: leftOffset,
 				right: 0,
 				zIndex: 200,
-				paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))",
+				paddingBottom: bottomPadding,
 			}}
 			role="presentation"
 		>

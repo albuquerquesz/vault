@@ -6,12 +6,15 @@ import {
 	AnimatedSidebarChartNoAxesColumnIncreasingIcon,
 } from "@/components/animated-sidebar-icons";
 
+export type AppNavSurface = "sidebar" | "breadcrumbs" | "mobile-tab-bar";
+
 export type SidebarNavItem = {
 	title: string;
 	path?: string;
 	icon?: ReactNode;
 	isActive?: boolean;
 	subItems?: SidebarNavItem[];
+	surfaces?: AppNavSurface[];
 };
 
 export type SidebarNavGroup = {
@@ -19,16 +22,24 @@ export type SidebarNavGroup = {
 	items: SidebarNavItem[];
 };
 
+const PRIMARY_NAV_SURFACES: AppNavSurface[] = [
+	"sidebar",
+	"breadcrumbs",
+	"mobile-tab-bar",
+];
+
 const navItemsStatic: SidebarNavItem[] = [
 	{
 		title: "Visão Geral",
 		path: "/",
 		icon: <AnimatedSidebarChartNoAxesColumnIncreasingIcon size={20} />,
+		surfaces: PRIMARY_NAV_SURFACES,
 	},
 	{
 		title: "Transações",
 		path: "/transactions",
 		icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
+		surfaces: PRIMARY_NAV_SURFACES,
 	},
 ];
 
@@ -38,6 +49,7 @@ const breadcrumbOnlyPages: SidebarNavItem[] = [
 		title: "Configurações",
 		path: "/settings",
 		icon: <Settings2Icon className="size-4" />,
+		surfaces: ["breadcrumbs"],
 	},
 ];
 
@@ -54,6 +66,12 @@ export function useNavLinks(): SidebarNavItem[] {
 			itemPath === "/" ? activePath === "/" : activePath.startsWith(itemPath);
 		return { ...item, isActive };
 	});
+}
+
+export function useMobileTabBarLinks(): SidebarNavItem[] {
+	return useNavLinks().filter((item) =>
+		item.surfaces?.includes("mobile-tab-bar"),
+	);
 }
 
 /** Active page for header breadcrumbs (sidebar + breadcrumb-only routes). */
