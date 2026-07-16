@@ -25,7 +25,7 @@ function PartialResultLoadingSkeleton({ className }: { className?: string }) {
 			}
 			tooltip="Resumo do resultado do mês com entradas e saídas consolidadas"
 			className={className}
-			contentClassName="flex flex-1 flex-col justify-between gap-4 px-5 pb-5 pt-3"
+			contentClassName="flex flex-1 flex-col justify-between gap-4 px-4 pb-5 pt-3 sm:px-5"
 		>
 			<div className="space-y-3">
 				<div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export function PartialResultCard({
 			}
 			tooltip="Resumo do resultado do mês com entradas e saídas consolidadas"
 			className={className}
-			contentClassName="flex flex-1 flex-col px-5 pb-5 pt-3"
+			contentClassName="flex flex-1 flex-col px-4 pb-5 pt-3 sm:px-5"
 		>
 			{isError ? (
 				<OverviewCardErrorState message="Não foi possível carregar o resultado parcial." />
