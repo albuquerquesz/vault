@@ -1,7 +1,13 @@
 "use client";
 
-import type { RowSelectionState } from "@tanstack/react-table";
+import type { Row, RowSelectionState } from "@tanstack/react-table";
+import { Badge } from "@vault/ui/components/badge";
+import { Checkbox } from "@vault/ui/components/checkbox";
+import { cn } from "@vault/ui/lib/utils";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { InstitutionMark } from "@/components/institution-mark";
+import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import {
 	type FinanceTransaction,
 	useDeleteExpenses,
@@ -10,7 +16,13 @@ import {
 import { transactionsColumns } from "./columns";
 import { DataTable } from "./data-table";
 import { TransactionsSelectionToolbar } from "./selection-toolbar";
-import { formatTransactionDayLabel } from "./utils";
+import {
+	formatBRL,
+	formatTransactionDayLabel,
+	getCategoryColor,
+	getCategoryIcon,
+	isExpenseTransaction,
+} from "./utils";
 
 export function TransactionsTable({
 	transactions,
@@ -63,6 +75,94 @@ export function TransactionsTable({
 	const isMutating =
 		deleteExpenses.isPending || hideTransactions.isPending;
 
+	const renderMobileTransactionRow = (row: Row<FinanceTransaction>) => {
+		const transaction = row.original;
+		const selectable = transaction.isDeletable || transaction.isHideable;
+		const isExpense = isExpenseTransaction(transaction);
+		const DirectionIcon = isExpense ? ArrowDownIcon : ArrowUpIcon;
+		const CategoryIcon = getCategoryIcon(transaction.category);
+
+		return (
+			<div
+				className={cn(
+					"rounded-2xl border border-border/60 bg-card/70 px-3 py-3 shadow-sm backdrop-blur-sm transition-colors",
+					row.getIsSelected() && "border-primary/40 bg-muted/25",
+				)}
+				data-state={row.getIsSelected() ? "selected" : undefined}
+			>
+				<div className="flex min-w-0 items-start gap-2.5">
+					<Checkbox
+						aria-label="Selecionar transação"
+						checked={row.getIsSelected()}
+						className="mt-1 size-4 shrink-0 rounded-[2px]"
+						disabled={!selectable}
+						onCheckedChange={(checked) => {
+							if (!selectable) {
+								return;
+							}
+							row.toggleSelected(checked === true);
+						}}
+						onClick={(event) => event.stopPropagation()}
+					/>
+					<InstitutionMark
+						name={transaction.sourceAccountName}
+						provider={transaction.sourceProvider}
+						size="md"
+					/>
+					<div className="min-w-0 flex-1 space-y-2">
+						<div className="flex min-w-0 items-start justify-between gap-3">
+							<p
+								className="min-w-0 flex-1 truncate pt-0.5 text-sm font-medium text-foreground"
+								title={
+									transaction.description ||
+									(transaction.kind === "income" ? "Entrada" : "Despesa")
+								}
+							>
+								{transaction.description ||
+									(transaction.kind === "income" ? "Entrada" : "Despesa")}
+							</p>
+							<div className="flex shrink-0 items-center gap-1.5 pt-0.5 text-sm font-medium tabular-nums whitespace-nowrap">
+								<DirectionIcon
+									aria-label={isExpense ? "Saída" : "Entrada"}
+									className={cn(
+										"size-3.5 shrink-0",
+										isExpense ? "text-red-500" : "text-emerald-500",
+									)}
+								/>
+								<MaskedMonetaryValue
+									className="text-foreground"
+									format={formatBRL}
+									value={Math.abs(transaction.amount)}
+								/>
+							</div>
+						</div>
+						<div className="flex min-w-0 items-center justify-between gap-3">
+							<Badge
+								className={cn(
+									"max-w-full gap-1 rounded-full border-0 px-2.5 py-1 text-[11px] font-medium",
+									getCategoryColor(transaction.category),
+								)}
+								title={transaction.category}
+								variant="secondary"
+							>
+								<CategoryIcon className="size-3 shrink-0" />
+								<span className="truncate">{transaction.category}</span>
+							</Badge>
+							<span
+								className={cn(
+									"shrink-0 text-[11px] font-medium uppercase tracking-wide",
+									isExpense ? "text-red-500" : "text-emerald-500",
+								)}
+							>
+								{isExpense ? "Saída" : "Entrada"}
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	};
+
 	const handleDelete = async () => {
 		if (selectedCount === 0 || isMutating) {
 			return;
@@ -108,6 +208,7 @@ export function TransactionsTable({
 				enableRowSelection={(row) => row.isDeletable || row.isHideable}
 				getGroupKey={(row) => row.date}
 				getRowId={(row) => row.id}
+				mobileRowRenderer={renderMobileTransactionRow}
 				onRowSelectionChange={setRowSelection}
 				pageSize={10}
 				renderGroupHeader={(date) => formatTransactionDayLabel(date)}

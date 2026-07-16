@@ -37,17 +37,17 @@ export function TransactionsSkeleton() {
 				</div>
 			</div>
 
-			<div className="flex min-w-0 flex-col gap-8 pt-4 sm:pt-5">
-				<div className="financial-panel-border flex w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
+			<div className="flex min-w-0 flex-col gap-4 pt-4 sm:gap-8 sm:pt-5">
+				<div className="financial-panel-border flex w-full flex-col items-stretch gap-3 p-4 sm:gap-4">
 					<div className="flex w-full items-center gap-2">
 						<div className="h-9 min-w-0 flex-1 rounded-md bg-muted/40" />
 						<div className="size-9 shrink-0 rounded-lg bg-muted/40" />
 					</div>
-					<div className="flex flex-wrap items-center gap-3 sm:gap-4">
-						<div className="h-8 w-28 rounded-full bg-muted/40" />
-						<div className="h-5 w-12 rounded bg-muted/40" />
-						<div className="h-5 w-24 rounded bg-muted/40" />
-						<div className="h-5 w-24 rounded bg-muted/40" />
+					<div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
+						<div className="h-9 rounded-2xl bg-muted/40 sm:h-8 sm:w-28 sm:rounded-full" />
+						<div className="h-9 rounded-2xl bg-muted/40 sm:h-5 sm:w-12 sm:rounded" />
+						<div className="h-9 rounded-2xl bg-muted/40 sm:h-5 sm:w-24 sm:rounded" />
+						<div className="h-9 rounded-2xl bg-muted/40 sm:h-5 sm:w-24 sm:rounded" />
 					</div>
 				</div>
 				<div className="financial-panel-border flex w-full flex-col gap-3 p-4 sm:p-5">

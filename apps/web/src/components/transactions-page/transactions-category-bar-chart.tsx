@@ -17,6 +17,7 @@ import {
 	YAxis,
 } from "recharts";
 import type { FinanceTransaction } from "@/features/finance/sdk";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { formatBRL, getCategoryBarFill, isExpenseTransaction } from "./utils";
 
 const MAX_NAMED_CATEGORIES = 6;
@@ -228,6 +229,7 @@ export function TransactionsCategoryBarChart({
 		() => buildCategorySpendRows(transactions),
 		[transactions],
 	);
+	const isMobile = useIsMobile();
 
 	const categoryCount = chartData.length;
 
@@ -243,7 +245,7 @@ export function TransactionsCategoryBarChart({
 	}
 
 	return (
-		<div className="flex w-full flex-col gap-3 p-4 sm:p-5">
+		<div className="flex w-full min-w-0 flex-col gap-3 p-4 sm:p-5">
 			<div className="space-y-1">
 				<p className="text-base font-medium tracking-tight">
 					Gastos por categoria
@@ -267,7 +269,12 @@ export function TransactionsCategoryBarChart({
 					barCategoryGap={BAR_CATEGORY_GAP}
 					data={chartData}
 					layout="vertical"
-					margin={{ right: 88, left: 4, top: 4, bottom: 4 }}
+					margin={{
+						right: isMobile ? 56 : 88,
+						left: isMobile ? 0 : 4,
+						top: 4,
+						bottom: 4,
+					}}
 				>
 					<CartesianGrid horizontal={false} />
 					<YAxis

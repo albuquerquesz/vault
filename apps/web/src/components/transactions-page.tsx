@@ -118,7 +118,7 @@ export function TransactionsPage() {
 	return (
 		<MonetaryVisibilityProvider>
 			{/* Full width like overview — no max-w-[1200px] PageContent cap */}
-			<div className="grid w-full min-w-0 grid-cols-1 gap-4 pt-6 lg:grid-cols-[3fr_2fr]">
+			<div className="grid w-full min-w-0 grid-cols-1 gap-4 overflow-x-hidden pt-6 lg:grid-cols-[3fr_2fr]">
 				<div className="min-w-0">
 					<TransactionsTable
 						transactions={filteredTransactions}
@@ -129,8 +129,8 @@ export function TransactionsPage() {
 				</div>
 
 				{/* pt matches first day-group header in the table (data-table) */}
-				<div className="flex min-w-0 flex-col gap-8 pt-4 sm:pt-5">
-					<div className="financial-panel-border flex w-full flex-col items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
+				<div className="flex min-w-0 flex-col gap-4 pt-4 sm:gap-8 sm:pt-5">
+					<div className="financial-panel-border flex w-full min-w-0 flex-col items-stretch gap-3 p-4 sm:gap-4">
 						<div className="flex w-full min-w-0 items-center gap-2">
 							<div className="relative min-w-0 flex-1">
 								<SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -153,7 +153,7 @@ export function TransactionsPage() {
 							stats={periodStats}
 						/>
 					</div>
-					<div className="financial-panel-border flex w-full flex-col overflow-hidden">
+					<div className="financial-panel-border flex w-full min-w-0 flex-col overflow-hidden">
 						<TransactionsCategoryBarChart
 							transactions={filteredTransactions}
 							periodLabel={monthLabel}
