@@ -5,6 +5,7 @@ import { Skeleton } from "@vault/ui/components/skeleton";
 import { Target } from "lucide-react";
 import { CreateGoalDialog } from "@/components/overview/goals/create-goal-dialog";
 import { GoalList } from "@/components/overview/goals/goal-list";
+import { OverviewOverflowPanel } from "@/components/overview/shared/overview-overflow-panel";
 import { useGoalsCard } from "@/components/overview/goals/hooks/use-goals-card";
 import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 import {
@@ -62,7 +63,7 @@ export function GoalsCard({ className }: GoalsCardProps) {
 					</Button>
 				}
 			>
-				<div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+				<div className="flex min-h-0 flex-1 flex-col">
 					{isLoading ? (
 						<GoalsLoadingState />
 					) : isError ? (
@@ -70,12 +71,14 @@ export function GoalsCard({ className }: GoalsCardProps) {
 					) : goals.length === 0 ? (
 						<OverviewCardEmptyState message="Nenhuma meta definida" />
 					) : (
-						<GoalList
-							goals={goals}
-							onComplete={handleComplete}
-							onDelete={handleDelete}
-							onEdit={openEdit}
-						/>
+						<OverviewOverflowPanel>
+							<GoalList
+								goals={goals}
+								onComplete={handleComplete}
+								onDelete={handleDelete}
+								onEdit={openEdit}
+							/>
+						</OverviewOverflowPanel>
 					)}
 				</div>
 			</OverviewCardShell>

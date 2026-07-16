@@ -27,7 +27,8 @@ export function MonthlyBillCard({ month }: { month?: string }) {
 			title="Cartões"
 			icon={<CreditCardIcon className="size-4 text-muted-foreground" />}
 			tooltip="Faturas de cartão de crédito do mês selecionado (Open Finance)"
-			contentClassName="flex flex-1 flex-col"
+			className="h-[18rem] sm:h-auto"
+			contentClassName="flex min-h-0 flex-1 flex-col p-4 sm:px-(--card-spacing) sm:pb-(--card-spacing) sm:pt-0"
 		>
 			{isError ? (
 				<OverviewCardErrorState message="Não foi possível carregar as faturas de cartão." />
