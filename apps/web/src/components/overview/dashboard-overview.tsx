@@ -13,12 +13,12 @@ export function DashboardOverview() {
 		useDashboardOverview();
 
 	return (
-		<div className="grid grid-cols-1 gap-4 pt-4 sm:pt-6">
-			<div className="mb-2 flex flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
+		<div className="grid min-w-0 grid-cols-1 gap-4 overflow-x-hidden pt-4 sm:pt-6">
+			<div className="mb-2 flex min-w-0 flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
 				<h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl xl:text-4xl">
 					Bem-vindo de volta{firstName ? `, ${firstName}!` : "!"} 👋
 				</h2>
-				<div className="w-full sm:w-auto">
+				<div className="min-w-0 w-full sm:w-auto">
 					<OverviewMonthSelect
 						onValueChange={setSelectedMonth}
 						options={monthOptions}
@@ -26,23 +26,23 @@ export function DashboardOverview() {
 					/>
 				</div>
 			</div>
-			<div className="grid grid-cols-1 gap-4 xl:h-118 xl:grid-cols-[2fr_1fr]">
+			<div className="grid min-w-0 grid-cols-1 gap-4 xl:h-118 xl:grid-cols-[2fr_1fr]">
 				<OrderSourceMixCard month={selectedMonth} />
 				<MonthlyBillCard month={selectedMonth} />
 			</div>
-			<div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-10">
-				<div className="flex min-h-0 flex-col gap-4 xl:col-span-4 xl:h-full">
-					<div className="min-h-0 flex-1">
+			<div className="mb-4 grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-10">
+				<div className="flex min-h-0 min-w-0 flex-col gap-4 xl:col-span-4 xl:h-full">
+					<div className="min-h-0 min-w-0 xl:flex-1">
 						<PartialResultCard
 							className="min-h-0 sm:min-h-0 xl:min-h-0"
 							month={selectedMonth}
 						/>
 					</div>
-					<div className="min-h-0 flex-1">
+					<div className="min-h-0 min-w-0 xl:flex-1">
 						<GoalsCard className="min-h-0 sm:min-h-0 xl:min-h-0" />
 					</div>
 				</div>
-				<div className="xl:col-span-6">
+				<div className="min-w-0 xl:col-span-6">
 					<DailySpendBarCard month={selectedMonth} />
 				</div>
 			</div>
