@@ -75,12 +75,24 @@ export function TransactionsTable({
 	const isMutating =
 		deleteExpenses.isPending || hideTransactions.isPending;
 
+	const maskMobileDescription = (description: string, maxLength = 24) => {
+		if (description.length <= maxLength) {
+			return description;
+		}
+
+		return `${description.slice(0, maxLength)}…`;
+	};
+
 	const renderMobileTransactionRow = (row: Row<FinanceTransaction>) => {
 		const transaction = row.original;
 		const selectable = transaction.isDeletable || transaction.isHideable;
 		const isExpense = isExpenseTransaction(transaction);
 		const DirectionIcon = isExpense ? ArrowDownIcon : ArrowUpIcon;
 		const CategoryIcon = getCategoryIcon(transaction.category);
+		const description =
+			transaction.description ||
+			(transaction.kind === "income" ? "Entrada" : "Despesa");
+		const mobileDescription = maskMobileDescription(description);
 
 		return (
 			<div
@@ -110,18 +122,27 @@ export function TransactionsTable({
 						size="md"
 					/>
 					<div className="min-w-0 flex-1 space-y-2">
-						<div className="flex min-w-0 items-start justify-between gap-3">
+						<div className="min-w-0">
 							<p
-								className="min-w-0 flex-1 truncate pt-0.5 text-sm font-medium text-foreground"
-								title={
-									transaction.description ||
-									(transaction.kind === "income" ? "Entrada" : "Despesa")
-								}
+								className="min-w-0 truncate pt-0.5 text-sm font-medium text-foreground"
+								title={description}
 							>
-								{transaction.description ||
-									(transaction.kind === "income" ? "Entrada" : "Despesa")}
+								{mobileDescription}
 							</p>
-							<div className="flex shrink-0 items-center gap-1.5 pt-0.5 text-sm font-medium tabular-nums whitespace-nowrap">
+						</div>
+						<div className="flex min-w-0 items-center justify-between gap-3">
+							<Badge
+								className={cn(
+									"min-w-0 max-w-full gap-1 rounded-full border-0 px-2.5 py-1 text-[11px] font-medium",
+									getCategoryColor(transaction.category),
+								)}
+								title={transaction.category}
+								variant="secondary"
+							>
+								<CategoryIcon className="size-3 shrink-0" />
+								<span className="truncate">{transaction.category}</span>
+							</Badge>
+							<div className="flex shrink-0 items-center gap-1.5 text-sm font-medium tabular-nums whitespace-nowrap">
 								<DirectionIcon
 									aria-label={isExpense ? "Saída" : "Entrada"}
 									className={cn(
@@ -135,27 +156,6 @@ export function TransactionsTable({
 									value={Math.abs(transaction.amount)}
 								/>
 							</div>
-						</div>
-						<div className="flex min-w-0 items-center justify-between gap-3">
-							<Badge
-								className={cn(
-									"max-w-full gap-1 rounded-full border-0 px-2.5 py-1 text-[11px] font-medium",
-									getCategoryColor(transaction.category),
-								)}
-								title={transaction.category}
-								variant="secondary"
-							>
-								<CategoryIcon className="size-3 shrink-0" />
-								<span className="truncate">{transaction.category}</span>
-							</Badge>
-							<span
-								className={cn(
-									"shrink-0 text-[11px] font-medium uppercase tracking-wide",
-									isExpense ? "text-red-500" : "text-emerald-500",
-								)}
-							>
-								{isExpense ? "Saída" : "Entrada"}
-							</span>
 						</div>
 					</div>
 				</div>
