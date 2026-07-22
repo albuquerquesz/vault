@@ -36,6 +36,7 @@ Leia este documento antes de alterar:
 - Faturas de cartão vêm de `GET /bills?accountId=...` (somente contas `CREDIT` / `CREDIT_CARD`). Não use `/credit-card-bills`.
 - Transações vêm de `GET /v2/transactions?accountId=...&dateFrom=...&dateTo=...`.
 - A paginação de transações usa `results` e `next`. Não assuma `data`, `pageSize` ou endpoint por item.
+- `next` é uma **query string opaca** (ex.: `?accountId=...&after=...`), não o cursor cru. Seguir como path (`/v2/transactions${next}`); **não** passar o valor inteiro em `after` (causa `Invalid cursor`).
 
 ## Webhooks (push sync)
 

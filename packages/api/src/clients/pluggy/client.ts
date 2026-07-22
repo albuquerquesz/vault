@@ -211,26 +211,50 @@ export function createPluggyClient(creds: PluggyCredentials) {
 			endDate: string,
 		): Promise<PluggyTransaction[]> {
 			const transactions: PluggyTransaction[] = [];
-			let after: string | null = null;
+			let next: string | null = null;
 
-			do {
+			/**
+			 * Pluggy returns `next` as a full query string
+			 * (e.g. `?accountId=...&after=...`), not the raw cursor.
+			 */
+			const resolvePath = (pageNext: string | null) => {
+				if (!pageNext) {
+					const params = new URLSearchParams({
+						accountId,
+						dateFrom: startDate,
+						dateTo: endDate,
+					});
+					return `/v2/transactions?${params}`;
+				}
+				if (pageNext.startsWith("?")) {
+					return `/v2/transactions${pageNext}`;
+				}
+				if (pageNext.startsWith("/")) {
+					return pageNext;
+				}
+				if (pageNext.startsWith("http://") || pageNext.startsWith("https://")) {
+					const url = new URL(pageNext);
+					return `${url.pathname}${url.search}`;
+				}
 				const params = new URLSearchParams({
 					accountId,
 					dateFrom: startDate,
 					dateTo: endDate,
+					after: pageNext,
 				});
-				if (after) {
-					params.set("after", after);
-				}
+				return `/v2/transactions?${params}`;
+			};
 
+			do {
+				const path = resolvePath(next);
 				const response = (await pluggyFetch(
 					creds,
-					`/v2/transactions?${params}`,
+					path,
 				)) as PluggyTransactionsPage;
 
 				transactions.push(...response.results);
-				after = response.next ?? null;
-			} while (after);
+				next = response.next ?? null;
+			} while (next);
 
 			return transactions;
 		},

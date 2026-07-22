@@ -169,6 +169,54 @@ function isInvalidCursorError(error: unknown) {
 	return error.message.toLowerCase().includes("invalid cursor");
 }
 
+/**
+ * Build the path for a `/v2/transactions` page.
+ *
+ * Pluggy returns `next` as a full query string
+ * (e.g. `?accountId=...&dateFrom=...&after=...`), not the raw cursor.
+ * Passing that whole string as `after` causes "Invalid cursor".
+ */
+export function resolveTransactionsPagePath(
+	accountId: string,
+	startDate: string,
+	endDate: string,
+	next: string | null,
+): string {
+	if (!next) {
+		const params = new URLSearchParams({
+			accountId,
+			dateFrom: startDate,
+			dateTo: endDate,
+		});
+		return `/v2/transactions?${params}`;
+	}
+
+	// Opaque next query string from Pluggy (preferred follow path).
+	if (next.startsWith("?")) {
+		return `/v2/transactions${next}`;
+	}
+
+	// Absolute path already (pathname + search).
+	if (next.startsWith("/")) {
+		return next;
+	}
+
+	// Full URL — keep path + search only.
+	if (next.startsWith("http://") || next.startsWith("https://")) {
+		const url = new URL(next);
+		return `${url.pathname}${url.search}`;
+	}
+
+	// Legacy / defensive: treat as raw cursor token for `after`.
+	const params = new URLSearchParams({
+		accountId,
+		dateFrom: startDate,
+		dateTo: endDate,
+		after: next,
+	});
+	return `/v2/transactions?${params}`;
+}
+
 export function createPluggyClient(creds: PluggyCredentials) {
 	return {
 		async createConnectToken(
@@ -245,26 +293,24 @@ export function createPluggyClient(creds: PluggyCredentials) {
 			endDate: string,
 		): Promise<PluggyTransactionsFetchResult> {
 			const transactions: PluggyTransaction[] = [];
-			let after: string | null = null;
+			let next: string | null = null;
 
 			do {
-				const params = new URLSearchParams({
+				const path = resolveTransactionsPagePath(
 					accountId,
-					dateFrom: startDate,
-					dateTo: endDate,
-				});
-				if (after) {
-					params.set("after", after);
-				}
+					startDate,
+					endDate,
+					next,
+				);
 
 				try {
 					const response = (await pluggyFetch(
 						creds,
-						`/v2/transactions?${params}`,
+						path,
 					)) as PluggyTransactionsPage;
 
 					transactions.push(...response.results);
-					after = response.next ?? null;
+					next = response.next ?? null;
 				} catch (error) {
 					if (isInvalidCursorError(error)) {
 						return {
@@ -278,7 +324,7 @@ export function createPluggyClient(creds: PluggyCredentials) {
 
 					throw error;
 				}
-			} while (after);
+			} while (next);
 
 			return { transactions };
 		},

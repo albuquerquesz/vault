@@ -4,6 +4,7 @@ export {
 	createPluggyClient,
 	PluggyApiError,
 	PluggyAuthError,
+	resolveTransactionsPagePath,
 	type PluggyClient,
 } from "./client.js";
 export type {
