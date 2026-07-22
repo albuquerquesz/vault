@@ -1,0 +1,11 @@
+[mcp_servers.pluggy-mcp]
+command = "npx"
+args = [
+    "-y",
+    "@gu-does-packages/pluggy-mcp",
+]
+enabled = true
+
+[mcp_servers.pluggy-mcp.env]
+PLUGGY_CLIENT_ID = "${PLUGGY_CLIENT_ID}"
+PLUGGY_CLIENT_SECRET = "${PLUGGY_CLIENT_SECRET}"
