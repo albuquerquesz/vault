@@ -71,6 +71,7 @@ export interface ChartStatFlowProps {
 	valueClassName?: string;
 	labelClassName?: string;
 	icon?: ReactNode;
+	valueRenderer?: (value: number) => ReactNode;
 }
 
 /**
@@ -86,6 +87,7 @@ export function ChartStatFlow({
 	valueClassName = "text-2xl font-bold",
 	labelClassName = "text-xs",
 	icon,
+	valueRenderer,
 }: ChartStatFlowProps) {
 	const numberFlowReady = useNumberFlowElementReady();
 	const staticValue = useMemo(
@@ -101,7 +103,9 @@ export function ChartStatFlow({
 				</div>
 			) : null}
 			<span className={cn("text-foreground tabular-nums", valueClassName)}>
-				{numberFlowReady ? (
+				{valueRenderer ? (
+					valueRenderer(value)
+				) : numberFlowReady ? (
 					<NumberFlow
 						format={formatOptions}
 						isolate

@@ -7,6 +7,8 @@ docs/
 docs/*
 !docs/agents/
 !docs/agents/*.md
+!docs/specs/
+!docs/specs/**
 
 # Build outputs
 dist

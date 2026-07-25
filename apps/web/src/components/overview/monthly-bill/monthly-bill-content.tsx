@@ -1,6 +1,7 @@
 "use client";
 
 import { InstitutionMark } from "@/components/institution-mark";
+import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { OverviewOverflowPanel } from "@/components/overview/shared/overview-overflow-panel";
 
 const fmt = (value: number) =>
@@ -27,7 +28,7 @@ export function MonthlyBillContent({
 	return (
 		<div className="flex min-h-0 flex-1 flex-col gap-4 sm:gap-6">
 			<div className="text-2xl font-semibold tabular-nums sm:text-3xl">
-				{fmt(totalBill)}
+				<MaskedMonetaryValue format={fmt} value={totalBill} />
 			</div>
 
 			<OverviewOverflowPanel>
@@ -52,9 +53,15 @@ export function MonthlyBillContent({
 									<span className="truncate font-medium">{item.name}</span>
 								</div>
 								<div className="flex shrink-0 items-center gap-2 tabular-nums text-base sm:text-lg">
-									<span>{fmt(item.paidAmount)}</span>
+									<span>
+										<MaskedMonetaryValue format={fmt} value={item.paidAmount} />
+									</span>
 									<span className="text-muted-foreground">
-										/ {fmt(item.totalAmount)}
+										/{" "}
+										<MaskedMonetaryValue
+											format={fmt}
+											value={item.totalAmount}
+										/>
 									</span>
 									<span className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-sm tabular-nums">
 										{itemPct.toFixed(0)}%

@@ -16,6 +16,10 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import {
+	maskMonetaryText,
+	useMonetaryVisibility,
+} from "@/components/monetary-visibility";
 import type { FinanceTransaction } from "@/features/finance/sdk";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatBRL, getCategoryBarFill, isExpenseTransaction } from "./utils";
@@ -93,6 +97,7 @@ function getCategoryLabelFill(fill: string) {
  * category labels on the left inside the bar).
  */
 function AmountEdgeLabel(props: BarLabelProps) {
+	const { isVisible } = useMonetaryVisibility();
 	const y = toNumber(props.y);
 	const height = toNumber(props.height);
 	const barX = toNumber(props.x);
@@ -116,12 +121,14 @@ function AmountEdgeLabel(props: BarLabelProps) {
 			x={rightX}
 			y={cy}
 		>
-			{formatBRL(amount)}
+			{maskMonetaryText(formatBRL(amount), isVisible)}
 		</text>
 	);
 }
 
-function CategoryInsideLabel(props: BarLabelProps & { payload?: CategorySpendRow }) {
+function CategoryInsideLabel(
+	props: BarLabelProps & { payload?: CategorySpendRow },
+) {
 	const x = toNumber(props.x);
 	const y = toNumber(props.y);
 	const height = toNumber(props.height);
@@ -230,6 +237,7 @@ export function TransactionsCategoryBarChart({
 		[transactions],
 	);
 	const isMobile = useIsMobile();
+	const { isVisible } = useMonetaryVisibility();
 
 	const categoryCount = chartData.length;
 
@@ -289,7 +297,9 @@ export function TransactionsCategoryBarChart({
 					<ChartTooltip
 						content={
 							<ChartTooltipContent
-								formatter={(value) => formatBRL(Number(value) || 0)}
+								formatter={(value) =>
+									maskMonetaryText(formatBRL(Number(value) || 0), isVisible)
+								}
 								indicator="line"
 								labelKey="category"
 								nameKey="category"
@@ -297,9 +307,7 @@ export function TransactionsCategoryBarChart({
 						}
 						cursor={false}
 						labelFormatter={(_, payload) => {
-							const row = payload?.[0]?.payload as
-								| CategorySpendRow
-								| undefined;
+							const row = payload?.[0]?.payload as CategorySpendRow | undefined;
 							return row?.category ?? "";
 						}}
 					/>

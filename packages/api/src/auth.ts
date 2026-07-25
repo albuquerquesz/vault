@@ -6,6 +6,10 @@ import * as schema from "./db/schema/auth";
 
 const frontAuthErrorUrl = `${env.CORS_ORIGIN.replace(/\/$/, "")}/auth/error`;
 const authBaseUrlFallback = env.BETTER_AUTH_URL.replace(/\/$/, "");
+const authBaseUrlProtocol = new URL(env.BETTER_AUTH_URL).protocol.replace(
+	/:$/,
+	"",
+) as "http" | "https";
 
 export function createAuth() {
 	const db = createDb();
@@ -28,7 +32,7 @@ export function createAuth() {
 				"localhost:3001",
 			],
 			fallback: authBaseUrlFallback,
-			protocol: "https",
+			protocol: authBaseUrlProtocol,
 		},
 		socialProviders: {
 			google: {

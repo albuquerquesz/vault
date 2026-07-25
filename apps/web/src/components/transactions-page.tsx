@@ -11,7 +11,6 @@ import {
 import { Input } from "@vault/ui/components/input";
 import { SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { MonetaryVisibilityProvider } from "@/components/monetary-visibility";
 import { getMonthValue, useFinanceTransactions } from "@/features/finance/sdk";
 import { TransactionsCategoryBarChart } from "./transactions-page/transactions-category-bar-chart";
 import { TransactionsFilterMenu } from "./transactions-page/transactions-filter-menu";
@@ -115,52 +114,50 @@ export function TransactionsPage() {
 		);
 	}
 
+	// Full width like overview — no max-w-[1200px] PageContent cap.
 	return (
-		<MonetaryVisibilityProvider>
-			{/* Full width like overview — no max-w-[1200px] PageContent cap */}
-			<div className="grid w-full min-w-0 grid-cols-1 gap-4 overflow-x-hidden pt-6 lg:grid-cols-[3fr_2fr]">
-				<div className="min-w-0">
-					<TransactionsTable
-						transactions={filteredTransactions}
-						hasActiveFilters={hasActiveFilters}
-						month={selectedMonth}
-						monthLabel={monthLabel}
-					/>
-				</div>
+		<div className="grid w-full min-w-0 grid-cols-1 gap-4 overflow-x-hidden pt-6 lg:grid-cols-[3fr_2fr]">
+			<div className="min-w-0">
+				<TransactionsTable
+					transactions={filteredTransactions}
+					hasActiveFilters={hasActiveFilters}
+					month={selectedMonth}
+					monthLabel={monthLabel}
+				/>
+			</div>
 
-				{/* pt matches first day-group header in the table (data-table) */}
-				<div className="flex min-w-0 flex-col gap-4 pt-4 sm:gap-8 sm:pt-5">
-					<div className="financial-panel-border flex w-full min-w-0 flex-col items-stretch gap-3 p-4 sm:gap-4">
-						<div className="flex w-full min-w-0 items-center gap-2">
-							<div className="relative min-w-0 flex-1">
-								<SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-								<Input
-									aria-label="Buscar transações"
-									className="w-full rounded-md border-border/70 !bg-transparent pl-10 shadow-none dark:!bg-transparent dark:hover:!bg-transparent dark:focus-visible:!bg-transparent"
-									onChange={(event) => setSearchQuery(event.target.value)}
-									placeholder="Buscar por nota ou categoria"
-									value={searchQuery}
-								/>
-							</div>
-							<TransactionsFilterMenu
-								appliedFilters={appliedFilters}
-								transactions={transactions}
-								onAppliedFiltersChange={setAppliedFilters}
+			{/* pt matches first day-group header in the table (data-table) */}
+			<div className="flex min-w-0 flex-col gap-4 pt-4 sm:gap-8 sm:pt-5">
+				<div className="financial-panel-border flex w-full min-w-0 flex-col items-stretch gap-3 p-4 sm:gap-4">
+					<div className="flex w-full min-w-0 items-center gap-2">
+						<div className="relative min-w-0 flex-1">
+							<SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+							<Input
+								aria-label="Buscar transações"
+								className="w-full rounded-md border-border/70 !bg-transparent pl-10 shadow-none dark:!bg-transparent dark:hover:!bg-transparent dark:focus-visible:!bg-transparent"
+								onChange={(event) => setSearchQuery(event.target.value)}
+								placeholder="Buscar por nota ou categoria"
+								value={searchQuery}
 							/>
 						</div>
-						<TransactionsPeriodStats
-							periodLabel="Últimos 30d"
-							stats={periodStats}
+						<TransactionsFilterMenu
+							appliedFilters={appliedFilters}
+							transactions={transactions}
+							onAppliedFiltersChange={setAppliedFilters}
 						/>
 					</div>
-					<div className="financial-panel-border flex w-full min-w-0 flex-col overflow-hidden">
-						<TransactionsCategoryBarChart
-							transactions={filteredTransactions}
-							periodLabel={monthLabel}
-						/>
-					</div>
+					<TransactionsPeriodStats
+						periodLabel="Últimos 30d"
+						stats={periodStats}
+					/>
+				</div>
+				<div className="financial-panel-border flex w-full min-w-0 flex-col overflow-hidden">
+					<TransactionsCategoryBarChart
+						transactions={filteredTransactions}
+						periodLabel={monthLabel}
+					/>
 				</div>
 			</div>
-		</MonetaryVisibilityProvider>
+		</div>
 	);
 }

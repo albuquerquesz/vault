@@ -3,6 +3,10 @@
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import { useMemo } from "react";
 import {
+	MonetaryMask,
+	useMonetaryVisibility,
+} from "@/components/monetary-visibility";
+import {
 	PatternLines,
 	PieCenter,
 	PieChart,
@@ -83,6 +87,7 @@ export function OrderSourceMixContent({
 	month: string;
 	sourceData: OrderSourceDatum[];
 }) {
+	const { isVisible } = useMonetaryVisibility();
 	const monthLabel = useMemo(() => formatMonthLabel(month), [month]);
 
 	const pieData = useMemo<PieData[]>(
@@ -136,6 +141,7 @@ export function OrderSourceMixContent({
 								currency: "BRL",
 								maximumFractionDigits: 0,
 							}}
+							valueRenderer={isVisible ? undefined : () => <MonetaryMask />}
 						/>
 					</PieChart>
 				</div>

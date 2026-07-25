@@ -1,13 +1,15 @@
 "use client";
 
-import { Button } from "@vault/ui/components/button";
 import { cn } from "@vault/ui/lib/utils";
-import { createContext, useContext, useEffect, useState } from "react";
-import { AnimatedNumber } from "@/components/animated-number";
 import {
-	AnimatedSidebarEyeIcon,
-	AnimatedSidebarEyeOffIcon,
-} from "@/components/animated-sidebar-icons";
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
+import { AnimatedNumber } from "@/components/animated-number";
 
 const STORAGE_KEY = "vault-monetary-visibility";
 const MASKED_VALUE = "...";
@@ -26,12 +28,17 @@ function readStoredVisibility() {
 		return true;
 	}
 
-	const storedValue = window.localStorage.getItem(STORAGE_KEY);
-	if (storedValue === null) {
+	try {
+		const storedValue = window.localStorage.getItem(STORAGE_KEY);
+		if (storedValue === null) {
+			return true;
+		}
+
+		return storedValue === "true";
+	} catch {
+		// Storage can be unavailable in privacy-restricted browser contexts.
 		return true;
 	}
-
-	return storedValue === "true";
 }
 
 export function MonetaryVisibilityProvider({
@@ -40,18 +47,25 @@ export function MonetaryVisibilityProvider({
 	children: React.ReactNode;
 }) {
 	const [isVisible, setVisible] = useState(readStoredVisibility);
+	const toggle = useCallback(() => {
+		setVisible((currentValue) => !currentValue);
+	}, []);
+	const contextValue = useMemo(
+		() => ({ isVisible, setVisible, toggle }),
+		[isVisible, toggle],
+	);
 
 	useEffect(() => {
-		window.localStorage.setItem(STORAGE_KEY, String(isVisible));
+		try {
+			window.localStorage.setItem(STORAGE_KEY, String(isVisible));
+		} catch {
+			// The in-memory preference still works when persistence is unavailable.
+		}
 	}, [isVisible]);
 
 	return (
 		<MonetaryVisibilityContext.Provider
-			value={{
-				isVisible,
-				setVisible,
-				toggle: () => setVisible((currentValue) => !currentValue),
-			}}
+			value={contextValue}
 		>
 			{children}
 		</MonetaryVisibilityContext.Provider>
@@ -110,19 +124,17 @@ export function MonetaryMask({
 export function MaskedMonetaryText({
 	children,
 	className,
-	mask = MASKED_VALUE,
 	prefix = "R$",
 }: {
 	children: React.ReactNode;
 	className?: string;
-	mask?: string;
 	prefix?: React.ReactNode;
 }) {
 	const { isVisible } = useMonetaryVisibility();
 
 	return (
 		<span className={className}>
-			{isVisible ? children : <MonetaryMask prefix={prefix ?? mask} />}
+			{isVisible ? children : <MonetaryMask prefix={prefix} />}
 		</span>
 	);
 }
@@ -134,7 +146,6 @@ export function MaskedMonetaryValue({
 	start = 0,
 	duration = 0.9,
 	className,
-	mask = MASKED_VALUE,
 	prefix = "R$",
 }: {
 	value: number;
@@ -143,7 +154,6 @@ export function MaskedMonetaryValue({
 	start?: number;
 	duration?: number;
 	className?: string;
-	mask?: string;
 	prefix?: React.ReactNode;
 }) {
 	const { isVisible } = useMonetaryVisibility();
@@ -151,7 +161,7 @@ export function MaskedMonetaryValue({
 	if (!isVisible) {
 		return (
 			<span className={className}>
-				<MonetaryMask prefix={prefix ?? mask} />
+				<MonetaryMask prefix={prefix} />
 			</span>
 		);
 	}
@@ -169,34 +179,4 @@ export function MaskedMonetaryValue({
 	}
 
 	return <span className={className}>{format(value)}</span>;
-}
-
-export function MonetaryVisibilityToggle() {
-	const { isVisible, toggle } = useMonetaryVisibility();
-
-	return (
-		<Button
-			aria-label={
-				isVisible ? "Ocultar valores monetários" : "Mostrar valores monetários"
-			}
-			aria-pressed={!isVisible}
-			className="size-10 rounded-full p-0 text-muted-foreground"
-			onClick={toggle}
-			size="icon"
-			type="button"
-			variant="ghost"
-		>
-			{isVisible ? (
-				<AnimatedSidebarEyeIcon
-					className="size-10 [&_svg]:scale-125"
-					size={48}
-				/>
-			) : (
-				<AnimatedSidebarEyeOffIcon
-					className="size-10 [&_svg]:scale-125"
-					size={48}
-				/>
-			)}
-		</Button>
-	);
 }

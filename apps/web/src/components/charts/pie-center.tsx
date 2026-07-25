@@ -36,6 +36,8 @@ export interface PieCenterProps {
 	prefix?: string;
 	/** Suffix to show after the number (e.g., "%") */
 	suffix?: string;
+	/** Optional value renderer for sensitive or domain-specific display rules. */
+	valueRenderer?: (value: number) => ReactNode;
 }
 
 /**
@@ -57,6 +59,7 @@ export function PieCenter({
 	labelClassName = chartCenterLabelClassName,
 	prefix,
 	suffix,
+	valueRenderer,
 }: PieCenterProps) {
 	const { data, totalValue, innerRadius, geometryScrubbing } = usePieStable();
 	const { hoveredIndex } = usePieHover();
@@ -115,6 +118,7 @@ export function PieCenter({
 				suffix={suffix}
 				value={displayValue}
 				valueClassName={valueClassName}
+				valueRenderer={valueRenderer}
 			/>
 		</div>
 	);

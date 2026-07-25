@@ -14,7 +14,7 @@ import {
 	PencilIcon,
 	Trash2Icon,
 } from "lucide-react";
-import { AnimatedNumber } from "@/components/animated-number";
+import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import type { Goal } from "@/features/finance/sdk";
 
 const currencyFmt = new Intl.NumberFormat("pt-BR", {
@@ -89,9 +89,10 @@ export function GoalList({
 						</div>
 
 						<div className="flex shrink-0 items-center gap-1">
-							<AnimatedNumber
+							<MaskedMonetaryValue
 								className="text-sm font-semibold tabular-nums text-white"
 								format={(value) => currencyFmt.format(value)}
+								animated
 								value={goal.targetAmount}
 							/>
 

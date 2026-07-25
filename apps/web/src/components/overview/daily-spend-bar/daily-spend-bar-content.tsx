@@ -11,6 +11,11 @@ import {
 	ChartTooltip,
 	Grid,
 } from "@/components/bar-chart";
+import {
+	MaskedMonetaryValue,
+	maskMonetaryText,
+	useMonetaryVisibility,
+} from "@/components/monetary-visibility";
 import type { DailySpendDatum } from "./hooks/use-daily-spend-bar";
 
 const brlFormatter = new Intl.NumberFormat("pt-BR", {
@@ -59,6 +64,7 @@ export function DailySpendBarContent({
 	chartData: DailySpendDatum[];
 	peakDay: DailySpendDatum | null;
 }) {
+	const { isVisible } = useMonetaryVisibility();
 	const peakIndex = peakDay != null ? peakDay.dayNumber - 1 : undefined;
 
 	const colorFor = (datum: Record<string, unknown>, _index: number) =>
@@ -68,7 +74,7 @@ export function DailySpendBarContent({
 		<div className="flex h-full min-h-40 w-full flex-1 flex-col gap-2 sm:min-h-55">
 			{peakDay ? (
 				<p className="mb-4 shrink-0 self-start text-2xl font-semibold tracking-tight tabular-nums text-foreground sm:mb-8 sm:text-4xl">
-					{formatBrlWhole(peakDay.amount)}
+					<MaskedMonetaryValue format={formatBrlWhole} value={peakDay.amount} />
 				</p>
 			) : null}
 			<BarChart
@@ -108,7 +114,7 @@ export function DailySpendBarContent({
 							{
 								color: isPeak ? PEAK_BAR_COLOR : BAR_COLOR,
 								label: isPeak ? `Dia ${day} · pico` : `Dia ${day}`,
-								value: formatBrl(amount),
+								value: maskMonetaryText(formatBrl(amount), isVisible),
 							},
 						];
 					}}
