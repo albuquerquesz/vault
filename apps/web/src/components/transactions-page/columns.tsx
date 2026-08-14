@@ -2,7 +2,6 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@vault/ui/components/badge";
-import { Checkbox } from "@vault/ui/components/checkbox";
 import { cn } from "@vault/ui/lib/utils";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { InstitutionMark } from "@/components/institution-mark";
@@ -20,23 +19,8 @@ export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 		header: "Descrição",
 		enableSorting: false,
 		cell: ({ row }) => {
-			const selectable = row.original.isDeletable || row.original.isHideable;
-
 			return (
 				<div className="flex min-w-0 max-w-[19rem] items-center gap-2 lg:max-w-[16rem] xl:max-w-[19rem]">
-					<Checkbox
-						aria-label="Selecionar transação"
-						checked={row.getIsSelected()}
-						className="size-3.5 shrink-0 aspect-square rounded-[2px]"
-						disabled={!selectable}
-						onCheckedChange={(checked) => {
-							if (!selectable) {
-								return;
-							}
-							row.toggleSelected(checked === true);
-						}}
-						onClick={(event) => event.stopPropagation()}
-					/>
 					<InstitutionMark
 						name={row.original.sourceAccountName}
 						provider={row.original.sourceProvider}

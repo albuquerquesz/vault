@@ -121,7 +121,6 @@ export function TransactionsPage() {
 				<TransactionsTable
 					transactions={filteredTransactions}
 					hasActiveFilters={hasActiveFilters}
-					month={selectedMonth}
 					monthLabel={monthLabel}
 				/>
 			</div>

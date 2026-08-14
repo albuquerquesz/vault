@@ -4,9 +4,7 @@ import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
-	type OnChangeFn,
 	type Row,
-	type RowSelectionState,
 	useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -24,11 +22,8 @@ interface DataTableProps<TData, TValue> {
 	data: TData[];
 	/** How many rows to reveal per scroll batch. */
 	pageSize?: number;
-	/** Stable row id for selection across infinite-scroll batches. */
+	/** Stable row id for rows across infinite-scroll batches. */
 	getRowId?: (originalRow: TData, index: number) => string;
-	enableRowSelection?: boolean | ((row: TData) => boolean);
-	rowSelection?: RowSelectionState;
-	onRowSelectionChange?: OnChangeFn<RowSelectionState>;
 	/** When set, inserts a group header before the first row of each group. */
 	getGroupKey?: (row: TData) => string;
 	renderGroupHeader?: (groupKey: string) => ReactNode;
@@ -40,43 +35,18 @@ export function DataTable<TData, TValue>({
 	data,
 	pageSize = 10,
 	getRowId,
-	enableRowSelection = true,
-	rowSelection: controlledSelection,
-	onRowSelectionChange,
 	getGroupKey,
 	renderGroupHeader,
 	mobileRowRenderer,
 }: DataTableProps<TData, TValue>) {
 	const [visibleCount, setVisibleCount] = useState(pageSize);
-	const [uncontrolledSelection, setUncontrolledSelection] =
-		useState<RowSelectionState>({});
 	const sentinelRef = useRef<HTMLDivElement>(null);
 	const isMobile = useIsMobile();
-
-	const isControlled = controlledSelection !== undefined;
-	const rowSelection = isControlled
-		? controlledSelection
-		: uncontrolledSelection;
-	const setRowSelection: OnChangeFn<RowSelectionState> = (updater) => {
-		if (isControlled) {
-			onRowSelectionChange?.(updater);
-			return;
-		}
-		setUncontrolledSelection(updater);
-		onRowSelectionChange?.(updater);
-	};
 
 	// Reset batch when filters / month change the dataset.
 	useEffect(() => {
 		setVisibleCount(pageSize);
 	}, [data, pageSize]);
-
-	// Clear internal selection when the underlying dataset identity changes.
-	useEffect(() => {
-		if (!isControlled) {
-			setUncontrolledSelection({});
-		}
-	}, [data, isControlled]);
 
 	const visibleData = useMemo(
 		() => data.slice(0, visibleCount),
@@ -109,12 +79,6 @@ export function DataTable<TData, TValue>({
 	const table = useReactTable({
 		data: visibleData,
 		columns,
-		state: { rowSelection },
-		onRowSelectionChange: setRowSelection,
-		enableRowSelection:
-			typeof enableRowSelection === "function"
-				? (row) => enableRowSelection(row.original)
-				: enableRowSelection,
 		getCoreRowModel: getCoreRowModel(),
 		getRowId,
 	});
@@ -184,8 +148,7 @@ export function DataTable<TData, TValue>({
 												</TableRow>
 											) : null}
 											<TableRow
-												className="h-9 border-b border-border/40 hover:bg-muted/20 data-[state=selected]:bg-muted/20 sm:h-10"
-												data-state={row.getIsSelected() && "selected"}
+												className="h-9 border-b border-border/40 hover:bg-muted/20 sm:h-10"
 											>
 												{row.getVisibleCells().map((cell, cellIndex) => (
 													<TableCell
