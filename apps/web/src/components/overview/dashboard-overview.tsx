@@ -1,8 +1,8 @@
 "use client";
 
 import { DailySpendBarCard } from "@/components/overview/daily-spend-bar/daily-spend-bar-card";
-import { GoalsCard } from "@/components/overview/goals/goals-card";
 import { useDashboardOverview } from "@/components/overview/hooks/use-dashboard-overview";
+import { MonthlySpendingGoalCard } from "@/components/monthly-spending-goal-card";
 import { MonthlyBillCard } from "@/components/overview/monthly-bill/monthly-bill-card";
 import { OrderSourceMixCard } from "@/components/overview/order-source-mix/order-source-mix-card";
 import { PartialResultCard } from "@/components/overview/partial-result/partial-result-card";
@@ -39,7 +39,7 @@ export function DashboardOverview() {
 						/>
 					</div>
 					<div className="min-h-0 min-w-0 xl:flex-1">
-						<GoalsCard className="min-h-0 sm:min-h-0 xl:min-h-0" />
+						<MonthlySpendingGoalCard month={selectedMonth} />
 					</div>
 				</div>
 				<div className="min-w-0 xl:col-span-6">

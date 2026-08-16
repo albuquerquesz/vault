@@ -5,6 +5,7 @@ export * from "./goal.js";
 export * from "./monthly-bill.js";
 export * from "./monthly-bill-item.js";
 export * from "./monthly-budget.js";
+export * from "./monthly-spending-goal.js";
 export * from "./pluggy-account.js";
 export * from "./pluggy-bill.js";
 export * from "./pluggy-credentials.js";

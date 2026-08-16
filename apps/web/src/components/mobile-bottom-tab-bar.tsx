@@ -17,7 +17,7 @@ export function MobileBottomTabBar() {
 				"fixed inset-x-0 bottom-0 z-[160] border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-1.5 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden",
 			)}
 		>
-			<div className="mx-auto grid w-full max-w-md grid-cols-2 gap-2">
+			<div className="mx-auto grid w-full max-w-md grid-cols-3 gap-1.5 sm:gap-2">
 				{navLinks.map((item) => {
 					const itemPath = item.path ?? "";
 					const isActive =
@@ -43,7 +43,7 @@ export function MobileBottomTabBar() {
 							>
 								{item.icon}
 							</span>
-							<span>{item.title}</span>
+							<span>{item.mobileTitle ?? item.title}</span>
 						</Link>
 					);
 				})}

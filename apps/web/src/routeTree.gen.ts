@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as SpendingGoalRouteImport } from './routes/spending-goal'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PluggyRouteImport } from './routes/pluggy'
 import { Route as LoginRouteImport } from './routes/login'
@@ -22,6 +23,11 @@ import { Route as AuthErrorRouteImport } from './routes/auth.error'
 const TransactionsRoute = TransactionsRouteImport.update({
   id: '/transactions',
   path: '/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpendingGoalRoute = SpendingGoalRouteImport.update({
+  id: '/spending-goal',
+  path: '/spending-goal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
+  '/spending-goal': typeof SpendingGoalRoute
   '/transactions': typeof TransactionsRouteWithChildren
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
+  '/spending-goal': typeof SpendingGoalRoute
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
   '/transactions/$transactionId': typeof TransactionsTransactionIdRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
+  '/spending-goal': typeof SpendingGoalRoute
   '/transactions': typeof TransactionsRouteWithChildren
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pluggy'
     | '/settings'
+    | '/spending-goal'
     | '/transactions'
     | '/auth/error'
     | '/dashboard/daily-expenses'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pluggy'
     | '/settings'
+    | '/spending-goal'
     | '/auth/error'
     | '/dashboard/daily-expenses'
     | '/transactions/$transactionId'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pluggy'
     | '/settings'
+    | '/spending-goal'
     | '/transactions'
     | '/auth/error'
     | '/dashboard/daily-expenses'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PluggyRoute: typeof PluggyRoute
   SettingsRoute: typeof SettingsRoute
+  SpendingGoalRoute: typeof SpendingGoalRoute
   TransactionsRoute: typeof TransactionsRouteWithChildren
   AuthErrorRoute: typeof AuthErrorRoute
   DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       path: '/transactions'
       fullPath: '/transactions'
       preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spending-goal': {
+      id: '/spending-goal'
+      path: '/spending-goal'
+      fullPath: '/spending-goal'
+      preLoaderRoute: typeof SpendingGoalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -231,6 +251,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PluggyRoute: PluggyRoute,
   SettingsRoute: SettingsRoute,
+  SpendingGoalRoute: SpendingGoalRoute,
   TransactionsRoute: TransactionsRouteWithChildren,
   AuthErrorRoute: AuthErrorRoute,
   DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,

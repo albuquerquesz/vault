@@ -92,6 +92,13 @@
 			"when": 1784500000000,
 			"tag": "0012_pluggy_hidden_transactions",
 			"breakpoints": true
+		},
+		{
+			"idx": 13,
+			"version": "7",
+			"when": 1786880319503,
+			"tag": "0013_monthly_spending_goal",
+			"breakpoints": true
 		}
 	]
 }

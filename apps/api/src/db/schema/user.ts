@@ -3,6 +3,7 @@ import { boolean, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { account } from "./account.js";
 import { expense } from "./expense.js";
 import { monthlyBudget } from "./monthly-budget.js";
+import { monthlySpendingGoal } from "./monthly-spending-goal.js";
 import { session } from "./session.js";
 
 export type UserSettings = {
@@ -31,4 +32,5 @@ export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	expenses: many(expense),
 	budgets: many(monthlyBudget),
+	monthlySpendingGoals: many(monthlySpendingGoal),
 }));

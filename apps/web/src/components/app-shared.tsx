@@ -1,5 +1,5 @@
 import { useLocation } from "@tanstack/react-router";
-import { Settings2Icon } from "lucide-react";
+import { Settings2Icon, TargetIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import {
 	AnimatedSidebarChartColumnIncreasingIcon,
@@ -10,6 +10,7 @@ export type AppNavSurface = "sidebar" | "breadcrumbs" | "mobile-tab-bar";
 
 export type SidebarNavItem = {
 	title: string;
+	mobileTitle?: string;
 	path?: string;
 	icon?: ReactNode;
 	isActive?: boolean;
@@ -39,6 +40,13 @@ const navItemsStatic: SidebarNavItem[] = [
 		title: "Transações",
 		path: "/transactions",
 		icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
+		surfaces: PRIMARY_NAV_SURFACES,
+	},
+	{
+		title: "Meta de gastos",
+		mobileTitle: "Meta",
+		path: "/spending-goal",
+		icon: <TargetIcon className="size-5" />,
 		surfaces: PRIMARY_NAV_SURFACES,
 	},
 ];
@@ -110,6 +118,11 @@ export const navGroups: SidebarNavGroup[] = [
 				title: "Transações",
 				path: "/transactions",
 				icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
+			},
+			{
+				title: "Meta de gastos",
+				path: "/spending-goal",
+				icon: <TargetIcon className="size-4" />,
 			},
 		],
 	},

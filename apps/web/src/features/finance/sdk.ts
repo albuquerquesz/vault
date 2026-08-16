@@ -94,6 +94,11 @@ export interface FinanceMonthlyBills {
 	items: FinanceMonthlyBillItem[];
 }
 
+export interface MonthlySpendingGoal {
+	month: string;
+	targetAmount: number | null;
+	}
+
 export interface Goal {
 	id: string;
 	userId: string;
@@ -116,6 +121,11 @@ export interface CreateExpenseInput {
 export interface UpsertBudgetInput {
 	month: string;
 	income: number;
+}
+
+export interface UpsertMonthlySpendingGoalInput {
+	month: string;
+	targetAmount: number;
 }
 
 export interface CreateGoalInput {
@@ -209,6 +219,16 @@ export const financeSdk = {
 		} as const;
 	},
 
+	monthlySpendingGoalOptions(month = getMonthValue()) {
+		return {
+			queryKey: ["spendingGoal", month],
+			queryFn: () =>
+				apiFetch<MonthlySpendingGoal>(
+					`/api/finance/spending-goal?month=${encodeURIComponent(month)}`,
+				),
+		} as const;
+	},
+
 	partialResultOptions(month = getMonthValue()) {
 		return {
 			queryKey: ["partialResult", month],
@@ -250,6 +270,20 @@ export const financeSdk = {
 			onSuccess: async () => {
 				await invalidateFinanceMonthQueries(client, month, today);
 			},
+		} as const;
+	},
+
+	upsertMonthlySpendingGoalMutationOptions(
+		client: QueryClient = queryClient,
+	) {
+		return {
+			mutationFn: (input: UpsertMonthlySpendingGoalInput) =>
+				apiFetch<MonthlySpendingGoal>("/api/finance/spending-goal", {
+					method: "POST",
+					body: input,
+				}),
+			onSuccess: (_data: MonthlySpendingGoal, input: UpsertMonthlySpendingGoalInput) =>
+				client.invalidateQueries({ queryKey: ["spendingGoal", input.month] }),
 		} as const;
 	},
 
@@ -450,6 +484,16 @@ export function useUpsertMonthlyBudget(
 ) {
 	return useMutation(
 		financeSdk.upsertMonthlyBudgetMutationOptions(month, queryClient, today),
+	);
+}
+
+export function useMonthlySpendingGoal(month = getMonthValue()) {
+	return useQuery(financeSdk.monthlySpendingGoalOptions(month));
+}
+
+export function useUpsertMonthlySpendingGoal() {
+	return useMutation(
+		financeSdk.upsertMonthlySpendingGoalMutationOptions(queryClient),
 	);
 }
 
