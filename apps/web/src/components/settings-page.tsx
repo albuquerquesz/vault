@@ -142,7 +142,7 @@ function SettingsSectionChips({
 						value={section.id}
 						className={cn(
 							// Loose chips (not a single segmented track): full pill, muted active fill
-							"h-8 flex-none rounded-full border-0 px-4 text-sm font-medium shadow-none after:hidden",
+					"min-h-11 h-auto flex-none rounded-full border-0 px-4 text-sm font-medium shadow-none after:hidden",
 							"text-muted-foreground hover:bg-muted/50 hover:text-foreground",
 							"data-active:bg-muted data-active:text-foreground",
 							"dark:data-active:border-transparent dark:data-active:bg-muted dark:data-active:text-foreground",
@@ -357,7 +357,7 @@ function GeneralSettings() {
 							<Button
 								key={option.value}
 								className={cn(
-									"h-10 rounded-xl text-sm",
+									"min-h-11 h-auto rounded-xl text-sm",
 									isSelected
 										? "bg-primary text-primary-foreground hover:bg-primary/90"
 										: "text-muted-foreground hover:bg-muted",
@@ -419,7 +419,7 @@ function GeneralSettings() {
 						/>
 					</div>
 					<Button
-						className="h-9 rounded-md px-4 sm:self-end"
+						className="min-h-11 h-auto w-full rounded-md px-4 sm:w-auto sm:self-end"
 						onClick={handleSaveIncome}
 						type="button"
 						disabled={updatePreferences.isPending}
@@ -474,7 +474,7 @@ function GeneralSettings() {
 						/>
 					</div>
 					<Button
-						className="h-9 rounded-md px-4 sm:self-end"
+						className="min-h-11 h-auto w-full rounded-md px-4 sm:w-auto sm:self-end"
 						onClick={handleSaveIncome}
 						type="button"
 						disabled={updatePreferences.isPending}
@@ -538,7 +538,7 @@ function GeneralSettings() {
 
 					<div className="flex flex-col gap-2 sm:flex-row">
 						<Button
-							className="h-9 rounded-md px-4"
+							className="min-h-11 h-auto w-full rounded-md px-4 sm:w-auto"
 							type="submit"
 							disabled={
 								!pluggyClientId.trim() ||
@@ -554,7 +554,7 @@ function GeneralSettings() {
 						</Button>
 						{pluggyStatus?.configured ? (
 							<Button
-								className="h-9 rounded-md px-4"
+								className="min-h-11 h-auto w-full rounded-md px-4 sm:w-auto"
 								type="button"
 								variant="outline"
 								disabled={deletePluggyCredentials.isPending}
@@ -787,7 +787,7 @@ function AccountSettings() {
 						</div>
 
 						<Button
-							className="h-9 rounded-md px-4 lg:mb-0.5"
+							className="min-h-11 h-auto w-full rounded-md px-4 lg:mb-0.5 lg:w-auto"
 							onClick={handleSaveProfile}
 							type="button"
 							disabled={updateProfile.isPending}
@@ -809,7 +809,7 @@ function AccountSettings() {
 						</p>
 					</div>
 					<Button
-						className="rounded-md"
+						className="min-h-11 w-full rounded-md sm:w-auto"
 						onClick={handleSignOut}
 						type="button"
 						variant="destructive"
@@ -874,10 +874,10 @@ export function SettingsPage() {
 	};
 
 	return (
-		<PageContent className="space-y-6 py-6">
+		<PageContent className="space-y-5 py-4 sm:space-y-6 sm:py-6">
 			<div className="space-y-1">
 				<h1
-					className="text-2xl font-semibold tracking-tight"
+					className="text-2xl font-semibold tracking-tight sm:text-3xl"
 					style={headingStyle}
 				>
 					Configurações

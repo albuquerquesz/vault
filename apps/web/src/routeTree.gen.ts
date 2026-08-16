@@ -14,6 +14,8 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PluggyRouteImport } from './routes/pluggy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TransactionsIndexRouteImport } from './routes/transactions.index'
+import { Route as TransactionsTransactionIdRouteImport } from './routes/transactions.$transactionId'
 import { Route as DashboardDailyExpensesRouteImport } from './routes/dashboard.daily-expenses'
 import { Route as AuthErrorRouteImport } from './routes/auth.error'
 
@@ -42,6 +44,17 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TransactionsIndexRoute = TransactionsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TransactionsRoute,
+} as any)
+const TransactionsTransactionIdRoute =
+  TransactionsTransactionIdRouteImport.update({
+    id: '/$transactionId',
+    path: '/$transactionId',
+    getParentRoute: () => TransactionsRoute,
+  } as any)
 const DashboardDailyExpensesRoute = DashboardDailyExpensesRouteImport.update({
   id: '/dashboard/daily-expenses',
   path: '/dashboard/daily-expenses',
@@ -58,18 +71,21 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
-  '/transactions': typeof TransactionsRoute
+  '/transactions': typeof TransactionsRouteWithChildren
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/transactions/$transactionId': typeof TransactionsTransactionIdRoute
+  '/transactions/': typeof TransactionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
-  '/transactions': typeof TransactionsRoute
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/transactions/$transactionId': typeof TransactionsTransactionIdRoute
+  '/transactions': typeof TransactionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,9 +93,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/settings': typeof SettingsRoute
-  '/transactions': typeof TransactionsRoute
+  '/transactions': typeof TransactionsRouteWithChildren
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/transactions/$transactionId': typeof TransactionsTransactionIdRoute
+  '/transactions/': typeof TransactionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,15 +109,18 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/auth/error'
     | '/dashboard/daily-expenses'
+    | '/transactions/$transactionId'
+    | '/transactions/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/pluggy'
     | '/settings'
-    | '/transactions'
     | '/auth/error'
     | '/dashboard/daily-expenses'
+    | '/transactions/$transactionId'
+    | '/transactions'
   id:
     | '__root__'
     | '/'
@@ -109,6 +130,8 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/auth/error'
     | '/dashboard/daily-expenses'
+    | '/transactions/$transactionId'
+    | '/transactions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,7 +139,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PluggyRoute: typeof PluggyRoute
   SettingsRoute: typeof SettingsRoute
-  TransactionsRoute: typeof TransactionsRoute
+  TransactionsRoute: typeof TransactionsRouteWithChildren
   AuthErrorRoute: typeof AuthErrorRoute
   DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
 }
@@ -158,6 +181,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/transactions/': {
+      id: '/transactions/'
+      path: '/'
+      fullPath: '/transactions/'
+      preLoaderRoute: typeof TransactionsIndexRouteImport
+      parentRoute: typeof TransactionsRoute
+    }
+    '/transactions/$transactionId': {
+      id: '/transactions/$transactionId'
+      path: '/$transactionId'
+      fullPath: '/transactions/$transactionId'
+      preLoaderRoute: typeof TransactionsTransactionIdRouteImport
+      parentRoute: typeof TransactionsRoute
+    }
     '/dashboard/daily-expenses': {
       id: '/dashboard/daily-expenses'
       path: '/dashboard/daily-expenses'
@@ -175,12 +212,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface TransactionsRouteChildren {
+  TransactionsTransactionIdRoute: typeof TransactionsTransactionIdRoute
+  TransactionsIndexRoute: typeof TransactionsIndexRoute
+}
+
+const TransactionsRouteChildren: TransactionsRouteChildren = {
+  TransactionsTransactionIdRoute: TransactionsTransactionIdRoute,
+  TransactionsIndexRoute: TransactionsIndexRoute,
+}
+
+const TransactionsRouteWithChildren = TransactionsRoute._addFileChildren(
+  TransactionsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   PluggyRoute: PluggyRoute,
   SettingsRoute: SettingsRoute,
-  TransactionsRoute: TransactionsRoute,
+  TransactionsRoute: TransactionsRouteWithChildren,
   AuthErrorRoute: AuthErrorRoute,
   DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,
 }

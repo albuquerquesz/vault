@@ -77,6 +77,10 @@ export function useMobileTabBarLinks(): SidebarNavItem[] {
 /** Active page for header breadcrumbs (sidebar + breadcrumb-only routes). */
 export function useActiveBreadcrumbPage(): SidebarNavItem | null {
 	const activePath = useActivePath();
+	if (activePath.startsWith("/transactions/")) {
+		return { title: "Detalhe da transação", isActive: true };
+	}
+
 	const navLinks = useNavLinks();
 	const fromSidebar = navLinks.find((item) => item.isActive);
 	if (fromSidebar) return fromSidebar;

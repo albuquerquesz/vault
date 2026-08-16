@@ -15,18 +15,18 @@ export function DashboardDetailPage({
 	detail: DashboardDetailDefinition;
 }) {
 	return (
-		<div className="grid gap-6">
+		<div className="grid gap-4 pt-4 sm:gap-6 sm:pt-6">
 			<div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
 				<div className="space-y-2">
-					<h1 className="text-4xl font-semibold tracking-tight text-foreground">
+					<h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
 						{detail.title}
 					</h1>
-					<p className="max-w-3xl text-base text-muted-foreground">
+					<p className="max-w-[65ch] text-sm leading-6 text-muted-foreground sm:text-base">
 						{detail.description}
 					</p>
 				</div>
 				<Button
-					className="w-full md:w-auto"
+					className="min-h-11 w-full md:w-auto"
 					render={<Link to="/" />}
 					variant="outline"
 				>
@@ -34,9 +34,9 @@ export function DashboardDetailPage({
 				</Button>
 			</div>
 
-			<Card className="financial-panel-border min-h-[24rem] ring-0">
+			<Card className="financial-panel-border min-h-0 ring-0 sm:min-h-[24rem]">
 				<CardHeader className="gap-4">
-					<CardTitle className="text-3xl">{detail.scaffoldTitle}</CardTitle>
+					<CardTitle className="text-2xl sm:text-3xl">{detail.scaffoldTitle}</CardTitle>
 					<CardDescription className="max-w-3xl text-base">
 						{detail.scaffoldDescription}
 					</CardDescription>

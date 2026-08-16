@@ -1,6 +1,7 @@
 "use client";
 
 import type { Row } from "@tanstack/react-table";
+import { useNavigate } from "@tanstack/react-router";
 import { Badge } from "@vault/ui/components/badge";
 import { cn } from "@vault/ui/lib/utils";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
@@ -27,6 +28,19 @@ export function TransactionsTable({
 	monthLabel: string;
 	hasActiveFilters?: boolean;
 }) {
+	const navigate = useNavigate();
+
+	const openTransaction = (transaction: FinanceTransaction) => {
+		if (transaction.source !== "pluggy") {
+			return;
+		}
+
+		void navigate({
+			to: "/transactions/$transactionId",
+			params: { transactionId: transaction.id },
+		});
+	};
+
 	// Keep newest-first display order.
 	const orderedTransactions = useMemo(
 		() =>
@@ -53,7 +67,30 @@ export function TransactionsTable({
 		const mobileDescription = maskMobileDescription(description);
 
 		return (
-			<div className="rounded-2xl border border-border/60 bg-card/70 px-3 py-3 shadow-sm backdrop-blur-sm transition-colors">
+			<div
+				className={cn(
+					"min-h-[4.5rem] rounded-2xl border border-border/60 bg-card/70 px-3 py-3.5 shadow-sm backdrop-blur-sm transition-colors",
+					transaction.source === "pluggy" &&
+						"cursor-pointer hover:border-border hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+				)}
+				onClick={
+					transaction.source === "pluggy"
+						? () => openTransaction(transaction)
+						: undefined
+				}
+				onKeyDown={
+					transaction.source === "pluggy"
+						? (event) => {
+								if (event.key === "Enter" || event.key === " ") {
+									event.preventDefault();
+									openTransaction(transaction);
+								}
+						  }
+						: undefined
+				}
+				role={transaction.source === "pluggy" ? "link" : undefined}
+				tabIndex={transaction.source === "pluggy" ? 0 : undefined}
+			>
 				<div className="flex min-w-0 items-start gap-2.5">
 					<InstitutionMark
 						name={transaction.sourceAccountName}
@@ -127,6 +164,8 @@ export function TransactionsTable({
 				getGroupKey={(row) => row.date}
 				getRowId={(row) => row.id}
 				mobileRowRenderer={renderMobileTransactionRow}
+				onRowClick={(row) => openTransaction(row.original)}
+				isRowClickable={(row) => row.original.source === "pluggy"}
 				pageSize={10}
 				renderGroupHeader={(date) => formatTransactionDayLabel(date)}
 			/>

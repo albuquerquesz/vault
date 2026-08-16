@@ -116,24 +116,16 @@ export function TransactionsPage() {
 
 	// Full width like overview — no max-w-[1200px] PageContent cap.
 	return (
-		<div className="grid w-full min-w-0 grid-cols-1 gap-4 overflow-x-hidden pt-6 lg:grid-cols-[3fr_2fr]">
-			<div className="min-w-0">
-				<TransactionsTable
-					transactions={filteredTransactions}
-					hasActiveFilters={hasActiveFilters}
-					monthLabel={monthLabel}
-				/>
-			</div>
-
-			{/* pt matches first day-group header in the table (data-table) */}
-			<div className="flex min-w-0 flex-col gap-4 pt-4 sm:gap-8 sm:pt-5">
+		<div className="grid w-full min-w-0 grid-cols-1 gap-4 overflow-x-hidden pt-4 sm:pt-6 lg:grid-cols-[3fr_2fr]">
+			{/* Keep search and filters in the thumb zone before the list on phones. */}
+			<div className="order-first flex min-w-0 flex-col gap-4 lg:order-none lg:col-start-2 lg:row-start-1 lg:pt-5">
 				<div className="financial-panel-border flex w-full min-w-0 flex-col items-stretch gap-3 p-4 sm:gap-4">
 					<div className="flex w-full min-w-0 items-center gap-2">
 						<div className="relative min-w-0 flex-1">
 							<SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								aria-label="Buscar transações"
-								className="w-full rounded-md border-border/70 !bg-transparent pl-10 shadow-none dark:!bg-transparent dark:hover:!bg-transparent dark:focus-visible:!bg-transparent"
+								className="min-h-11 w-full rounded-md border-border/70 !bg-transparent pl-10 shadow-none dark:!bg-transparent dark:hover:!bg-transparent dark:focus-visible:!bg-transparent"
 								onChange={(event) => setSearchQuery(event.target.value)}
 								placeholder="Buscar por nota ou categoria"
 								value={searchQuery}
@@ -156,6 +148,14 @@ export function TransactionsPage() {
 						periodLabel={monthLabel}
 					/>
 				</div>
+			</div>
+
+			<div className="order-last min-w-0 lg:order-none lg:col-start-1 lg:row-start-1">
+				<TransactionsTable
+					transactions={filteredTransactions}
+					hasActiveFilters={hasActiveFilters}
+					monthLabel={monthLabel}
+				/>
 			</div>
 		</div>
 	);

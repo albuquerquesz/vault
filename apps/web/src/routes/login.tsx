@@ -24,7 +24,7 @@ function RouteComponent() {
 	}
 
 	return (
-		<main className="flex min-h-screen bg-[#0c0a09] text-white">
+		<main className="flex min-h-[100svh] bg-[#0c0a09] px-0 pb-[env(safe-area-inset-bottom,0px)] text-white">
 			{/* Left panel - Form */}
 			<section className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
 				<div className="mx-auto w-full max-w-sm space-y-6">

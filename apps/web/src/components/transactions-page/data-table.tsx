@@ -28,6 +28,8 @@ interface DataTableProps<TData, TValue> {
 	getGroupKey?: (row: TData) => string;
 	renderGroupHeader?: (groupKey: string) => ReactNode;
 	mobileRowRenderer?: (row: Row<TData>) => ReactNode;
+	onRowClick?: (row: Row<TData>) => void;
+	isRowClickable?: (row: Row<TData>) => boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -38,6 +40,8 @@ export function DataTable<TData, TValue>({
 	getGroupKey,
 	renderGroupHeader,
 	mobileRowRenderer,
+	onRowClick,
+	isRowClickable,
 }: DataTableProps<TData, TValue>) {
 	const [visibleCount, setVisibleCount] = useState(pageSize);
 	const sentinelRef = useRef<HTMLDivElement>(null);
@@ -95,10 +99,10 @@ export function DataTable<TData, TValue>({
 							const groupKey = getGroupKey?.(row.original);
 							const previousKey =
 								index > 0 ? getGroupKey?.(rows[index - 1]!.original) : undefined;
-							const showGroupHeader =
-								Boolean(getGroupKey) &&
-								groupKey !== undefined &&
-								groupKey !== previousKey;
+								const showGroupHeader =
+									Boolean(getGroupKey) &&
+									groupKey !== undefined &&
+									groupKey !== previousKey;
 
 							return (
 								<Fragment key={row.id}>
@@ -128,10 +132,13 @@ export function DataTable<TData, TValue>({
 										index > 0
 											? getGroupKey?.(rows[index - 1]!.original)
 											: undefined;
-									const showGroupHeader =
-										Boolean(getGroupKey) &&
-										groupKey !== undefined &&
-										groupKey !== previousKey;
+										const showGroupHeader =
+											Boolean(getGroupKey) &&
+											groupKey !== undefined &&
+											groupKey !== previousKey;
+									const rowClickable =
+										onRowClick !== undefined &&
+										(isRowClickable?.(row) ?? true);
 
 									return (
 										<Fragment key={row.id}>
@@ -147,10 +154,30 @@ export function DataTable<TData, TValue>({
 													</TableCell>
 												</TableRow>
 											) : null}
-											<TableRow
-												className="h-9 border-b border-border/40 hover:bg-muted/20 sm:h-10"
-											>
-												{row.getVisibleCells().map((cell, cellIndex) => (
+									<TableRow
+											className={cn(
+												"h-9 border-b border-border/40 hover:bg-muted/20 sm:h-10",
+												rowClickable &&
+													"cursor-pointer focus-visible:bg-muted/30 focus-visible:outline-none",
+											)}
+											onClick={
+												rowClickable && onRowClick
+													? () => onRowClick(row)
+													: undefined
+											}
+											onKeyDown={
+												rowClickable && onRowClick
+													? (event) => {
+															if (event.key === "Enter" || event.key === " ") {
+																event.preventDefault();
+																onRowClick(row);
+															}
+													  }
+													: undefined
+											}
+											tabIndex={rowClickable ? 0 : undefined}
+										>
+											{row.getVisibleCells().map((cell, cellIndex) => (
 													<TableCell
 														className={cn(
 															"px-2 py-1 text-xs sm:px-3 sm:text-sm",

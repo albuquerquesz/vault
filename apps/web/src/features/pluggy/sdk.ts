@@ -162,6 +162,34 @@ export function usePluggyTransactions(params?: {
 	});
 }
 
+export function usePluggyTransaction(transactionId: string) {
+	const transactionsQuery = usePluggyTransactions({ limit: 1000 });
+	const accountsQuery = usePluggyAccounts();
+
+	const transaction = transactionsQuery.data?.find(
+		(entry) => entry.id === transactionId,
+	);
+	const account = transaction?.pluggyAccountId
+		? accountsQuery.data?.find(
+				(entry) => entry.id === transaction.pluggyAccountId,
+			)
+		: undefined;
+
+	return {
+		transaction,
+		account,
+		isPending: transactionsQuery.isPending || accountsQuery.isPending,
+		isFetching: transactionsQuery.isFetching || accountsQuery.isFetching,
+		isError: transactionsQuery.isError || accountsQuery.isError,
+		refetch: async () => {
+			await Promise.all([
+				transactionsQuery.refetch(),
+				accountsQuery.refetch(),
+			]);
+		},
+	};
+}
+
 // ─── Sync ───────────────────────────────────────────────────────────────────
 
 export function usePluggySync() {

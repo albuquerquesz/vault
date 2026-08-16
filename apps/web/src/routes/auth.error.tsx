@@ -39,7 +39,7 @@ function RouteComponent() {
 		"Vault recebeu uma falha no retorno do OAuth. Reinicie o fluxo e tente novamente.";
 
 	return (
-		<main className="flex min-h-screen bg-[#0c0a09] px-4 py-10 text-white sm:px-6 sm:py-12">
+		<main className="flex min-h-[100svh] bg-[#0c0a09] px-4 py-10 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] text-white sm:px-6 sm:py-12">
 			<div className="mx-auto flex w-full max-w-md flex-col justify-center">
 				<div className="rounded-3xl border border-red-500/20 bg-zinc-950/80 p-6 shadow-2xl shadow-black/30 backdrop-blur">
 					<div className="mb-5 flex items-center gap-3">
@@ -60,7 +60,7 @@ function RouteComponent() {
 						</p>
 					) : null}
 
-					<div className="mt-6 flex gap-3">
+					<div className="mt-6 flex flex-col gap-3 sm:flex-row">
 						<Button className="flex-1" onClick={() => navigate({ to: "/login" })}>
 							Tentar de novo
 						</Button>

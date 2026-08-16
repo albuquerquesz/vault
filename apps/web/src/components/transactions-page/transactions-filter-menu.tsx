@@ -82,7 +82,7 @@ export function TransactionsFilterMenu({
 					>
 						<span
 							className={cn(
-								"inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-transparent text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground",
+						"inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-transparent text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground",
 								isActive && "border-primary/60 bg-primary/10 text-foreground",
 							)}
 						>
@@ -93,7 +93,7 @@ export function TransactionsFilterMenu({
 			/>
 			<DropdownMenuContent
 				align="end"
-				className="w-64 rounded-lg bg-card p-1"
+				className="w-[min(20rem,calc(100vw-1.5rem))] rounded-lg bg-card p-1"
 				sideOffset={6}
 			>
 				<DropdownMenuGroup>

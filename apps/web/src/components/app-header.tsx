@@ -10,7 +10,7 @@ export function AppHeader() {
 	return (
 		<header
 			className={cn(
-				"sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b px-3 sm:px-4 md:px-6",
+				"sticky top-0 z-50 flex min-h-14 shrink-0 items-center justify-between gap-2 border-b px-3 pt-[env(safe-area-inset-top,0px)] sm:px-4 md:px-6",
 				"bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/50",
 			)}
 		>
