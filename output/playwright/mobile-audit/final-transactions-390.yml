@@ -1,0 +1,58 @@
+- generic [active] [ref=f44e1]:
+  - generic [ref=f44e2]:
+    - main [ref=f44e4]:
+      - generic [ref=f44e5]:
+        - navigation "breadcrumb" [ref=f44e8]:
+          - list [ref=f44e9]:
+            - listitem [ref=f44e10]:
+              - link "Transações" [disabled] [ref=f44e11]
+        - button "Abrir configurações" [ref=f44e15]:
+          - generic [ref=f44e16]: VA
+      - generic [ref=f44e20]:
+        - generic [ref=f44e21]:
+          - generic [ref=f44e22]:
+            - generic [ref=f44e23]:
+              - textbox "Buscar transações" [ref=f44e28]:
+                - /placeholder: Buscar por nota ou categoria
+              - button "Filtrar transações" [ref=f44e29]
+            - generic [ref=f44e32]:
+              - generic [ref=f44e33]: Últimos 30d
+              - generic "Quantidade de transações" [ref=f44e37]: "4"
+              - generic "Total de saídas" [ref=f44e42]: R$ 2.777,80
+              - generic "Total de entradas" [ref=f44e46]: R$ 0,00
+          - generic [ref=f44e51]:
+            - generic [ref=f44e52]:
+              - paragraph [ref=f44e53]: Gastos por categoria
+              - paragraph [ref=f44e54]: Agosto de 2026
+            - application [ref=f44e58]:
+              - generic [ref=f44e119]:
+                - generic [ref=f44e120]: R$ 1.299,00
+                - generic [ref=f44e121]: R$ 89,90
+        - generic [ref=f44e74]:
+          - generic [ref=f44e75]: HOJE
+          - link "Café do bairro Alimentação Saída R$ 89,90" [ref=f44e76] [cursor=pointer]:
+            - generic [ref=f44e79]:
+              - paragraph [ref=f44e81]: Café do bairro
+              - generic [ref=f44e82]:
+                - generic "Alimentação" [ref=f44e83]
+                - generic [ref=f44e85]:
+                  - img "Saída" [ref=f44e86]
+                  - generic [ref=f44e88]: R$ 89,90
+          - generic [ref=f44e89]: ONTEM
+          - generic [ref=f44e91]:
+            - generic [ref=f44e92]: "?"
+            - generic [ref=f44e94]:
+              - paragraph [ref=f44e96]: Aluguel
+              - generic [ref=f44e97]:
+                - generic "Moradia" [ref=f44e98]
+                - generic [ref=f44e100]:
+                  - img "Saída" [ref=f44e101]
+                  - generic [ref=f44e103]: R$ 1.299,00
+      - navigation "Navegação principal" [ref=f44e106]:
+        - generic [ref=f44e107]:
+          - link "Visão Geral" [ref=f44e108] [cursor=pointer]:
+            - /url: /
+          - link "Transações" [ref=f44e112] [cursor=pointer]:
+            - /url: /transactions
+    - region "Notifications alt+T"
+  - generic [ref=f44e117]: "350"

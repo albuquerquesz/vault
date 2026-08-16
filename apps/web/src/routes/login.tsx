@@ -52,7 +52,7 @@ function RouteComponent() {
 			</section>
 
 			{/* Right panel - Testimonial */}
-			<section className="relative hidden flex-col overflow-hidden border-l border-zinc-800/50 lg:flex lg:flex-1">
+			<section className="relative hidden flex-col border-l border-zinc-800/50 lg:flex lg:flex-1">
 				{/* Grid background pattern */}
 				<div className="absolute inset-0 grid grid-cols-3 grid-rows-5 gap-2 p-4">
 					{Array.from({ length: 15 }).map((_, i) => (
@@ -76,17 +76,17 @@ function RouteComponent() {
 							</p>
 						</div>
 
-						<div className="w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-900/80 p-6 text-left backdrop-blur">
+						<div className="w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-900 p-6 text-left">
 							<blockquote className="mb-4 text-sm leading-relaxed text-white/90">
 								&quot;Vault is why I still have hair. No more worrying about UI
 								blocks.&quot;
 							</blockquote>
 							<div className="flex items-center gap-3">
 								<div>
-									<p className="text-sm font-medium text-white">
+									<p className="text-sm font-medium text-zinc-100">
 										Victor Albuquerque
 									</p>
-									<p className="text-xs text-zinc-500">Software Engineer</p>
+									<p className="text-sm text-zinc-300">Software Engineer</p>
 								</div>
 							</div>
 						</div>

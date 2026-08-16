@@ -52,8 +52,14 @@ export default defineConfig({
 		},
 	},
 	resolve: {
+		extensions: [".tsx", ".ts", ".jsx", ".js"],
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
+			"@vault/ui/globals.css": path.resolve(
+				__dirname,
+				"../../packages/ui/src/styles/globals.css",
+			),
+			"@vault/ui": path.resolve(__dirname, "../../packages/ui/src"),
 		},
 		tsconfigPaths: true,
 	},

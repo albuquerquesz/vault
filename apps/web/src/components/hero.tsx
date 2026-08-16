@@ -39,7 +39,7 @@ export function HeroSection() {
 				<a
 					className={cn(
 						"group mx-auto flex w-fit items-center gap-3 rounded-full border bg-card px-3 py-1 shadow",
-						"fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards transition-all delay-500 duration-500 ease-out",
+						"fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards transition-[opacity,transform] delay-500 duration-500 ease-out",
 					)}
 					href="#link"
 				>

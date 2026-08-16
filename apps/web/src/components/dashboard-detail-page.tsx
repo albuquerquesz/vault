@@ -21,13 +21,14 @@ export function DashboardDetailPage({
 					<h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
 						{detail.title}
 					</h1>
-					<p className="max-w-[65ch] text-sm leading-6 text-muted-foreground sm:text-base">
+				<p className="max-w-[65ch] py-1 text-sm leading-6 text-muted-foreground sm:text-base">
 						{detail.description}
 					</p>
 				</div>
 				<Button
 					className="min-h-11 w-full md:w-auto"
 					render={<Link to="/" />}
+					nativeButton={false}
 					variant="outline"
 				>
 					Voltar para a dashboard
@@ -35,18 +36,18 @@ export function DashboardDetailPage({
 			</div>
 
 			<Card className="financial-panel-border min-h-0 ring-0 sm:min-h-[24rem]">
-				<CardHeader className="gap-4">
+				<CardHeader className="gap-4 p-4 sm:p-6">
 					<CardTitle className="text-2xl sm:text-3xl">{detail.scaffoldTitle}</CardTitle>
-					<CardDescription className="max-w-3xl text-base">
+					<CardDescription className="max-w-[65ch] text-sm leading-6 sm:text-base">
 						{detail.scaffoldDescription}
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="grid gap-4 text-base text-muted-foreground">
-					<p>
+				<CardContent className="grid gap-4 p-4 text-base text-muted-foreground sm:p-6">
+					<p className="max-w-[65ch]">
 						Esta página foi criada como base de navegação para o indicador{" "}
 						<span className="font-medium text-foreground">{detail.title}</span>.
 					</p>
-					<p>
+					<p className="max-w-[65ch]">
 						O próximo passo aqui é substituir este scaffold por um painel
 						detalhado específico para esse indicador.
 					</p>

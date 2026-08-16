@@ -23,15 +23,15 @@ export function LatestChange() {
 		<div
 			className={cn(
 				"group/latest-change size-full min-h-27 justify-center border-t",
-				"relative flex size-full flex-col gap-1 overflow-hidden px-4 pt-3 pb-1 *:text-nowrap",
+				"relative flex size-full min-w-0 flex-col gap-1 overflow-visible px-4 py-3",
 				"transition-opacity group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0",
 			)}
 		>
-			<span className="font-light font-mono text-[10px] text-muted-foreground">
+			<span className="font-light font-mono text-xs text-muted-foreground">
 				{latestChange.badge}
 			</span>
-			<p className="font-medium text-xs">{latestChange.title}</p>
-			<span className="text-[10px] text-muted-foreground">
+			<p className="font-medium text-sm">{latestChange.title}</p>
+			<span className="text-xs text-muted-foreground">
 				{latestChange.description}
 			</span>
 			<Button
@@ -44,7 +44,7 @@ export function LatestChange() {
 				{latestChange.readMore.label}
 			</Button>
 			<Button
-				className="absolute top-2 right-2 z-10 size-6 rounded-full opacity-0 transition-opacity group-hover/latest-change:opacity-100"
+				className="absolute top-2 right-2 z-10 size-7 rounded-full opacity-100 transition-opacity md:opacity-0 md:group-hover/latest-change:opacity-100 md:focus-visible:opacity-100"
 				onClick={() => setIsOpen(false)}
 				size="icon-sm"
 				variant="ghost"
