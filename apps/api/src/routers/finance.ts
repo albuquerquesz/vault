@@ -32,6 +32,7 @@ import {
 	PLUGGY_IGNORED_EXPENSE_CATEGORIES,
 	rebuildExpensesFromStoredTransactions,
 } from "../services/pluggy.js";
+import { calculateMonthlySpendingGoal } from "../services/monthly-spending-goal.js";
 import { requireSession } from "../session.js";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -41,6 +42,10 @@ const expenseInput = z.object({
 	amount: z.number().positive(),
 	category: z.string().trim().min(1).max(64),
 	note: z.string().trim().max(280).optional(),
+});
+
+const manualTransactionInput = expenseInput.extend({
+	kind: z.enum(["expense", "income"]),
 });
 
 const transactionIdsInput = z.object({
@@ -78,6 +83,7 @@ function buildVisibleExpensesWhere(params: {
 		eq(expense.userId, userId),
 		gte(expense.expenseDate, start),
 		lte(expense.expenseDate, end),
+		eq(expense.kind, "expense"),
 		or(
 			not(eq(expense.source, "pluggy")),
 			notInArray(expense.category, [...PLUGGY_IGNORED_EXPENSE_CATEGORIES]),
@@ -207,7 +213,7 @@ async function listFinanceTransactions(params: {
 		...manualExpenses.map<FinanceTransactionRecord>((row) => ({
 			id: row.id,
 			date: row.expenseDate,
-			amount: -Number(row.amount),
+			amount: row.kind === "income" ? Number(row.amount) : -Number(row.amount),
 			category: row.category,
 			description: row.note ?? null,
 			source: "manual",
@@ -220,7 +226,7 @@ async function listFinanceTransactions(params: {
 			sourceAccountBrand: row.sourceAccountBrand ?? null,
 			createdAt: row.createdAt,
 			updatedAt: row.updatedAt,
-			kind: "expense",
+			kind: row.kind === "income" ? "income" : "expense",
 			isDeletable: true,
 			isHideable: false,
 		})),
@@ -250,11 +256,17 @@ async function getPartialResultMetrics(params: {
 	const { userId, month } = params;
 	const { start, end } = getMonthBounds(month);
 
-	const [manualExpensesResult, pluggyTransactionsResult] = await Promise.all([
+	const [manualExpensesResult, manualIncomeResult, pluggyTransactionsResult] = await Promise.all([
 		db
 			.select({ totalSpent: sum(expense.amount).mapWith(Number) })
 			.from(expense)
-			.where(buildManualExpensesWhere({ userId, start, end }))
+			.where(and(buildManualExpensesWhere({ userId, start, end }), eq(expense.kind, "expense")))
+			.limit(1)
+			.then((rows) => rows[0]),
+		db
+			.select({ totalIncome: sum(expense.amount).mapWith(Number) })
+			.from(expense)
+			.where(and(buildManualExpensesWhere({ userId, start, end }), eq(expense.kind, "income")))
 			.limit(1)
 			.then((rows) => rows[0]),
 		db
@@ -282,10 +294,11 @@ async function getPartialResultMetrics(params: {
 	}
 
 	const spent = pluggySpent + (manualExpensesResult?.totalSpent ?? 0);
-	const result = income - spent;
+	const totalIncome = income + (manualIncomeResult?.totalIncome ?? 0);
+	const result = totalIncome - spent;
 
 	return {
-		income,
+		income: totalIncome,
 		spent,
 		result,
 	};
@@ -301,7 +314,7 @@ async function getMonthlySpent(params: {
 		db
 			.select({ totalSpent: sum(expense.amount).mapWith(Number) })
 			.from(expense)
-			.where(buildManualExpensesWhere({ userId, start, end }))
+			.where(and(buildManualExpensesWhere({ userId, start, end }), eq(expense.kind, "expense")))
 			.limit(1)
 			.then((rows) => rows[0]),
 		db
@@ -439,6 +452,36 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 						userId: session.user.id,
 						expenseDate: input.date,
 						amount: input.amount.toString(),
+						kind: "expense",
+						category: input.category,
+						note: input.note ?? null,
+					})
+					.returning();
+				return reply.code(201).send(serializeExpense(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/transactions/manual",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const input = manualTransactionInput.parse(req.body);
+				const [record] = await db
+					.insert(expense)
+					.values({
+						userId: session.user.id,
+						expenseDate: input.date,
+						amount: input.amount.toString(),
+						kind: input.kind,
 						category: input.category,
 						note: input.note ?? null,
 					})
@@ -703,19 +746,20 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 				]);
 				const remainingDays = getRemainingDaysInMonth(month, today);
 				const targetAmount = record ? Number(record.targetAmount) : null;
-				const remainingAmount = targetAmount === null ? null : targetAmount - spent;
+				const calculation = calculateMonthlySpendingGoal({
+					targetAmount,
+					spent,
+					remainingDays,
+				});
 
 				return reply.send({
 					month,
 					targetAmount,
 					spent,
-					remainingAmount,
+					remainingAmount: calculation.remainingAmount,
 					remainingDays,
-					dailyLimit:
-						targetAmount === null || remainingDays === 0
-							? null
-							: Math.max(remainingAmount ?? 0, 0) / remainingDays,
-					isOverTarget: targetAmount !== null && spent > targetAmount,
+					dailyLimit: calculation.dailyLimit,
+					isOverTarget: calculation.isOverTarget,
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)

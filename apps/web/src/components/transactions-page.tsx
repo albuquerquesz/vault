@@ -17,6 +17,7 @@ import { TransactionsFilterMenu } from "./transactions-page/transactions-filter-
 import { TransactionsPeriodStats } from "./transactions-page/transactions-period-stats";
 import { TransactionsSkeleton } from "./transactions-page/transactions-skeleton";
 import { TransactionsTable } from "./transactions-page/transactions-table";
+import { CreateTransactionSheet } from "./transactions-page/create-transaction-sheet";
 import {
 	applyTransactionFilters,
 	buildPeriodStats,
@@ -116,7 +117,15 @@ export function TransactionsPage() {
 
 	// Full width like overview — no max-w-[1200px] PageContent cap.
 	return (
-		<div className="grid w-full min-w-0 grid-cols-1 gap-4 overflow-x-clip pt-4 sm:pt-6 md:overflow-x-visible lg:grid-cols-[3fr_2fr]">
+		<div className="w-full min-w-0 overflow-x-clip pt-4 sm:pt-6 md:overflow-x-visible">
+			<div className="mb-4 flex items-center justify-between gap-3">
+				<div className="min-w-0">
+					<p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Movimentações</p>
+					<h1 className="truncate text-2xl font-semibold tracking-tight sm:text-3xl">Transações</h1>
+				</div>
+				<CreateTransactionSheet month={selectedMonth} />
+			</div>
+			<div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
 			{/* Keep search and filters in the thumb zone before the list on phones. */}
 			<div className="order-first flex min-w-0 flex-col gap-4 lg:order-none lg:col-start-2 lg:row-start-1 lg:pt-5">
 				<div className="financial-panel-border flex w-full min-w-0 flex-col items-stretch gap-3 p-4 sm:gap-4">
@@ -156,6 +165,7 @@ export function TransactionsPage() {
 					hasActiveFilters={hasActiveFilters}
 					monthLabel={monthLabel}
 				/>
+			</div>
 			</div>
 		</div>
 	);

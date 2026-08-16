@@ -15,6 +15,7 @@ export interface FinanceExpense {
 	userId: string;
 	expenseDate: string;
 	amount: number;
+	kind: "income" | "expense";
 	category: string;
 	note: string | null;
 	source: string;
@@ -116,12 +117,15 @@ export interface Goal {
 	updatedAt: Date;
 }
 
-export interface CreateExpenseInput {
+export interface CreateManualTransactionInput {
+	kind: "income" | "expense";
 	date: string;
 	amount: number;
 	category: string;
 	note?: string;
 }
+
+export type CreateExpenseInput = Omit<CreateManualTransactionInput, "kind">;
 
 export interface UpsertBudgetInput {
 	month: string;
@@ -253,6 +257,23 @@ export const financeSdk = {
 		return {
 			mutationFn: (input: CreateExpenseInput) =>
 				apiFetch<FinanceExpense>("/api/finance/expenses", {
+					method: "POST",
+					body: input,
+				}),
+			onSuccess: async () => {
+				await invalidateFinanceMonthQueries(client, month, today);
+			},
+		} as const;
+	},
+
+	createManualTransactionMutationOptions(
+		month = getMonthValue(),
+		client: QueryClient = queryClient,
+		today = getTodayValue(),
+	) {
+		return {
+			mutationFn: (input: CreateManualTransactionInput) =>
+				apiFetch<FinanceExpense>("/api/finance/transactions/manual", {
 					method: "POST",
 					body: input,
 				}),
@@ -463,6 +484,15 @@ export function useCreateExpense(
 ) {
 	return useMutation(
 		financeSdk.createExpenseMutationOptions(month, queryClient, today),
+	);
+}
+
+export function useCreateManualTransaction(
+	month = getMonthValue(),
+	today = getTodayValue(),
+) {
+	return useMutation(
+		financeSdk.createManualTransactionMutationOptions(month, queryClient, today),
 	);
 }
 

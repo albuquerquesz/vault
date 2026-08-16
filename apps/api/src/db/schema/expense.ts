@@ -21,6 +21,7 @@ export const expense = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		expenseDate: date("expense_date", { mode: "string" }).notNull(),
 		amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+		kind: text("kind").default("expense").notNull(),
 		category: text("category").notNull(),
 		note: text("note"),
 		source: text("source").default("manual").notNull(),
