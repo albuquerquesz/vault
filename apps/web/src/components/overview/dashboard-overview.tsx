@@ -13,7 +13,7 @@ export function DashboardOverview() {
 		useDashboardOverview();
 
 	return (
-		<div className="grid min-w-0 grid-cols-1 gap-3 overflow-x-hidden pt-3 sm:gap-4 sm:pt-6">
+		<div className="grid min-w-0 grid-cols-1 gap-3 overflow-x-clip pt-3 sm:gap-4 sm:pt-6 md:overflow-x-visible">
 			<div className="mb-2 flex min-w-0 flex-col items-start justify-between gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
 				<h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl xl:text-4xl">
 					Bem-vindo de volta{firstName ? `, ${firstName}!` : "!"} 👋

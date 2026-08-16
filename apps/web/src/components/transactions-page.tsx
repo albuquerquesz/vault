@@ -116,7 +116,7 @@ export function TransactionsPage() {
 
 	// Full width like overview — no max-w-[1200px] PageContent cap.
 	return (
-		<div className="grid w-full min-w-0 grid-cols-1 gap-4 overflow-x-hidden pt-4 sm:pt-6 lg:grid-cols-[3fr_2fr]">
+		<div className="grid w-full min-w-0 grid-cols-1 gap-4 overflow-x-clip pt-4 sm:pt-6 md:overflow-x-visible lg:grid-cols-[3fr_2fr]">
 			{/* Keep search and filters in the thumb zone before the list on phones. */}
 			<div className="order-first flex min-w-0 flex-col gap-4 lg:order-none lg:col-start-2 lg:row-start-1 lg:pt-5">
 				<div className="financial-panel-border flex w-full min-w-0 flex-col items-stretch gap-3 p-4 sm:gap-4">
