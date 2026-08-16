@@ -18,7 +18,6 @@ import {
 import { OverviewMonthSelect } from "@/components/overview/shared/overview-month-select";
 import {
 	getMonthValue,
-	useFinanceMonthlyOverview,
 	useMonthlySpendingGoal,
 	useUpsertMonthlySpendingGoal,
 } from "@/features/finance/sdk";
@@ -69,7 +68,6 @@ export function MonthlySpendingGoalPage({ initialMonth }: { initialMonth?: strin
 	const [targetInput, setTargetInput] = useState("");
 	const monthOptions = useMemo(() => getSpendingGoalMonthOptions(), []);
 	const goalQuery = useMonthlySpendingGoal(month);
-	const overviewQuery = useFinanceMonthlyOverview(month);
 	const saveGoal = useUpsertMonthlySpendingGoal();
 
 	useEffect(() => {
@@ -78,8 +76,11 @@ export function MonthlySpendingGoalPage({ initialMonth }: { initialMonth?: strin
 	}, [goalQuery.data]);
 
 	const target = goalQuery.data?.targetAmount ?? null;
-	const spent = overviewQuery.data?.spent ?? 0;
-	const isLoading = goalQuery.isPending || overviewQuery.isPending;
+	const spent = goalQuery.data?.spent ?? 0;
+	const dailyLimit = goalQuery.data?.dailyLimit ?? null;
+	const remainingDays = goalQuery.data?.remainingDays ?? 0;
+	const isOverTarget = goalQuery.data?.isOverTarget ?? false;
+	const isLoading = goalQuery.isPending;
 
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -120,7 +121,7 @@ export function MonthlySpendingGoalPage({ initialMonth }: { initialMonth?: strin
 						<div className="space-y-4"><Skeleton className="h-4 w-32" /><Skeleton className="h-9 w-full" /><Skeleton className="h-9 w-28" /></div>
 					</CardContent>
 				</Card>
-			) : goalQuery.isError || overviewQuery.isError ? (
+			) : goalQuery.isError ? (
 				<Card className="financial-panel-border">
 					<CardContent className="p-5 text-sm text-muted-foreground sm:p-8">Não foi possível carregar os dados da meta.</CardContent>
 				</Card>
@@ -141,7 +142,24 @@ export function MonthlySpendingGoalPage({ initialMonth }: { initialMonth?: strin
 							{target === null ? (
 								<p className="max-w-sm text-sm leading-6 text-muted-foreground">Comece com um valor realista para este mês. Você poderá ajustar a meta a qualquer momento.</p>
 							) : (
-								<GoalProgress spent={spent} target={target} />
+								<div className="space-y-7">
+									<GoalProgress spent={spent} target={target} />
+									<div className="grid gap-4 border-t pt-5 sm:grid-cols-2">
+										<div>
+											<p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Limite diário recomendado</p>
+											<p className={isOverTarget ? "mt-1 text-2xl font-semibold text-destructive tabular-nums" : "mt-1 text-2xl font-semibold tabular-nums"}>
+												{dailyLimit === null ? "—" : <MaskedMonetaryValue format={formatMonthlySpendingGoal} value={dailyLimit} />}
+											</p>
+											<p className="mt-1 text-xs text-muted-foreground">Calculado sobre o saldo restante</p>
+										</div>
+										<div>
+											<p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Janela restante</p>
+											<p className="mt-1 text-2xl font-semibold tabular-nums">{remainingDays}</p>
+											<p className="mt-1 text-xs text-muted-foreground">{remainingDays === 1 ? "dia para fechar o mês" : "dias incluindo hoje"}</p>
+										</div>
+									</div>
+									{isOverTarget && <p className="text-sm text-destructive">A meta já foi ultrapassada. O limite diário fica zerado até o próximo mês.</p>}
+								</div>
 							)}
 						</section>
 

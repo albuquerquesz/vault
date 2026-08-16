@@ -97,6 +97,11 @@ export interface FinanceMonthlyBills {
 export interface MonthlySpendingGoal {
 	month: string;
 	targetAmount: number | null;
+	spent: number;
+	remainingAmount: number | null;
+	remainingDays: number;
+	dailyLimit: number | null;
+	isOverTarget: boolean;
 	}
 
 export interface Goal {
@@ -172,6 +177,7 @@ function invalidateFinanceMonthQueries(
 		client.invalidateQueries({ queryKey: ["expenses", month] }),
 		client.invalidateQueries({ queryKey: ["transactions", month] }),
 		client.invalidateQueries({ queryKey: ["overview", month, today] }),
+		client.invalidateQueries({ queryKey: ["spendingGoal", month, today] }),
 		client.invalidateQueries({ queryKey: ["partialResult"] }),
 	]);
 }
@@ -219,12 +225,12 @@ export const financeSdk = {
 		} as const;
 	},
 
-	monthlySpendingGoalOptions(month = getMonthValue()) {
+	monthlySpendingGoalOptions(month = getMonthValue(), today = getTodayValue()) {
 		return {
-			queryKey: ["spendingGoal", month],
+			queryKey: ["spendingGoal", month, today],
 			queryFn: () =>
 				apiFetch<MonthlySpendingGoal>(
-					`/api/finance/spending-goal?month=${encodeURIComponent(month)}`,
+					`/api/finance/spending-goal?month=${encodeURIComponent(month)}&today=${encodeURIComponent(today)}`,
 				),
 		} as const;
 	},
@@ -487,8 +493,8 @@ export function useUpsertMonthlyBudget(
 	);
 }
 
-export function useMonthlySpendingGoal(month = getMonthValue()) {
-	return useQuery(financeSdk.monthlySpendingGoalOptions(month));
+export function useMonthlySpendingGoal(month = getMonthValue(), today = getTodayValue()) {
+	return useQuery(financeSdk.monthlySpendingGoalOptions(month, today));
 }
 
 export function useUpsertMonthlySpendingGoal() {

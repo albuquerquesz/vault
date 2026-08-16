@@ -291,6 +291,45 @@ async function getPartialResultMetrics(params: {
 	};
 }
 
+async function getMonthlySpent(params: {
+	userId: string;
+	start: string;
+	end: string;
+}) {
+	const { userId, start, end } = params;
+	const [manualExpensesResult, pluggyTransactionsResult] = await Promise.all([
+		db
+			.select({ totalSpent: sum(expense.amount).mapWith(Number) })
+			.from(expense)
+			.where(buildManualExpensesWhere({ userId, start, end }))
+			.limit(1)
+			.then((rows) => rows[0]),
+		db
+			.select({ amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number) })
+			.from(pluggyTransactions)
+			.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
+			.where(buildVisiblePluggyTransactionsWhere({ userId, start, end })),
+	]);
+
+	const pluggySpent = pluggyTransactionsResult.reduce(
+		(total, transaction) => total + (transaction.amount < 0 ? Math.abs(transaction.amount) : 0),
+		0,
+	);
+
+	return (manualExpensesResult?.totalSpent ?? 0) + pluggySpent;
+}
+
+function getRemainingDaysInMonth(month: string, today: string) {
+	const { start, end } = getMonthBounds(month);
+	if (today < start) {
+		return Math.round(
+			(Date.parse(end) - Date.parse(start)) / (1000 * 60 * 60 * 24),
+		) + 1;
+	}
+	if (today > end) return 0;
+	return Math.round((Date.parse(end) - Date.parse(today)) / (1000 * 60 * 60 * 24)) + 1;
+}
+
 function serializeExpense(r: typeof expense.$inferSelect) {
 	return { ...r, amount: Number(r.amount) };
 }
@@ -627,14 +666,26 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 		async handler(req, reply) {
 			try {
 				const session = await requireSession(req.raw);
-				const month = (req.query as { month?: string }).month;
+				const query = req.query as { month?: string; today?: string };
+				const month = query.month;
 				if (!month || !monthPattern.test(month)) {
 					return reply
 						.status(400)
 						.send({ error: "Invalid month format. Use YYYY-MM" });
 				}
+				const today = query.today ?? new Date().toISOString().slice(0, 10);
+				if (
+					!/^\d{4}-\d{2}-\d{2}$/.test(today) ||
+					Number.isNaN(Date.parse(today)) ||
+					new Date(`${today}T00:00:00.000Z`).toISOString().slice(0, 10) !== today
+				) {
+					return reply
+						.status(400)
+						.send({ error: "Invalid today format. Use YYYY-MM-DD" });
+				}
 
-				const record = await db
+				const [record, spent] = await Promise.all([
+					db
 					.select()
 					.from(monthlySpendingGoal)
 					.where(
@@ -644,13 +695,28 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 						),
 					)
 					.limit(1)
-					.then((rows) => rows[0]);
+					.then((rows) => rows[0]),
+					(async () => {
+						const bounds = getMonthBounds(month);
+						return getMonthlySpent({ userId: session.user.id, ...bounds });
+					})(),
+				]);
+				const remainingDays = getRemainingDaysInMonth(month, today);
+				const targetAmount = record ? Number(record.targetAmount) : null;
+				const remainingAmount = targetAmount === null ? null : targetAmount - spent;
 
-				return reply.send(
-					record
-						? serializeMonthlySpendingGoal(record)
-						: { month, targetAmount: null },
-				);
+				return reply.send({
+					month,
+					targetAmount,
+					spent,
+					remainingAmount,
+					remainingDays,
+					dailyLimit:
+						targetAmount === null || remainingDays === 0
+							? null
+							: Math.max(remainingAmount ?? 0, 0) / remainingDays,
+					isOverTarget: targetAmount !== null && spent > targetAmount,
+				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send({ error: "Authentication required" });

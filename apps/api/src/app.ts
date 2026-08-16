@@ -29,6 +29,36 @@ const baseCorsConfig = {
 	maxAge: 86400,
 };
 
+type AuthReply = {
+	header(name: string, value: string | string[]): unknown;
+};
+
+/**
+ * Forward Better Auth's response headers without combining Set-Cookie values.
+ * Set-Cookie is not a comma-joinable header: the browser must receive one
+ * header value per cookie, especially during the OAuth callback where the
+ * state cookie is cleared while the session cookie is created.
+ */
+export function forwardAuthResponseHeaders(
+	response: Response,
+	reply: AuthReply,
+) {
+	for (const [key, value] of response.headers) {
+		if (key.toLowerCase() !== "set-cookie") {
+			reply.header(key, value);
+		}
+	}
+
+	const headersWithSetCookie = response.headers as Headers & {
+		getSetCookie?: () => string[];
+	};
+	const setCookies = headersWithSetCookie.getSetCookie?.() ?? [];
+
+	if (setCookies.length > 0) {
+		reply.header("set-cookie", setCookies);
+	}
+}
+
 export async function registerServer(fastify: FastifyInstance) {
 	fastify.register(fastifyCors, baseCorsConfig);
 
@@ -52,9 +82,7 @@ export async function registerServer(fastify: FastifyInstance) {
 
 				const response = await auth.handler(req);
 				reply.status(response.status);
-				response.headers.forEach((value, key) => {
-					reply.header(key, value);
-				});
+				forwardAuthResponseHeaders(response, reply);
 
 				reply.send(response.body ? await response.text() : null);
 			} catch (error) {

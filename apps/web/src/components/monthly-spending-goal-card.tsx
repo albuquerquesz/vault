@@ -12,10 +12,7 @@ import {
 	OverviewCardErrorState,
 	OverviewCardLoadingState,
 } from "@/components/overview/shared/overview-card-state";
-import {
-	useFinanceMonthlyOverview,
-	useMonthlySpendingGoal,
-} from "@/features/finance/sdk";
+import { useMonthlySpendingGoal } from "@/features/finance/sdk";
 
 function GoalProgress({ target, spent }: { target: number; spent: number }) {
 	const percentage = target > 0 ? (spent / target) * 100 : 0;
@@ -75,13 +72,12 @@ function MonthlySpendingGoalLoading() {
 
 export function MonthlySpendingGoalCard({ month }: { month: string }) {
 	const goalQuery = useMonthlySpendingGoal(month);
-	const overviewQuery = useFinanceMonthlyOverview(month);
 
-	if (goalQuery.isPending || overviewQuery.isPending) {
+	if (goalQuery.isPending) {
 		return <MonthlySpendingGoalLoading />;
 	}
 
-	if (goalQuery.isError || overviewQuery.isError) {
+	if (goalQuery.isError) {
 		return (
 			<OverviewCardShell
 				title="Meta de gastos"
@@ -94,7 +90,10 @@ export function MonthlySpendingGoalCard({ month }: { month: string }) {
 	}
 
 	const target = goalQuery.data?.targetAmount ?? null;
-	const spent = overviewQuery.data?.spent ?? 0;
+	const spent = goalQuery.data?.spent ?? 0;
+	const dailyLimit = goalQuery.data?.dailyLimit ?? null;
+	const remainingDays = goalQuery.data?.remainingDays ?? 0;
+	const isOverTarget = goalQuery.data?.isOverTarget ?? false;
 
 	return (
 		<OverviewCardShell
@@ -140,6 +139,17 @@ export function MonthlySpendingGoalCard({ month }: { month: string }) {
 					<p className="text-sm text-muted-foreground">
 						Gasto acumulado: <MaskedMonetaryText>{formatMonthlySpendingGoal(spent)}</MaskedMonetaryText>
 					</p>
+					<div className="flex items-end justify-between gap-3 border-t pt-4">
+						<div>
+							<p className="text-xs text-muted-foreground">Limite diário recomendado</p>
+							<p className={isOverTarget ? "text-lg font-semibold text-destructive tabular-nums" : "text-lg font-semibold tabular-nums"}>
+								{dailyLimit === null ? "—" : <MaskedMonetaryValue format={formatMonthlySpendingGoal} value={dailyLimit} />}
+							</p>
+						</div>
+						<p className="text-right text-xs text-muted-foreground">
+							{isOverTarget ? "Meta ultrapassada" : `${remainingDays} ${remainingDays === 1 ? "dia restante" : "dias restantes"}`}
+						</p>
+					</div>
 					<GoalProgress spent={spent} target={target} />
 				</div>
 			)}
