@@ -32,6 +32,7 @@ import {
 	PLUGGY_IGNORED_EXPENSE_CATEGORIES,
 	rebuildExpensesFromStoredTransactions,
 } from "../services/pluggy.js";
+import { calculateMonthlySpendingGoal } from "../services/monthly-spending-goal.js";
 import { requireSession } from "../session.js";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -41,6 +42,10 @@ const expenseInput = z.object({
 	amount: z.number().positive(),
 	category: z.string().trim().min(1).max(64),
 	note: z.string().trim().max(280).optional(),
+});
+
+const manualTransactionInput = expenseInput.extend({
+	kind: z.enum(["expense", "income"]),
 });
 
 const transactionIdsInput = z.object({
@@ -78,6 +83,7 @@ function buildVisibleExpensesWhere(params: {
 		eq(expense.userId, userId),
 		gte(expense.expenseDate, start),
 		lte(expense.expenseDate, end),
+		eq(expense.kind, "expense"),
 		or(
 			not(eq(expense.source, "pluggy")),
 			notInArray(expense.category, [...PLUGGY_IGNORED_EXPENSE_CATEGORIES]),
@@ -207,7 +213,7 @@ async function listFinanceTransactions(params: {
 		...manualExpenses.map<FinanceTransactionRecord>((row) => ({
 			id: row.id,
 			date: row.expenseDate,
-			amount: -Number(row.amount),
+			amount: row.kind === "income" ? Number(row.amount) : -Number(row.amount),
 			category: row.category,
 			description: row.note ?? null,
 			source: "manual",
@@ -220,7 +226,7 @@ async function listFinanceTransactions(params: {
 			sourceAccountBrand: row.sourceAccountBrand ?? null,
 			createdAt: row.createdAt,
 			updatedAt: row.updatedAt,
-			kind: "expense",
+			kind: row.kind === "income" ? "income" : "expense",
 			isDeletable: true,
 			isHideable: false,
 		})),
@@ -250,11 +256,17 @@ async function getPartialResultMetrics(params: {
 	const { userId, month } = params;
 	const { start, end } = getMonthBounds(month);
 
-	const [manualExpensesResult, pluggyTransactionsResult] = await Promise.all([
+	const [manualExpensesResult, manualIncomeResult, pluggyTransactionsResult] = await Promise.all([
 		db
 			.select({ totalSpent: sum(expense.amount).mapWith(Number) })
 			.from(expense)
-			.where(buildManualExpensesWhere({ userId, start, end }))
+			.where(and(buildManualExpensesWhere({ userId, start, end }), eq(expense.kind, "expense")))
+			.limit(1)
+			.then((rows) => rows[0]),
+		db
+			.select({ totalIncome: sum(expense.amount).mapWith(Number) })
+			.from(expense)
+			.where(and(buildManualExpensesWhere({ userId, start, end }), eq(expense.kind, "income")))
 			.limit(1)
 			.then((rows) => rows[0]),
 		db
@@ -282,13 +294,53 @@ async function getPartialResultMetrics(params: {
 	}
 
 	const spent = pluggySpent + (manualExpensesResult?.totalSpent ?? 0);
-	const result = income - spent;
+	const totalIncome = income + (manualIncomeResult?.totalIncome ?? 0);
+	const result = totalIncome - spent;
 
 	return {
-		income,
+		income: totalIncome,
 		spent,
 		result,
 	};
+}
+
+async function getMonthlySpent(params: {
+	userId: string;
+	start: string;
+	end: string;
+}) {
+	const { userId, start, end } = params;
+	const [manualExpensesResult, pluggyTransactionsResult] = await Promise.all([
+		db
+			.select({ totalSpent: sum(expense.amount).mapWith(Number) })
+			.from(expense)
+			.where(and(buildManualExpensesWhere({ userId, start, end }), eq(expense.kind, "expense")))
+			.limit(1)
+			.then((rows) => rows[0]),
+		db
+			.select({ amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number) })
+			.from(pluggyTransactions)
+			.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
+			.where(buildVisiblePluggyTransactionsWhere({ userId, start, end })),
+	]);
+
+	const pluggySpent = pluggyTransactionsResult.reduce(
+		(total, transaction) => total + (transaction.amount < 0 ? Math.abs(transaction.amount) : 0),
+		0,
+	);
+
+	return (manualExpensesResult?.totalSpent ?? 0) + pluggySpent;
+}
+
+function getRemainingDaysInMonth(month: string, today: string) {
+	const { start, end } = getMonthBounds(month);
+	if (today < start) {
+		return Math.round(
+			(Date.parse(end) - Date.parse(start)) / (1000 * 60 * 60 * 24),
+		) + 1;
+	}
+	if (today > end) return 0;
+	return Math.round((Date.parse(end) - Date.parse(today)) / (1000 * 60 * 60 * 24)) + 1;
 }
 
 function serializeExpense(r: typeof expense.$inferSelect) {
@@ -400,6 +452,36 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 						userId: session.user.id,
 						expenseDate: input.date,
 						amount: input.amount.toString(),
+						kind: "expense",
+						category: input.category,
+						note: input.note ?? null,
+					})
+					.returning();
+				return reply.code(201).send(serializeExpense(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send({ error: "Authentication required" });
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/transactions/manual",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const input = manualTransactionInput.parse(req.body);
+				const [record] = await db
+					.insert(expense)
+					.values({
+						userId: session.user.id,
+						expenseDate: input.date,
+						amount: input.amount.toString(),
+						kind: input.kind,
 						category: input.category,
 						note: input.note ?? null,
 					})
@@ -627,14 +709,26 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 		async handler(req, reply) {
 			try {
 				const session = await requireSession(req.raw);
-				const month = (req.query as { month?: string }).month;
+				const query = req.query as { month?: string; today?: string };
+				const month = query.month;
 				if (!month || !monthPattern.test(month)) {
 					return reply
 						.status(400)
 						.send({ error: "Invalid month format. Use YYYY-MM" });
 				}
+				const today = query.today ?? new Date().toISOString().slice(0, 10);
+				if (
+					!/^\d{4}-\d{2}-\d{2}$/.test(today) ||
+					Number.isNaN(Date.parse(today)) ||
+					new Date(`${today}T00:00:00.000Z`).toISOString().slice(0, 10) !== today
+				) {
+					return reply
+						.status(400)
+						.send({ error: "Invalid today format. Use YYYY-MM-DD" });
+				}
 
-				const record = await db
+				const [record, spent] = await Promise.all([
+					db
 					.select()
 					.from(monthlySpendingGoal)
 					.where(
@@ -644,13 +738,29 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 						),
 					)
 					.limit(1)
-					.then((rows) => rows[0]);
+					.then((rows) => rows[0]),
+					(async () => {
+						const bounds = getMonthBounds(month);
+						return getMonthlySpent({ userId: session.user.id, ...bounds });
+					})(),
+				]);
+				const remainingDays = getRemainingDaysInMonth(month, today);
+				const targetAmount = record ? Number(record.targetAmount) : null;
+				const calculation = calculateMonthlySpendingGoal({
+					targetAmount,
+					spent,
+					remainingDays,
+				});
 
-				return reply.send(
-					record
-						? serializeMonthlySpendingGoal(record)
-						: { month, targetAmount: null },
-				);
+				return reply.send({
+					month,
+					targetAmount,
+					spent,
+					remainingAmount: calculation.remainingAmount,
+					remainingDays,
+					dailyLimit: calculation.dailyLimit,
+					isOverTarget: calculation.isOverTarget,
+				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send({ error: "Authentication required" });

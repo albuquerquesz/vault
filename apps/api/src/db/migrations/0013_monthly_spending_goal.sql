@@ -12,3 +12,5 @@ ALTER TABLE "monthly_spending_goal" ADD CONSTRAINT "monthly_spending_goal_user_i
 CREATE INDEX "monthly_spending_goal_user_id_idx" ON "monthly_spending_goal" USING btree ("user_id");
 --> statement-breakpoint
 CREATE UNIQUE INDEX "monthly_spending_goal_user_month_idx" ON "monthly_spending_goal" USING btree ("user_id", "month");
+--> statement-breakpoint
+ALTER TABLE "expense" ADD COLUMN "kind" text DEFAULT 'expense' NOT NULL;

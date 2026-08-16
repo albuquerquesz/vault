@@ -41,11 +41,6 @@ export function createAuth() {
 			},
 		},
 		advanced: {
-			defaultCookieAttributes: {
-				sameSite: "none",
-				secure: true,
-				httpOnly: true,
-			},
 			trustedProxyHeaders: true,
 		},
 		onAPIError: {

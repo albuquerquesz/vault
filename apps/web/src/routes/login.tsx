@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Button } from "@vault/ui/components/button";
 import { GoogleIcon } from "@/components/google-icon";
 import { LogoIcon } from "@/components/logo";
@@ -15,12 +15,30 @@ export const Route = createFileRoute("/login")({
 });
 
 function RouteComponent() {
+	const navigate = useNavigate();
+
 	async function handleGoogleSignIn() {
-		await authClient.signIn.social({
-			provider: "google",
-			callbackURL: `${window.location.origin}/`,
-			errorCallbackURL: `${window.location.origin}/auth/error`,
-		});
+		try {
+			const result = await authClient.signIn.social({
+				provider: "google",
+				callbackURL: `${window.location.origin}/`,
+				errorCallbackURL: `${window.location.origin}/auth/error`,
+			});
+
+			if (result.error) {
+				throw new Error(result.error.message);
+			}
+		} catch (error) {
+			navigate({
+				to: "/auth/error",
+				search: {
+					error: "please_restart_the_process",
+					error_description:
+						error instanceof Error ? error.message : undefined,
+					state: undefined,
+				},
+			});
+		}
 	}
 
 	return (

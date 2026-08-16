@@ -15,6 +15,7 @@ export interface FinanceExpense {
 	userId: string;
 	expenseDate: string;
 	amount: number;
+	kind: "income" | "expense";
 	category: string;
 	note: string | null;
 	source: string;
@@ -97,6 +98,11 @@ export interface FinanceMonthlyBills {
 export interface MonthlySpendingGoal {
 	month: string;
 	targetAmount: number | null;
+	spent: number;
+	remainingAmount: number | null;
+	remainingDays: number;
+	dailyLimit: number | null;
+	isOverTarget: boolean;
 	}
 
 export interface Goal {
@@ -111,12 +117,15 @@ export interface Goal {
 	updatedAt: Date;
 }
 
-export interface CreateExpenseInput {
+export interface CreateManualTransactionInput {
+	kind: "income" | "expense";
 	date: string;
 	amount: number;
 	category: string;
 	note?: string;
 }
+
+export type CreateExpenseInput = Omit<CreateManualTransactionInput, "kind">;
 
 export interface UpsertBudgetInput {
 	month: string;
@@ -172,6 +181,7 @@ function invalidateFinanceMonthQueries(
 		client.invalidateQueries({ queryKey: ["expenses", month] }),
 		client.invalidateQueries({ queryKey: ["transactions", month] }),
 		client.invalidateQueries({ queryKey: ["overview", month, today] }),
+		client.invalidateQueries({ queryKey: ["spendingGoal", month, today] }),
 		client.invalidateQueries({ queryKey: ["partialResult"] }),
 	]);
 }
@@ -219,12 +229,12 @@ export const financeSdk = {
 		} as const;
 	},
 
-	monthlySpendingGoalOptions(month = getMonthValue()) {
+	monthlySpendingGoalOptions(month = getMonthValue(), today = getTodayValue()) {
 		return {
-			queryKey: ["spendingGoal", month],
+			queryKey: ["spendingGoal", month, today],
 			queryFn: () =>
 				apiFetch<MonthlySpendingGoal>(
-					`/api/finance/spending-goal?month=${encodeURIComponent(month)}`,
+					`/api/finance/spending-goal?month=${encodeURIComponent(month)}&today=${encodeURIComponent(today)}`,
 				),
 		} as const;
 	},
@@ -247,6 +257,23 @@ export const financeSdk = {
 		return {
 			mutationFn: (input: CreateExpenseInput) =>
 				apiFetch<FinanceExpense>("/api/finance/expenses", {
+					method: "POST",
+					body: input,
+				}),
+			onSuccess: async () => {
+				await invalidateFinanceMonthQueries(client, month, today);
+			},
+		} as const;
+	},
+
+	createManualTransactionMutationOptions(
+		month = getMonthValue(),
+		client: QueryClient = queryClient,
+		today = getTodayValue(),
+	) {
+		return {
+			mutationFn: (input: CreateManualTransactionInput) =>
+				apiFetch<FinanceExpense>("/api/finance/transactions/manual", {
 					method: "POST",
 					body: input,
 				}),
@@ -460,6 +487,15 @@ export function useCreateExpense(
 	);
 }
 
+export function useCreateManualTransaction(
+	month = getMonthValue(),
+	today = getTodayValue(),
+) {
+	return useMutation(
+		financeSdk.createManualTransactionMutationOptions(month, queryClient, today),
+	);
+}
+
 export function useHideTransactions(
 	month = getMonthValue(),
 	today = getTodayValue(),
@@ -487,8 +523,8 @@ export function useUpsertMonthlyBudget(
 	);
 }
 
-export function useMonthlySpendingGoal(month = getMonthValue()) {
-	return useQuery(financeSdk.monthlySpendingGoalOptions(month));
+export function useMonthlySpendingGoal(month = getMonthValue(), today = getTodayValue()) {
+	return useQuery(financeSdk.monthlySpendingGoalOptions(month, today));
 }
 
 export function useUpsertMonthlySpendingGoal() {
