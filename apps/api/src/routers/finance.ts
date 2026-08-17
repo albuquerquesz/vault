@@ -134,7 +134,7 @@ type FinanceTransactionRecord = {
 	amount: number;
 	category: string;
 	description: string | null;
-	source: "manual" | "pluggy";
+	source: "cash" | "pluggy";
 	sourceExternalId: string | null;
 	sourceItemId: string | null;
 	sourceProvider: string | null;
@@ -216,7 +216,7 @@ async function listFinanceTransactions(params: {
 			amount: row.kind === "income" ? Number(row.amount) : -Number(row.amount),
 			category: row.category,
 			description: row.note ?? null,
-			source: "manual",
+			source: "cash",
 			sourceExternalId: row.sourceExternalId ?? null,
 			sourceItemId: row.sourceItemId ?? null,
 			sourceProvider: row.sourceProvider ?? null,
@@ -453,6 +453,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 						expenseDate: input.date,
 						amount: input.amount.toString(),
 						kind: "expense",
+						source: "cash",
 						category: input.category,
 						note: input.note ?? null,
 					})
@@ -482,6 +483,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 						expenseDate: input.date,
 						amount: input.amount.toString(),
 						kind: input.kind,
+						source: "cash",
 						category: input.category,
 						note: input.note ?? null,
 					})

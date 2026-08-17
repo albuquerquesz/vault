@@ -95,6 +95,7 @@ export function TransactionsTable({
 					<InstitutionMark
 						name={transaction.sourceAccountName}
 						provider={transaction.sourceProvider}
+						source={transaction.source}
 						size="md"
 					/>
 					<div className="min-w-0 flex-1 space-y-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@vault/ui/lib/utils";
-import { Building2 } from "lucide-react";
+import { BanknoteIcon, Building2 } from "lucide-react";
 import { useState } from "react";
 
 type InstitutionStyle = {
@@ -141,6 +141,7 @@ function resolveInstitutionStyle(
 export function InstitutionMark({
 	provider,
 	name,
+	source,
 	className,
 	size = "md",
 }: {
@@ -148,6 +149,8 @@ export function InstitutionMark({
 	provider?: string | null;
 	/** Optional account/card label used when provider is missing. */
 	name?: string | null;
+	/** Manual transaction source, rendered with a source-specific mark. */
+	source?: "cash" | "pluggy";
 	className?: string;
 	size?: "sm" | "md" | "lg";
 }) {
@@ -160,11 +163,14 @@ export function InstitutionMark({
 				: "size-8 text-xs";
 	const [logoFailed, setLogoFailed] = useState(false);
 	const showLogo = Boolean(style.logoSrc) && !logoFailed;
-	const title = provider?.trim() || name?.trim() || "Instituição";
+	const isCash = source === "cash";
+	const title = isCash
+		? "Dinheiro físico"
+		: provider?.trim() || name?.trim() || "Instituição";
 
 	return (
 		<div
-			aria-hidden
+			aria-hidden={isCash ? undefined : true}
 			className={cn(
 				"flex shrink-0 items-center justify-center overflow-hidden rounded-md font-semibold uppercase tracking-tight",
 				sizeClass,
@@ -173,9 +179,13 @@ export function InstitutionMark({
 				showLogo && "bg-transparent",
 				className,
 			)}
+			aria-label={isCash ? title : undefined}
 			title={title}
+			role={isCash ? "img" : undefined}
 		>
-			{showLogo && style.logoSrc ? (
+			{isCash ? (
+				<BanknoteIcon aria-hidden className="size-1/2" />
+			) : showLogo && style.logoSrc ? (
 				<img
 					src={style.logoSrc}
 					alt=""

@@ -18,7 +18,7 @@ export interface FinanceExpense {
 	kind: "income" | "expense";
 	category: string;
 	note: string | null;
-	source: string;
+	source: "cash" | "pluggy";
 	sourceExternalId?: string | null;
 	sourceItemId?: string | null;
 	sourceProvider?: string | null;
@@ -36,7 +36,7 @@ export interface FinanceTransaction {
 	amount: number;
 	category: string;
 	description: string | null;
-	source: "manual" | "pluggy";
+	source: "cash" | "pluggy";
 	sourceExternalId: string | null;
 	sourceItemId: string | null;
 	sourceProvider: string | null;
