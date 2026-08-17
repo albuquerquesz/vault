@@ -200,6 +200,10 @@ export const EMPTY_TRANSACTIONS_FILTERS: TransactionsFilters = {
 };
 
 export function getTransactionAccountKey(transaction: FinanceTransaction): string {
+	if (transaction.source === "cash") {
+		return "Dinheiro físico";
+	}
+
 	const name = transaction.sourceAccountName?.trim();
 	return name && name.length > 0 ? name : "Sem conta";
 }

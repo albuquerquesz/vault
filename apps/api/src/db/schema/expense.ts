@@ -24,7 +24,7 @@ export const expense = pgTable(
 		kind: text("kind").default("expense").notNull(),
 		category: text("category").notNull(),
 		note: text("note"),
-		source: text("source").default("manual").notNull(),
+		source: text("source").default("cash").notNull(),
 		sourceExternalId: text("source_external_id"),
 		sourceItemId: uuid("source_item_id").references(() => pluggyItems.id, {
 			onDelete: "cascade",

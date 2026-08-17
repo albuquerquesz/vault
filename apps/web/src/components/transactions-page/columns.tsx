@@ -24,6 +24,7 @@ export const transactionsColumns: ColumnDef<FinanceTransaction>[] = [
 					<InstitutionMark
 						name={row.original.sourceAccountName}
 						provider={row.original.sourceProvider}
+						source={row.original.source}
 						size="md"
 					/>
 					<p

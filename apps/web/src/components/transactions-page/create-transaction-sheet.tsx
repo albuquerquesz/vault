@@ -23,7 +23,7 @@ import {
 	ToggleGroup,
 	ToggleGroupItem,
 } from "@vault/ui/components/toggle-group";
-import { ArrowDownIcon, ArrowUpIcon, PlusIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, BanknoteIcon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -118,6 +118,15 @@ export function CreateTransactionSheet({ month }: { month: string }) {
 
 					<form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
 						<div className="flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+							<div className="flex items-center gap-3 rounded-xl border border-border/70 bg-muted/20 px-3.5 py-3">
+								<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-foreground/10 text-foreground">
+									<BanknoteIcon aria-hidden className="size-4" />
+								</div>
+								<div className="min-w-0">
+									<p className="text-sm font-medium">Dinheiro físico</p>
+									<p className="text-xs text-muted-foreground">Origem deste lançamento</p>
+								</div>
+							</div>
 							<div className="grid gap-2">
 								<Label>Tipo</Label>
 								<ToggleGroup

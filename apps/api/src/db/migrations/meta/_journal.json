@@ -99,6 +99,13 @@
       "when": 1786880319503,
       "tag": "0013_monthly_spending_goal",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1786965549850,
+      "tag": "0014_previous_ser_duncan",
+      "breakpoints": true
     }
   ]
 }
