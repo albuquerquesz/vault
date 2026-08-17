@@ -110,11 +110,8 @@ export function MonthlySpendingGoalPage({ initialMonth }: { initialMonth?: strin
 	return (
 		<main className="mx-auto flex w-full max-w-5xl flex-col gap-5 py-5 sm:gap-8 sm:py-8">
 			<header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-				<div className="max-w-xl space-y-2">
+				<div>
 					<h1 className="font-display text-2xl font-semibold tracking-tight sm:text-4xl">Meta de gastos</h1>
-					<p className="text-sm leading-6 text-muted-foreground sm:text-base">
-						Defina quanto você pretende gastar no mês e acompanhe o acumulado sem misturar essa meta com sua renda.
-					</p>
 				</div>
 				<div className="w-full lg:w-auto">
 					<OverviewMonthSelect onValueChange={setMonth} options={monthOptions} value={month} />
