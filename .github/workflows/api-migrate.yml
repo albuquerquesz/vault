@@ -23,10 +23,10 @@ jobs:
 
       - name: Verify DATABASE_URL secret
         env:
-          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [ -z "$DATABASE_URL" ]; then
-            echo "::error::NEON_DATABASE_URL secret is empty or not configured."
+            echo "::error::DATABASE_URL secret is empty or not configured."
             echo "Set it under Settings → Secrets and variables → Actions."
             exit 1
           fi
@@ -41,5 +41,17 @@ jobs:
 
       - name: Run database migrations
         env:
-          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: bun run db:migrate
+
+      - name: Verify production finance schema
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          result=$(bun -e "import pg from 'pg'; const c = new pg.Client({connectionString: process.env.DATABASE_URL}); await c.connect(); const r = await c.query(\`select to_regclass('public.expense') as expense_table, to_regclass('public.monthly_spending_goal') as goal_table, exists (select 1 from information_schema.columns where table_schema='public' and table_name='expense' and column_name='kind') as expense_kind, exists (select 1 from pg_indexes where schemaname='public' and indexname='monthly_spending_goal_user_month_idx') as goal_index\`); console.log(JSON.stringify(r.rows[0])); await c.end();")
+          echo "$result"
+          echo "$result" | grep -q '"expense_table":"expense"'
+          echo "$result" | grep -q '"goal_table":"monthly_spending_goal"'
+          echo "$result" | grep -q '"expense_kind":true'
+          echo "$result" | grep -q '"goal_index":true'
