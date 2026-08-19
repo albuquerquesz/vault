@@ -4,7 +4,6 @@ import { Skeleton } from "@vault/ui/components/skeleton";
 import { ChartColumn } from "lucide-react";
 import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 import {
-	OverviewCardEmptyState,
 	OverviewCardErrorState,
 	OverviewCardLoadingState,
 } from "@/components/overview/shared/overview-card-state";
@@ -68,7 +67,7 @@ export function DailySpendBarCard({
 			{isError ? (
 				<OverviewCardErrorState message="Não foi possível carregar os gastos diários." />
 			) : totalSpent <= 0 ? (
-				<OverviewCardEmptyState message="Nenhuma despesa neste mês" />
+				<DailySpendBarContent chartData={chartData} peakDay={null} />
 			) : (
 				<DailySpendBarContent chartData={chartData} peakDay={peakDay} />
 			)}

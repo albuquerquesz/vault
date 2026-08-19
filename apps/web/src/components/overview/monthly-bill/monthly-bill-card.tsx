@@ -6,7 +6,6 @@ import { useMonthlyBillCard } from "@/components/overview/monthly-bill/hooks/use
 import { MonthlyBillContent } from "@/components/overview/monthly-bill/monthly-bill-content";
 import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 import {
-	OverviewCardEmptyState,
 	OverviewCardErrorState,
 	OverviewCardLoadingState,
 } from "@/components/overview/shared/overview-card-state";
@@ -33,7 +32,7 @@ export function MonthlyBillCard({ month }: { month?: string }) {
 			{isError ? (
 				<OverviewCardErrorState message="Não foi possível carregar as faturas de cartão." />
 			) : !bill || items.length === 0 ? (
-				<OverviewCardEmptyState message="Nenhuma fatura de cartão neste mês." />
+				<MonthlyBillContent totalBill={0} items={[]} />
 			) : (
 				<MonthlyBillContent totalBill={bill.totalBill} items={items} />
 			)}

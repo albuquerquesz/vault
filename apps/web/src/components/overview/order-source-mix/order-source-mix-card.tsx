@@ -1,10 +1,10 @@
 "use client";
 
 import { PieChartIcon } from "lucide-react";
+import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { HomeCardSkeleton } from "@/components/home-card-skeleton";
 import { OverviewCardShell } from "@/components/overview/shared/overview-card-shell";
 import {
-	OverviewCardEmptyState,
 	OverviewCardErrorState,
 	OverviewCardLoadingState,
 } from "@/components/overview/shared/overview-card-state";
@@ -21,6 +21,11 @@ export function OrderSourceMixCard({
 	title = "Distribuição dos gastos",
 }: OrderSourceMixCardProps) {
 	const { sourceData, isLoading, isError } = useOrderSourceMix(month);
+	const zeroCurrency = (value: number) =>
+		new Intl.NumberFormat("pt-BR", {
+			style: "currency",
+			currency: "BRL",
+		}).format(value);
 
 	if (isLoading) {
 		return (
@@ -38,7 +43,12 @@ export function OrderSourceMixCard({
 			{isError ? (
 				<OverviewCardErrorState message="Não foi possível carregar as despesas do mês." />
 			) : sourceData.length === 0 ? (
-				<OverviewCardEmptyState message="Nenhuma despesa registrada" />
+				<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+					<div className="text-2xl font-semibold tabular-nums">
+						<MaskedMonetaryValue format={zeroCurrency} value={0} />
+					</div>
+					<p className="text-sm text-muted-foreground">Nenhuma despesa registrada</p>
+				</div>
 			) : (
 				<OrderSourceMixContent month={month} sourceData={sourceData} />
 			)}
