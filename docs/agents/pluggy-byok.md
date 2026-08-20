@@ -105,7 +105,7 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
 
 ## Deploy / CI
 
-- **Migrations:** `.github/workflows/api-migrate.yml` em push para `dev`/`main` (secret `DATABASE_URL`, igual ao nome da variável usada pela produção).
+- **Migrations:** `.github/workflows/api-migrate.yml` em push para `dev`/`main` quando mudam arquivos de API/DB (secret `NEON_DATABASE_URL`, injetado como `DATABASE_URL` no job).
 - **API production:** `.github/workflows/deploy-api.yml` só quando um **PR é mergeado em `main`** (não roda em push na `dev`, nem em todo push).
   - Paths: `apps/api/**` (e relacionados) no PR
   - Secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID_API`
