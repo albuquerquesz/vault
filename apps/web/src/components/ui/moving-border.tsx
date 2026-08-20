@@ -11,6 +11,18 @@ import {
 import type React from "react";
 import { useRef } from "react";
 
+function cssLengthToPx(value: string): number {
+	const trimmed = value.trim();
+	if (trimmed.endsWith("rem")) {
+		return Number.parseFloat(trimmed) * 16;
+	}
+	if (trimmed.endsWith("px")) {
+		return Number.parseFloat(trimmed);
+	}
+	const asNumber = Number.parseFloat(trimmed);
+	return Number.isFinite(asNumber) ? asNumber : 0;
+}
+
 type MovingBorderButtonProps = {
 	borderRadius?: string;
 	children: React.ReactNode;
@@ -31,10 +43,12 @@ export function Button({
 	className,
 	...otherProps
 }: MovingBorderButtonProps) {
+	const radiusPx = cssLengthToPx(borderRadius);
+
 	return (
 		<Component
 			className={cn(
-				"relative h-16 w-40 overflow-hidden bg-transparent p-[1px] text-xl",
+				"relative h-16 w-40 overflow-hidden bg-transparent p-[2px] text-xl",
 				containerClassName,
 			)}
 			style={{
@@ -46,10 +60,10 @@ export function Button({
 				className="absolute inset-0"
 				style={{ borderRadius: `calc(${borderRadius} * 0.96)` }}
 			>
-				<MovingBorder duration={duration} rx="30%" ry="30%">
+				<MovingBorder duration={duration} rx={radiusPx} ry={radiusPx}>
 					<div
 						className={cn(
-							"h-20 w-20 bg-[radial-gradient(#0ea5e9_40%,transparent_60%)] opacity-[0.8]",
+							"h-10 w-10 bg-[radial-gradient(#0ea5e9_35%,transparent_70%)] opacity-90",
 							borderClassName,
 						)}
 					/>
@@ -74,8 +88,8 @@ export function Button({
 type MovingBorderProps = {
 	children: React.ReactNode;
 	duration?: number;
-	rx?: string;
-	ry?: string;
+	rx?: string | number;
+	ry?: string | number;
 } & Record<string, unknown>;
 
 export function MovingBorder({
@@ -112,7 +126,7 @@ export function MovingBorder({
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				preserveAspectRatio="none"
-				className="absolute h-full w-full"
+				className="pointer-events-none absolute h-full w-full"
 				width="100%"
 				height="100%"
 				{...otherProps}

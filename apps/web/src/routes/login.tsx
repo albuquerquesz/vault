@@ -56,9 +56,9 @@ function RouteComponent() {
 					{/* Logo + welcome copy */}
 					<div className="flex flex-col items-center gap-3 text-center">
 						<VaultLogo showName={false} />
-						<div className="space-y-5">
+						<div className="space-y-7">
 							<h1
-								className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl"
+								className="text-4xl font-semibold tracking-tight text-zinc-900"
 								style={{ fontFamily: '"Space Grotesk", sans-serif' }}
 							>
 								Bem-vindo de volta!
@@ -74,9 +74,10 @@ function RouteComponent() {
 					<div className="space-y-2">
 						<MovingBorderButton
 							borderRadius="0.75rem"
+							duration={2500}
 							containerClassName="h-12 w-full"
-							borderClassName="bg-[radial-gradient(#18181b_40%,transparent_60%)]"
-							className="gap-2 border-zinc-200 bg-white text-sm font-medium text-zinc-800 hover:bg-zinc-50"
+							borderClassName="h-12 w-12 bg-[radial-gradient(#09090b_25%,transparent_65%)] opacity-100"
+							className="gap-2 border-zinc-200 bg-white text-sm font-medium text-zinc-800 backdrop-blur-none hover:bg-zinc-50"
 							type="button"
 							onClick={handleGoogleSignIn}
 						>
