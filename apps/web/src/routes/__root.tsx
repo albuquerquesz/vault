@@ -42,7 +42,12 @@ function RootComponent() {
 	});
 	const isStandaloneAuthPage =
 		pathname === "/login" || pathname === "/auth/error";
-	const forcedTheme = isStandaloneAuthPage ? "dark" : undefined;
+	const forcedTheme =
+		pathname === "/login"
+			? "light"
+			: pathname === "/auth/error"
+				? "dark"
+				: undefined;
 
 	return (
 		<>

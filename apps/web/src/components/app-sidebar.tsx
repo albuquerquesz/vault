@@ -15,6 +15,7 @@ import { cn } from "@vault/ui/lib/utils";
 import { footerNavLinks, useNavLinks } from "@/components/app-shared";
 import { LatestChange } from "@/components/latest-change";
 import { MonetaryVisibilityToggle } from "@/components/monetary-visibility-toggle";
+import { VaultLogo } from "@/components/vault-logo";
 
 export function AppSidebar() {
 	const navLinks = useNavLinks();
@@ -32,9 +33,15 @@ export function AppSidebar() {
 		>
 			<SidebarHeader className="h-14 justify-center border-b px-2 group-data-[collapsible=icon]:px-0">
 				<div className="flex w-full min-w-0 items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center">
-					<span className="truncate font-medium text-xl text-foreground! group-data-[collapsible=icon]:hidden">
-						Vault
-					</span>
+					<VaultLogo
+						size="sm"
+						className="min-w-0 group-data-[collapsible=icon]:hidden [&_span]:truncate [&_span]:font-medium [&_span]:text-foreground!"
+					/>
+					<VaultLogo
+						size="sm"
+						showName={false}
+						className="hidden group-data-[collapsible=icon]:inline-flex"
+					/>
 					<div className="group-data-[collapsible=icon]:hidden">
 						<MonetaryVisibilityToggle />
 					</div>

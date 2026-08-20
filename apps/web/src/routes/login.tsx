@@ -1,7 +1,8 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { Button } from "@vault/ui/components/button";
 import { GoogleIcon } from "@/components/google-icon";
-import { LogoIcon } from "@/components/logo";
+import { Button as MovingBorderButton } from "@/components/ui/moving-border";
+import { VaultLogo } from "@/components/vault-logo";
+import { Waves } from "@/components/waves";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
@@ -44,7 +45,7 @@ function RouteComponent() {
 	return (
 		<main
 			data-testid="login-page"
-			className="flex min-h-0 w-full flex-1 bg-[#0c0a09] px-0 pb-[env(safe-area-inset-bottom,0px)] text-white"
+			className="flex min-h-0 w-full flex-1 bg-white px-0 pb-[env(safe-area-inset-bottom,0px)] text-zinc-900"
 		>
 			{/* Left panel - Form */}
 			<section
@@ -52,73 +53,51 @@ function RouteComponent() {
 				className="flex min-h-0 w-full flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12 lg:w-1/2"
 			>
 				<div className="mx-auto w-full max-w-sm space-y-6">
-					{/* Logo */}
-					<div className="flex flex-col items-center gap-3">
-						<LogoIcon className="h-6 w-auto text-white" />
-						<p className="text-sm text-white/80">
-							login or create your account.
-						</p>
+					{/* Logo + welcome copy */}
+					<div className="flex flex-col items-center gap-3 text-center">
+						<VaultLogo showName={false} />
+						<div className="space-y-5">
+							<h1
+								className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl"
+								style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+							>
+								Bem-vindo de volta!
+							</h1>
+							<p className="text-base text-zinc-600">
+								Entre para continuar de onde parou, ou comece agora
+								criando sua conta.
+							</p>
+						</div>
 					</div>
 
 					{/* Social login buttons */}
 					<div className="space-y-2">
-						<Button
-							variant="outline"
-							size="lg"
-							className="h-12 w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-6 text-sm text-white/80 hover:bg-zinc-800/50 hover:text-white"
+						<MovingBorderButton
+							borderRadius="0.75rem"
+							containerClassName="h-12 w-full"
+							borderClassName="bg-[radial-gradient(#18181b_40%,transparent_60%)]"
+							className="gap-2 border-zinc-200 bg-white text-sm font-medium text-zinc-800 hover:bg-zinc-50"
+							type="button"
 							onClick={handleGoogleSignIn}
 						>
 							<GoogleIcon className="size-5 self-center" />
 							Continue with Google
-						</Button>
+						</MovingBorderButton>
 					</div>
 				</div>
 			</section>
 
-			{/* Right panel - Testimonial */}
+			{/* Right panel - Waves (black + white strokes) */}
 			<section
 				data-testid="login-promo-column"
-				className="relative hidden min-h-0 w-1/2 flex-col border-l border-zinc-800/50 lg:flex"
+				className="relative hidden min-h-0 w-1/2 flex-col border-l border-zinc-200 lg:flex"
 			>
-				{/* Grid background pattern */}
-				<div className="absolute inset-0 grid grid-cols-3 grid-rows-5 gap-2 p-4">
-					{Array.from({ length: 15 }).map((_, i) => (
-						<div key={i} className="rounded-2xl bg-zinc-900/20" />
-					))}
-				</div>
-
-				{/* Content */}
-				<div className="relative z-10 mx-auto flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center px-12">
-					<div className="space-y-8 text-center">
-						<div className="space-y-3">
-							<h2
-								className="text-3xl font-medium tracking-tight text-white"
-								style={{ fontFamily: '"Space Grotesk", sans-serif' }}
-							>
-								Ready to join Vault?
-							</h2>
-							<p className="text-sm text-zinc-400">
-								Join thousands of teams shipping beautiful, production-ready
-								interfaces in record time.
-							</p>
-						</div>
-
-						<div className="w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-900 p-6 text-left">
-							<blockquote className="mb-4 text-sm leading-relaxed text-white/90">
-								&quot;Vault is why I still have hair. No more worrying about UI
-								blocks.&quot;
-							</blockquote>
-							<div className="flex items-center gap-3">
-								<div>
-									<p className="text-sm font-medium text-zinc-100">
-										Victor Albuquerque
-									</p>
-									<p className="text-sm text-zinc-300">Software Engineer</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+				<Waves
+					data-testid="login-waves"
+					className="absolute inset-0"
+					backgroundColor="#000000"
+					strokeColor="#ffffff"
+				/>
 			</section>
 		</main>
 	);

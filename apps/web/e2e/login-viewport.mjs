@@ -70,12 +70,14 @@ async function runOnce(runLabel) {
 
 	await page.getByTestId("login-page").waitFor({ state: "visible", timeout: 15_000 });
 	await page.getByText("Continue with Google").waitFor({ state: "visible" });
-	await page.getByText("Ready to join Vault?").waitFor({ state: "visible" });
+	await page.getByTestId("login-waves").waitFor({ state: "visible" });
 
 	const metrics = await page.evaluate(() => {
 		const doc = document.documentElement;
 		const left = document.querySelector('[data-testid="login-auth-column"]');
 		const right = document.querySelector('[data-testid="login-promo-column"]');
+		const waves = document.querySelector('[data-testid="login-waves"]');
+		const wavePaths = waves?.querySelectorAll("path.js-line") ?? [];
 		const rect = (el) => {
 			if (!el) return null;
 			const r = el.getBoundingClientRect();
@@ -95,8 +97,11 @@ async function runOnce(runLabel) {
 			scrollHeight: doc.scrollHeight,
 			left: rect(left),
 			right: rect(right),
+			waves: rect(waves),
+			wavePathCount: wavePaths.length,
 			leftDisplay: left ? getComputedStyle(left).display : null,
 			rightDisplay: right ? getComputedStyle(right).display : null,
+			hasDollarVideo: Boolean(document.querySelector('[data-testid="login-dollar-gif"]')),
 		};
 	});
 
@@ -105,11 +110,16 @@ async function runOnce(runLabel) {
 	const selectors = {
 		logoText: page.getByText("login or create your account."),
 		googleBtn: page.getByText("Continue with Google"),
-		headline: page.getByText("Ready to join Vault?"),
-		quote: page.getByText("Vault is why I still have hair"),
+		waves: page.getByTestId("login-waves"),
 	};
 
 	const failures = [];
+	if (metrics.wavePathCount < 10) {
+		failures.push(`waves path count too low: ${metrics.wavePathCount}`);
+	}
+	if (metrics.hasDollarVideo) {
+		failures.push("dollar gif video still present");
+	}
 	for (const [name, loc] of Object.entries(selectors)) {
 		const visible = await loc.isVisible();
 		const box = visible ? await loc.boundingBox() : null;
