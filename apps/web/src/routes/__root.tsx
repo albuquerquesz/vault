@@ -56,7 +56,7 @@ function RootComponent() {
 			>
 				<TooltipProvider delay={800}>
 					{isStandaloneAuthPage ? (
-						<div className="grid h-svh grid-rows-[auto_1fr]">
+						<div className="flex h-svh min-h-0 w-full flex-col overflow-hidden">
 							<Outlet />
 						</div>
 					) : (

@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { env } from "./db/env.js";
 import { createDb } from "./db/index.js";
 import * as schema from "./db/schema/auth.js";
+import { sendPasswordResetEmail } from "./services/notifique.js";
 
 const frontAuthErrorUrl = `${env.CORS_ORIGIN.replace(/\/$/, "")}/auth/error`;
 const authBaseUrlFallback = env.BETTER_AUTH_URL.replace(/\/$/, "");
@@ -22,6 +23,9 @@ export function createAuth() {
 		trustedOrigins: [env.CORS_ORIGIN],
 		emailAndPassword: {
 			enabled: true,
+			sendResetPassword: async ({ user, url }) => {
+				await sendPasswordResetEmail({ to: user.email, url });
+			},
 		},
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: {
