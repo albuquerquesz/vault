@@ -58,7 +58,7 @@ function RouteComponent() {
 						<VaultLogo showName={false} />
 						<div className="space-y-7">
 							<h1
-								className="text-4xl font-semibold tracking-tight text-zinc-900"
+								className="text-5xl font-semibold tracking-tight text-zinc-900"
 								style={{ fontFamily: '"Space Grotesk", sans-serif' }}
 							>
 								Bem-vindo de volta!
@@ -76,7 +76,7 @@ function RouteComponent() {
 							borderRadius="0.75rem"
 							duration={2500}
 							containerClassName="h-12 w-full p-[3px]"
-							borderClassName="h-12 w-12 bg-[radial-gradient(#09090b_25%,transparent_65%)] opacity-100"
+							borderClassName="!size-[6px] bg-[radial-gradient(#09090b_55%,transparent_75%)] opacity-100"
 							className="gap-2 border-zinc-200 bg-white text-sm font-medium text-zinc-800 backdrop-blur-none hover:bg-zinc-50"
 							type="button"
 							onClick={handleGoogleSignIn}
@@ -91,14 +91,16 @@ function RouteComponent() {
 			{/* Right panel - Waves (black + white strokes) */}
 			<section
 				data-testid="login-promo-column"
-				className="relative hidden min-h-0 w-1/2 flex-col border-l border-zinc-200 lg:flex"
+				className="relative hidden min-h-0 w-1/2 flex-col p-4 lg:flex"
 			>
-				<Waves
-					data-testid="login-waves"
-					className="absolute inset-0"
-					backgroundColor="#000000"
-					strokeColor="#ffffff"
-				/>
+				<div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl">
+					<Waves
+						data-testid="login-waves"
+						className="absolute inset-0"
+						backgroundColor="#000000"
+						strokeColor="#ffffff"
+					/>
+				</div>
 			</section>
 		</main>
 	);
