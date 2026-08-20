@@ -53,7 +53,7 @@ function RouteComponent() {
 			>
 				<div className="mx-auto w-full max-w-sm space-y-6">
 					<div className="flex flex-col items-center gap-8 text-center">
-						<VaultLogo showName={false} />
+						<VaultLogo showName={false} size="lg" />
 						<div className="space-y-7">
 							<h1
 								className="whitespace-nowrap text-5xl font-semibold tracking-tight text-zinc-900"

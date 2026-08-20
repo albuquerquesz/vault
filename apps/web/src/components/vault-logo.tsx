@@ -11,6 +11,11 @@ const sizeClasses = {
 		wordmark: "text-xl",
 		gap: "gap-2.5",
 	},
+	lg: {
+		mark: "h-12 w-12 rounded-xl",
+		wordmark: "text-2xl",
+		gap: "gap-3",
+	},
 } as const;
 
 type VaultLogoProps = {
