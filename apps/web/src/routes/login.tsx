@@ -47,37 +47,33 @@ function RouteComponent() {
 			data-testid="login-page"
 			className="flex min-h-0 w-full flex-1 bg-white px-0 pb-[env(safe-area-inset-bottom,0px)] text-zinc-900"
 		>
-			{/* Left panel - Form */}
 			<section
 				data-testid="login-auth-column"
 				className="flex min-h-0 w-full flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12 lg:w-1/2"
 			>
 				<div className="mx-auto w-full max-w-sm space-y-6">
-					{/* Logo + welcome copy */}
 					<div className="flex flex-col items-center gap-3 text-center">
 						<VaultLogo showName={false} />
 						<div className="space-y-7">
 							<h1
-								className="text-5xl font-semibold tracking-tight text-zinc-900"
+								className="whitespace-nowrap text-5xl font-semibold tracking-tight text-zinc-900"
 								style={{ fontFamily: '"Space Grotesk", sans-serif' }}
 							>
 								Bem-vindo de volta!
 							</h1>
-							<p className="text-base text-zinc-600">
+							<p className="text-xl text-zinc-600">
 								Entre para continuar de onde parou, ou comece agora
 								criando sua conta.
 							</p>
 						</div>
 					</div>
 
-					{/* Social login buttons */}
 					<div className="space-y-2">
 						<MovingBorderButton
 							borderRadius="0.75rem"
-							duration={2500}
 							containerClassName="h-12 w-full p-[3px]"
-							borderClassName="!size-[6px] bg-[radial-gradient(#09090b_55%,transparent_75%)] opacity-100"
-							className="gap-2 border-zinc-200 bg-white text-sm font-medium text-zinc-800 backdrop-blur-none hover:bg-zinc-50"
+							borderClassName="bg-[radial-gradient(#18181b_40%,transparent_60%)]"
+							className="gap-2 border-zinc-200 bg-white text-sm font-medium text-zinc-800 hover:bg-zinc-50"
 							type="button"
 							onClick={handleGoogleSignIn}
 						>
@@ -88,7 +84,6 @@ function RouteComponent() {
 				</div>
 			</section>
 
-			{/* Right panel - Waves (black + white strokes) */}
 			<section
 				data-testid="login-promo-column"
 				className="relative hidden min-h-0 w-1/2 flex-col p-4 lg:flex"
