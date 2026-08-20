@@ -9,7 +9,8 @@
 		"serve": "vite preview",
 		"start": "vite",
 		"check-types": "vite build && tsc --noEmit",
-		"lint": "tsc --noEmit"
+		"lint": "tsc --noEmit",
+		"test:login-viewport": "node ./e2e/login-viewport.mjs"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.0.0",
@@ -56,6 +57,7 @@
 		"@types/react-dom": "catalog:",
 		"@vault/config": "workspace:*",
 		"@vitejs/plugin-react": "^6.0.1",
+		"playwright": "1.58.2",
 		"postcss": "^8.5.10",
 		"tailwindcss": "^4.2.2",
 		"typescript": "catalog:",

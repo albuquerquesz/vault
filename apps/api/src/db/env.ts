@@ -29,6 +29,9 @@ export const env = createEnv({
 		 * webhooks via API and validated on receive when set.
 		 */
 		PLUGGY_WEBHOOK_SECRET: z.string().min(8).optional(),
+		NOTIFIQUE_API_KEY: z.string().min(1).optional(),
+		NOTIFIQUE_BASE_URL: z.url().default("https://api.notifique.dev"),
+		NOTIFIQUE_FROM_EMAIL: z.string().min(1).optional(),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),

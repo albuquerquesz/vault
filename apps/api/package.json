@@ -21,6 +21,7 @@
 	},
 	"dependencies": {
 		"@fastify/cors": "^11.0.1",
+		"@notifique/sdk-node": "0.2.1",
 		"@t3-oss/env-core": "^0.13.1",
 		"better-auth": "1.6.11",
 		"dotenv": "^17.2.2",

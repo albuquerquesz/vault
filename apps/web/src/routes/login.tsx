@@ -42,9 +42,15 @@ function RouteComponent() {
 	}
 
 	return (
-		<main className="flex min-h-[100svh] bg-[#0c0a09] px-0 pb-[env(safe-area-inset-bottom,0px)] text-white">
+		<main
+			data-testid="login-page"
+			className="flex min-h-0 w-full flex-1 bg-[#0c0a09] px-0 pb-[env(safe-area-inset-bottom,0px)] text-white"
+		>
 			{/* Left panel - Form */}
-			<section className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+			<section
+				data-testid="login-auth-column"
+				className="flex min-h-0 w-full flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12 lg:w-1/2"
+			>
 				<div className="mx-auto w-full max-w-sm space-y-6">
 					{/* Logo */}
 					<div className="flex flex-col items-center gap-3">
@@ -70,7 +76,10 @@ function RouteComponent() {
 			</section>
 
 			{/* Right panel - Testimonial */}
-			<section className="relative hidden flex-col border-l border-zinc-800/50 lg:flex lg:flex-1">
+			<section
+				data-testid="login-promo-column"
+				className="relative hidden min-h-0 w-1/2 flex-col border-l border-zinc-800/50 lg:flex"
+			>
 				{/* Grid background pattern */}
 				<div className="absolute inset-0 grid grid-cols-3 grid-rows-5 gap-2 p-4">
 					{Array.from({ length: 15 }).map((_, i) => (
@@ -79,7 +88,7 @@ function RouteComponent() {
 				</div>
 
 				{/* Content */}
-				<div className="relative z-10 mx-auto flex flex-1 flex-col items-center justify-center px-12">
+				<div className="relative z-10 mx-auto flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center px-12">
 					<div className="space-y-8 text-center">
 						<div className="space-y-3">
 							<h2
