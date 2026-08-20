@@ -75,7 +75,7 @@ function RouteComponent() {
 						<MovingBorderButton
 							borderRadius="0.75rem"
 							duration={2500}
-							containerClassName="h-12 w-full"
+							containerClassName="h-12 w-full p-[3px]"
 							borderClassName="h-12 w-12 bg-[radial-gradient(#09090b_25%,transparent_65%)] opacity-100"
 							className="gap-2 border-zinc-200 bg-white text-sm font-medium text-zinc-800 backdrop-blur-none hover:bg-zinc-50"
 							type="button"
