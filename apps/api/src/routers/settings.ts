@@ -10,6 +10,11 @@ import {
 	MissingPluggyCredentialsError,
 	savePluggyCredentials,
 } from "../services/connectors/credentials.js";
+import {
+	createMcpAccessToken,
+	listMcpAccessTokens,
+	revokeMcpAccessToken,
+} from "../services/mcp-tokens.js";
 import { requireSession } from "../session.js";
 
 const preferencesSchema = z.object({
@@ -31,6 +36,10 @@ const avatarSchema = z.object({
 const pluggyCredentialsSchema = z.object({
 	clientId: z.string().min(1),
 	clientSecret: z.string().min(1),
+});
+
+const mcpTokenNameSchema = z.object({
+	name: z.string().trim().min(1).max(100),
 });
 
 function mergeSettings(
@@ -213,6 +222,46 @@ export function registerSettingsRoutes(server: FastifyInstance) {
 			const session = await requireSession(req.raw);
 			await deletePluggyCredentials(session.user.id);
 			return reply.send({ configured: false, clientIdMasked: null });
+		} catch (error) {
+			return sendKnownError(reply, error);
+		}
+	});
+
+	// --- MCP access tokens ---
+
+	server.get("/mcp-tokens", async (req, reply) => {
+		try {
+			const session = await requireSession(req.raw);
+			return reply.send(await listMcpAccessTokens(session.user.id));
+		} catch (error) {
+			return sendKnownError(reply, error);
+		}
+	});
+
+	server.post("/mcp-tokens", async (req, reply) => {
+		try {
+			const session = await requireSession(req.raw);
+			const body = mcpTokenNameSchema.parse(req.body);
+			const token = await createMcpAccessToken({
+				userId: session.user.id,
+				name: body.name,
+			});
+			return reply.code(201).send(token);
+		} catch (error) {
+			return sendKnownError(reply, error);
+		}
+	});
+
+	server.delete("/mcp-tokens/:id", async (req, reply) => {
+		try {
+			const session = await requireSession(req.raw);
+			const params = z.object({ id: z.string().uuid() }).parse(req.params);
+			const revoked = await revokeMcpAccessToken({
+				userId: session.user.id,
+				tokenId: params.id,
+			});
+			if (!revoked) return reply.status(404).send({ error: "Token not found" });
+			return reply.status(204).send();
 		} catch (error) {
 			return sendKnownError(reply, error);
 		}

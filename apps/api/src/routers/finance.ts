@@ -391,7 +391,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 		url: "/transactions",
 		async handler(req, reply) {
 			try {
-				const session = await requireSession(req.raw);
+				const session = await requireSession(req.raw, { allowMcpToken: true });
 				const month = (req.query as { month: string }).month;
 				if (!monthPattern.test(month))
 					return reply
@@ -640,7 +640,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 		url: "/overview",
 		async handler(req, reply) {
 			try {
-				const session = await requireSession(req.raw);
+				const session = await requireSession(req.raw, { allowMcpToken: true });
 				const query = req.query as { month: string; today?: string };
 				if (!monthPattern.test(query.month))
 					return reply
@@ -710,7 +710,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 		url: "/spending-goal",
 		async handler(req, reply) {
 			try {
-				const session = await requireSession(req.raw);
+				const session = await requireSession(req.raw, { allowMcpToken: true });
 				const query = req.query as { month?: string; today?: string };
 				const month = query.month;
 				if (!month || !monthPattern.test(month)) {
@@ -813,7 +813,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 		url: "/partial-result",
 		async handler(req, reply) {
 			try {
-				const session = await requireSession(req.raw);
+				const session = await requireSession(req.raw, { allowMcpToken: true });
 				const query = req.query as { month: string };
 				if (!monthPattern.test(query.month))
 					return reply
@@ -860,7 +860,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 		url: "/goals",
 		async handler(req, reply) {
 			try {
-				const session = await requireSession(req.raw);
+				const session = await requireSession(req.raw, { allowMcpToken: true });
 				const records = await db
 					.select()
 					.from(goal)
@@ -998,7 +998,7 @@ export function registerFinanceRoutes(server: FastifyInstance) {
 		url: "/monthly-bills",
 		async handler(req, reply) {
 			try {
-				const session = await requireSession(req.raw);
+				const session = await requireSession(req.raw, { allowMcpToken: true });
 				const month = (req.query as { month: string }).month;
 				if (!monthPattern.test(month))
 					return reply
