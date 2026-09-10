@@ -9,6 +9,7 @@ docs/*
 !docs/agents/*.md
 !docs/specs/
 !docs/specs/**
+!docs/mcp.md
 
 # Build outputs
 dist
