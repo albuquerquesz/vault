@@ -39,6 +39,7 @@ import {
 	maskBrlInput,
 	parseBrlInputToCents,
 } from "@/components/overview/goals/hooks/use-goals-card";
+import { McpSettings } from "@/components/mcp-settings";
 import { PageContent } from "@/components/page-content";
 import { PluggyConnectWidget } from "@/components/pluggy-connect-widget";
 import { useTheme } from "@/components/theme-provider";
@@ -59,9 +60,9 @@ import {
 } from "@/features/settings/sdk";
 import { authClient } from "@/lib/auth-client";
 
-export type SettingsSection = "general" | "account" | "about";
+export type SettingsSection = "general" | "account" | "about" | "mcp";
 
-const SETTINGS_SECTIONS = ["general", "account", "about"] as const;
+const SETTINGS_SECTIONS = ["general", "account", "about", "mcp"] as const;
 
 const settingsSections: Array<{
 	id: SettingsSection;
@@ -70,6 +71,7 @@ const settingsSections: Array<{
 	{ id: "general", label: "Geral" },
 	{ id: "account", label: "Conta" },
 	{ id: "about", label: "Sobre" },
+	{ id: "mcp", label: "MCP" },
 ];
 
 function isSettingsSection(value: unknown): value is SettingsSection {
@@ -896,6 +898,7 @@ export function SettingsPage() {
 				{activeSection === "general" ? <GeneralSettings /> : null}
 				{activeSection === "account" ? <AccountSettings /> : null}
 				{activeSection === "about" ? <AboutSettings /> : null}
+				{activeSection === "mcp" ? <McpSettings /> : null}
 			</div>
 		</PageContent>
 	);

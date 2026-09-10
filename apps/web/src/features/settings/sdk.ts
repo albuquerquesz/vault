@@ -41,11 +41,29 @@ export interface PluggyCredentialsInput {
 	clientSecret: string;
 }
 
+export interface McpAccessToken {
+	id: string;
+	name: string;
+	tokenPrefix: string;
+	createdAt: string;
+	lastUsedAt: string | null;
+	revokedAt: string | null;
+}
+
+export interface McpAccessTokenCreated {
+	id: string;
+	name: string;
+	token: string;
+	tokenPrefix: string;
+	createdAt: string;
+}
+
 // Query keys
 
 const PREFERENCES_KEY = ["settings", "preferences"] as const;
 const PROFILE_KEY = ["settings", "profile"] as const;
 const PLUGGY_CREDENTIALS_KEY = ["settings", "pluggy-credentials"] as const;
+const MCP_TOKENS_KEY = ["settings", "mcp-tokens"] as const;
 
 // SDK
 
@@ -67,6 +85,16 @@ export const settingsSdk = {
 		return {
 			queryKey: PROFILE_KEY,
 			queryFn: () => apiFetch<UserProfile>("/api/settings/profile"),
+		};
+	},
+
+	mcpTokensOptions(): {
+		queryKey: typeof MCP_TOKENS_KEY;
+		queryFn: () => Promise<McpAccessToken[]>;
+	} {
+		return {
+			queryKey: MCP_TOKENS_KEY,
+			queryFn: () => apiFetch<McpAccessToken[]>("/api/settings/mcp-tokens"),
 		};
 	},
 
@@ -120,6 +148,39 @@ export const settingsSdk = {
 			},
 		};
 	},
+
+	createMcpTokenMutationOptions() {
+		return {
+			mutationFn: (data: { name: string }) =>
+				apiFetch<McpAccessTokenCreated>("/api/settings/mcp-tokens", {
+					method: "POST",
+					body: data,
+				}),
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: MCP_TOKENS_KEY });
+				toast.success("Token MCP criado");
+			},
+			onError: () => {
+				toast.error("Falha ao criar token MCP");
+			},
+		};
+	},
+
+	revokeMcpTokenMutationOptions() {
+		return {
+			mutationFn: (id: string) =>
+				apiFetch<void>(`/api/settings/mcp-tokens/${id}`, {
+					method: "DELETE",
+				}),
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: MCP_TOKENS_KEY });
+				toast.success("Token MCP revogado");
+			},
+			onError: () => {
+				toast.error("Falha ao revogar token MCP");
+			},
+		};
+	},
 };
 
 // Helpers
@@ -163,6 +224,14 @@ export function useUserProfile(options?: { enabled?: boolean }) {
 	});
 }
 
+export function useMcpTokens(options?: { enabled?: boolean }) {
+	const opts = settingsSdk.mcpTokensOptions();
+	return useQuery({
+		...opts,
+		...(options ?? {}),
+	});
+}
+
 export function useUpdatePreferences() {
 	const { setTheme } = useTheme();
 	const opts = settingsSdk.updatePreferencesMutationOptions();
@@ -185,6 +254,14 @@ export function useUpdateProfile() {
 export function useUpdateAvatar() {
 	const opts = settingsSdk.updateAvatarMutationOptions();
 	return useMutation(opts);
+}
+
+export function useCreateMcpToken() {
+	return useMutation(settingsSdk.createMcpTokenMutationOptions());
+}
+
+export function useRevokeMcpToken() {
+	return useMutation(settingsSdk.revokeMcpTokenMutationOptions());
 }
 
 // --- Pluggy Credentials ---
