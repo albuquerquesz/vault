@@ -163,9 +163,9 @@
 	--color-chart-marker-foreground: var(----chart-marker-foreground);
 	--color-chart-marker-border: var(----chart-marker-border);
 	--color-chart-marker-background: var(----chart-marker-background);
-	--color-chart-tooltip-muted: var(----chart-tooltip-muted);
-	--color-chart-tooltip-foreground: var(----chart-tooltip-foreground);
-	--color-chart-tooltip-background: var(----chart-tooltip-background);
+	--color-chart-tooltip-muted: var(--chart-tooltip-muted);
+	--color-chart-tooltip-foreground: var(--chart-tooltip-foreground);
+	--color-chart-tooltip-background: var(--chart-tooltip-background);
 	--chart-brush-border: var(----chart-brush-border);
 	--color-chart-grid: var(----chart-grid);
 	--color-chart-crosshair: var(----chart-crosshair);
