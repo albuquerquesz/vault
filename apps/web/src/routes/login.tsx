@@ -54,14 +54,14 @@ function RouteComponent() {
 				<div className="mx-auto w-full max-w-sm space-y-6">
 					<div className="flex flex-col items-center gap-8 text-center">
 						<VaultLogo showName={false} size="lg" />
-						<div className="space-y-7">
+						<div className="space-y-4 sm:space-y-7">
 							<h1
-								className="whitespace-nowrap text-5xl font-semibold tracking-tight text-zinc-900"
+								className="text-3xl leading-tight font-semibold tracking-tight text-zinc-900 sm:text-5xl"
 								style={{ fontFamily: '"Space Grotesk", sans-serif' }}
 							>
 								Bem-vindo de volta!
 							</h1>
-							<p className="text-xl text-zinc-600">
+							<p className="text-base leading-6 text-zinc-600 sm:text-xl sm:leading-7">
 								Entre para continuar de onde parou, ou comece agora
 								criando sua conta.
 							</p>
