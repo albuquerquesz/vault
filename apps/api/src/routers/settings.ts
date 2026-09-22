@@ -20,8 +20,17 @@ import { requireSession } from "../session.js";
 const preferencesSchema = z.object({
 	theme: z.enum(["light", "dark"]).nullish(),
 	/** Monthly income in integer cents (e.g. R$ 4.500,00 → 450000). */
-	monthlyIncome: z.coerce.number().int().positive().max(99_999_999_99).nullish(),
+	monthlyIncome: z.coerce
+		.number()
+		.int()
+		.positive()
+		.max(99_999_999_99)
+		.nullish(),
 	incomeDay: z.coerce.number().int().min(1).max(28).nullish(),
+});
+
+const dailySummarySchema = z.object({
+	enabled: z.boolean(),
 });
 
 const profileSchema = z.object({
@@ -44,7 +53,7 @@ const mcpTokenNameSchema = z.object({
 
 function mergeSettings(
 	base: UserSettings | null,
-	patch: Record<string, string | number | null>,
+	patch: Record<string, string | number | boolean | null>,
 ): UserSettings {
 	const merged = { ...(base ?? {}) };
 	for (const [key, value] of Object.entries(patch)) {
@@ -116,6 +125,41 @@ export function registerSettingsRoutes(server: FastifyInstance) {
 				monthlyIncome: settings.monthlyIncome ?? null,
 				incomeDay: settings.incomeDay ?? null,
 			});
+		} catch (error) {
+			return sendKnownError(reply, error);
+		}
+	});
+
+	server.get("/push/daily-summary", async (req, reply) => {
+		try {
+			const session = await requireSession(req.raw);
+			const u = await db.query.user.findFirst({
+				where: eq(user.id, session.user.id),
+				columns: { settings: true },
+			});
+			const settings = (u?.settings ?? {}) as UserSettings;
+			return reply.send({ enabled: settings.dailySummaryEnabled ?? false });
+		} catch (error) {
+			return sendKnownError(reply, error);
+		}
+	});
+
+	server.put("/push/daily-summary", async (req, reply) => {
+		try {
+			const session = await requireSession(req.raw);
+			const body = dailySummarySchema.parse(req.body);
+			const u = await db.query.user.findFirst({
+				where: eq(user.id, session.user.id),
+				columns: { settings: true },
+			});
+			const settings = mergeSettings(u?.settings as UserSettings | null, {
+				dailySummaryEnabled: body.enabled,
+			});
+			await db
+				.update(user)
+				.set({ settings })
+				.where(eq(user.id, session.user.id));
+			return reply.send(body);
 		} catch (error) {
 			return sendKnownError(reply, error);
 		}

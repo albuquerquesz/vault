@@ -22,6 +22,7 @@ export const env = createEnv({
 		VAPID_PUBLIC_KEY: z.string().min(1).optional(),
 		VAPID_PRIVATE_KEY: z.string().min(1).optional(),
 		VAPID_SUBJECT: z.string().min(1).optional(),
+		CRON_SECRET: z.string().min(16).optional(),
 		/**
 		 * Public HTTPS URL for Pluggy webhooks.
 		 * Defaults to `${BETTER_AUTH_URL}/api/webhooks/pluggy`.

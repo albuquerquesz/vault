@@ -6,6 +6,8 @@ Configure `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` na API para 
 
 O teste envia uma notificação apenas para a subscription do dispositivo autenticado, com limite de um envio por minuto. Respostas permanentes 404/410 removem a subscription; falhas temporárias a preservam. O endpoint é guardado por hash e o conteúdo da subscription é criptografado pelo mecanismo de segredos do projeto.
 
+O resumo financeiro diário é opcional por usuário e soma despesas/ganhos manuais e transações Pluggy visíveis do dia em `America/Sao_Paulo`. Vercel Cron roda em `apps/api/api/cron/daily-summary.ts`, às 01:00 UTC (aprox. 21:00–22:00 em Brasília, devido à janela de execução Hobby). Configure `CRON_SECRET` no projeto Vercel; função usa o `Authorization: Bearer` automático do Cron. `last_daily_summary_date` por dispositivo evita duplicação em retries. Notificações push e dados do dia só são enviados a dispositivos inscritos.
+
 O `kubojs.jsonrc` registra a stack real e fixa o CLI em `@kubojs/cli@0.2.2`. Antes de adicionar outro addon, rode `bunx kubojs add-json --input '{"projectDir":".","addons":["nome"],"dryRun":true}'` e revise os arquivos propostos e o diff antes de aplicar. O addon PWA genérico foi apenas inspecionado via dry run; a implementação própria evita sobrescrever o manifest e o fluxo de atualização do Vault.
 
 Valide no preview HTTPS: `/sw.js` deve ser JavaScript, `/manifest.webmanifest` deve retornar o manifest, e `/api/*` deve chegar à API. Confira a instalação, a atualização com aviso, o modo offline e a entrega de push com o app fechado em Chrome/Android e em um iPhone instalado na Tela de Início. O navegador local não comprova entrega com o app fechado.

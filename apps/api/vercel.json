@@ -4,7 +4,9 @@
 	"buildCommand": "mkdir -p public && echo ok > public/.gitkeep",
 	"outputDirectory": "public",
 	"framework": null,
+	"crons": [{ "path": "/api/cron/daily-summary", "schedule": "0 1 * * *" }],
 	"functions": {
+		"api/cron/daily-summary.ts": { "maxDuration": 60 },
 		"api/[...path].ts": {
 			"maxDuration": 60,
 			"includeFiles": "src/**"

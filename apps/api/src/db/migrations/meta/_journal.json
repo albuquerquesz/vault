@@ -134,6 +134,13 @@
       "when": 1790116014143,
       "tag": "0018_chief_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790118698719,
+      "tag": "0019_daily_push_summary",
+      "breakpoints": true
     }
   ]
 }

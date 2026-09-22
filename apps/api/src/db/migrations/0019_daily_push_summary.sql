@@ -1,0 +1,1 @@
+ALTER TABLE "push_subscription" ADD COLUMN "last_daily_summary_date" text;

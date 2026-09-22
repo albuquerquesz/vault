@@ -13,6 +13,7 @@ export type UserSettings = {
 	/** Monthly income in integer cents (e.g. R$ 4.500,00 → 450000). */
 	monthlyIncome?: number | null;
 	incomeDay?: number | null;
+	dailySummaryEnabled?: boolean;
 };
 
 export const user = pgTable("user", {
