@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
@@ -108,6 +109,51 @@ export function registerPluggyRoutes(server: FastifyInstance) {
 				});
 
 				return reply.status(201).send(result);
+			} catch (error) {
+				return sendKnownError(reply, error);
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/items/:itemId/refresh-token",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { itemId } = z
+					.object({ itemId: z.string().uuid() })
+					.parse(req.params);
+				const [item] = await db
+					.select()
+					.from(pluggyItems)
+					.where(
+						and(
+							eq(pluggyItems.id, itemId),
+							eq(pluggyItems.userId, session.user.id),
+						),
+					)
+					.limit(1);
+				if (!item) return reply.code(404).send({ error: "Item not found" });
+
+				const creds = await resolvePluggyCredentials(session.user.id);
+				const service = createPluggyService(creds);
+				const webhookUrl = getPluggyWebhookUrl();
+				const token = await service.createConnectToken({
+					itemId: item.pluggyItemId,
+					clientUserId: session.user.id,
+					...(webhookUrl.startsWith("https://") ? { webhookUrl } : {}),
+				});
+				const requestedAt = dayjs().toDate();
+				await db
+					.update(pluggyItems)
+					.set({
+						refreshRequestedAt: requestedAt,
+						lastSyncStatus: "requested",
+						lastSyncError: null,
+					})
+					.where(eq(pluggyItems.id, item.id));
+				return reply.send({ accessToken: token.accessToken, requestedAt });
 			} catch (error) {
 				return sendKnownError(reply, error);
 			}

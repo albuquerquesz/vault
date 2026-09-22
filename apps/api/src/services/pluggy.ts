@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { createPluggyClient, PluggyApiError } from "../clients/pluggy/index.js";
 import type {
@@ -150,7 +151,9 @@ export function summarizeSyncResult(phases: {
 	transactions: PluggySyncPhaseResult;
 }): PluggySyncResult {
 	const orderedPhases = [phases.accounts, phases.bills, phases.transactions];
-	const firstFailedPhase = orderedPhases.find((phase) => phase.status === "failed");
+	const firstFailedPhase = orderedPhases.find(
+		(phase) => phase.status === "failed",
+	);
 	const hasFailure = Boolean(firstFailedPhase);
 	const hasSuccessfulPhase = orderedPhases.some(
 		(phase) => phase.status === "success",
@@ -520,10 +523,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 			eq(monthlyBillItem.monthlyBillId, monthlyBill.id),
 		)
 		.where(
-			and(
-				eq(monthlyBill.userId, userId),
-				eq(monthlyBillItem.source, "pluggy"),
-			),
+			and(eq(monthlyBill.userId, userId), eq(monthlyBillItem.source, "pluggy")),
 		);
 
 	// account+month → latest bill by dueDate
@@ -962,10 +962,7 @@ export async function syncTransactionsForItem(params: {
 		}
 
 		transactionsPhase = failedPhase(
-			toPhaseErrorMessage(
-				error,
-				"Falha ao sincronizar transacoes da Pluggy.",
-			),
+			toPhaseErrorMessage(error, "Falha ao sincronizar transacoes da Pluggy."),
 		);
 	}
 
@@ -992,13 +989,22 @@ export async function persistPluggyItemAndSync(params: {
 			pluggyItemId: remoteItem.id,
 			provider,
 			status: remoteItem.status,
+			lastPluggyUpdatedAt: remoteItem.lastUpdatedAt
+				? dayjs(remoteItem.lastUpdatedAt).toDate()
+				: null,
+			lastSyncStatus: "syncing",
 		})
 		.onConflictDoUpdate({
 			target: [pluggyItems.userId, pluggyItems.pluggyItemId],
 			set: {
 				provider,
 				status: remoteItem.status,
-				updatedAt: new Date(),
+				lastPluggyUpdatedAt: remoteItem.lastUpdatedAt
+					? dayjs(remoteItem.lastUpdatedAt).toDate()
+					: null,
+				lastSyncStatus: "syncing",
+				lastSyncError: null,
+				updatedAt: dayjs().toDate(),
 			},
 		})
 		.returning();
@@ -1014,6 +1020,14 @@ export async function persistPluggyItemAndSync(params: {
 			localItemId: item.id,
 			pluggyItemId: item.pluggyItemId,
 		});
+		await db
+			.update(pluggyItems)
+			.set({
+				lastSyncStatus: sync.status,
+				lastSyncCompletedAt: dayjs().toDate(),
+				lastSyncError: sync.error ?? null,
+			})
+			.where(eq(pluggyItems.id, item.id));
 
 		return { item, sync };
 	} catch (error) {
@@ -1021,23 +1035,29 @@ export async function persistPluggyItemAndSync(params: {
 			throw error;
 		}
 
-		return {
-			item,
-			sync: summarizeSyncResult({
-				accounts: failedPhase(
-					toPhaseErrorMessage(
-						error,
-						"Falha ao sincronizar dados iniciais com a Pluggy.",
-					),
+		const sync = summarizeSyncResult({
+			accounts: failedPhase(
+				toPhaseErrorMessage(
+					error,
+					"Falha ao sincronizar dados iniciais com a Pluggy.",
 				),
-				bills: skippedPhase(
-					"Faturas nao sincronizadas porque a sincronizacao inicial falhou.",
-				),
-				transactions: skippedPhase(
-					"Transacoes nao sincronizadas porque a sincronizacao inicial falhou.",
-				),
-			}),
-		};
+			),
+			bills: skippedPhase(
+				"Faturas nao sincronizadas porque a sincronizacao inicial falhou.",
+			),
+			transactions: skippedPhase(
+				"Transacoes nao sincronizadas porque a sincronizacao inicial falhou.",
+			),
+		});
+		await db
+			.update(pluggyItems)
+			.set({
+				lastSyncStatus: sync.status,
+				lastSyncCompletedAt: dayjs().toDate(),
+				lastSyncError: sync.error ?? null,
+			})
+			.where(eq(pluggyItems.id, item.id));
+		return { item, sync };
 	}
 }
 
@@ -1046,7 +1066,7 @@ export async function markPluggyItemAsOrphaned(localItemId: string) {
 		.update(pluggyItems)
 		.set({
 			status: PLUGGY_ORPHANED_STATUS,
-			updatedAt: new Date(),
+			updatedAt: dayjs().toDate(),
 		})
 		.where(eq(pluggyItems.id, localItemId));
 }

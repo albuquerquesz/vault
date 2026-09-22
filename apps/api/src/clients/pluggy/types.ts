@@ -164,6 +164,8 @@ export interface PluggyBillsPage {
 export interface PluggyItem {
 	id: string;
 	status: string;
+	lastUpdatedAt?: string | null;
+	nextAutoSyncAt?: string | null;
 	connector?: {
 		id: number;
 		name?: string;

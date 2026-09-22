@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { PluggyApiError } from "../clients/pluggy/index.js";
@@ -118,13 +119,25 @@ export async function resolveLocalItemsForWebhook(params: {
 
 async function updateLocalItemStatus(params: {
 	localItemId: string;
-	status: string;
+	status?: string;
+	lastPluggyUpdatedAt?: string | null;
+	lastWebhookReceivedAt?: Date;
+	lastSyncStatus?: string;
+	lastSyncCompletedAt?: Date;
+	lastSyncError?: string | null;
 }) {
 	await db
 		.update(pluggyItems)
 		.set({
 			status: params.status,
-			updatedAt: new Date(),
+			lastPluggyUpdatedAt: params.lastPluggyUpdatedAt
+				? dayjs(params.lastPluggyUpdatedAt).toDate()
+				: undefined,
+			lastWebhookReceivedAt: params.lastWebhookReceivedAt,
+			lastSyncStatus: params.lastSyncStatus,
+			lastSyncCompletedAt: params.lastSyncCompletedAt,
+			lastSyncError: params.lastSyncError,
+			updatedAt: dayjs().toDate(),
 		})
 		.where(eq(pluggyItems.id, params.localItemId));
 }
@@ -146,6 +159,13 @@ async function syncOneLocalItem(params: {
 	const { userId, localItemId, pluggyItemId, updateStatus } = params;
 
 	try {
+		const webhookReceivedAt = dayjs().toDate();
+		await updateLocalItemStatus({
+			localItemId,
+			lastWebhookReceivedAt: webhookReceivedAt,
+			lastSyncStatus: "syncing",
+			lastSyncError: null,
+		});
 		const creds = await resolvePluggyCredentials(userId);
 		const service = createPluggyService(creds);
 
@@ -155,6 +175,7 @@ async function syncOneLocalItem(params: {
 				await updateLocalItemStatus({
 					localItemId,
 					status: remote.status,
+					lastPluggyUpdatedAt: remote.lastUpdatedAt,
 				});
 			} catch (error) {
 				if (!(error instanceof PluggyApiError && error.statusCode === 404)) {
@@ -172,6 +193,13 @@ async function syncOneLocalItem(params: {
 			userId,
 			localItemId,
 			pluggyItemId,
+		});
+		await updateLocalItemStatus({
+			localItemId,
+			lastWebhookReceivedAt: webhookReceivedAt,
+			lastSyncStatus: sync.status,
+			lastSyncCompletedAt: dayjs().toDate(),
+			lastSyncError: sync.error ?? null,
 		});
 
 		return {
@@ -191,6 +219,13 @@ async function syncOneLocalItem(params: {
 					: error instanceof Error
 						? error.message
 						: "Unknown webhook sync error";
+		await updateLocalItemStatus({
+			localItemId,
+			lastWebhookReceivedAt: dayjs().toDate(),
+			lastSyncStatus: "failed",
+			lastSyncCompletedAt: dayjs().toDate(),
+			lastSyncError: message,
+		});
 
 		return {
 			localItemId,
@@ -206,8 +241,18 @@ async function refreshStatusOneLocalItem(params: {
 	localItemId: string;
 	pluggyItemId: string;
 	fallbackStatus?: string;
+	event: string;
 }): Promise<PluggyWebhookHandleResult["results"][number]> {
-	const { userId, localItemId, pluggyItemId, fallbackStatus } = params;
+	const { userId, localItemId, pluggyItemId, fallbackStatus, event } = params;
+	const webhookReceivedAt = dayjs().toDate();
+	const syncState =
+		event === "item/waiting_user_action"
+			? "waiting_user_action"
+			: event === "item/waiting_user_input"
+				? "waiting_user_input"
+				: event === "item/error"
+					? "failed"
+					: "syncing";
 
 	try {
 		const creds = await resolvePluggyCredentials(userId);
@@ -216,6 +261,16 @@ async function refreshStatusOneLocalItem(params: {
 		await updateLocalItemStatus({
 			localItemId,
 			status: remote.status,
+			lastPluggyUpdatedAt: remote.lastUpdatedAt,
+			lastWebhookReceivedAt: webhookReceivedAt,
+			lastSyncStatus: syncState,
+			...(syncState === "failed"
+				? { lastSyncCompletedAt: dayjs().toDate() }
+				: {}),
+			lastSyncError:
+				syncState === "failed"
+					? "A conexão precisa ser autenticada novamente."
+					: null,
 		});
 		return {
 			localItemId,
@@ -227,6 +282,15 @@ async function refreshStatusOneLocalItem(params: {
 			await updateLocalItemStatus({
 				localItemId,
 				status: fallbackStatus,
+				lastWebhookReceivedAt: webhookReceivedAt,
+				lastSyncStatus: syncState,
+				...(syncState === "failed"
+					? { lastSyncCompletedAt: dayjs().toDate() }
+					: {}),
+				lastSyncError:
+					syncState === "failed"
+						? "A conexão precisa ser autenticada novamente."
+						: null,
 			});
 			return {
 				localItemId,
@@ -237,6 +301,14 @@ async function refreshStatusOneLocalItem(params: {
 
 		const message =
 			error instanceof Error ? error.message : "Failed to refresh item status";
+		await updateLocalItemStatus({
+			localItemId,
+			status: fallbackStatus,
+			lastWebhookReceivedAt: webhookReceivedAt,
+			lastSyncStatus: "failed",
+			lastSyncCompletedAt: dayjs().toDate(),
+			lastSyncError: message,
+		});
 		return {
 			localItemId,
 			userId,
@@ -357,6 +429,7 @@ export async function handlePluggyWebhookEvent(
 					localItemId: item.id,
 					pluggyItemId: item.pluggyItemId,
 					fallbackStatus,
+					event,
 				}),
 			);
 		}

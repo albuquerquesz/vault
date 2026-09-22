@@ -127,6 +127,13 @@
       "when": 1790112430745,
       "tag": "0017_salty_captain_flint",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790116014143,
+      "tag": "0018_chief_rhodey",
+      "breakpoints": true
     }
   ]
 }
