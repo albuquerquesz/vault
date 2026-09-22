@@ -6,6 +6,12 @@ export interface PluggyItem {
 	pluggyItemId: string;
 	provider: string;
 	status: string;
+	refreshRequestedAt?: string | null;
+	lastPluggyUpdatedAt?: string | null;
+	lastWebhookReceivedAt?: string | null;
+	lastSyncCompletedAt?: string | null;
+	lastSyncStatus?: string | null;
+	lastSyncError?: string | null;
 }
 
 export interface PluggyAccount {
@@ -80,7 +86,10 @@ export function usePluggyConnectToken() {
 
 // ─── Items ──────────────────────────────────────────────────────────────────
 
-export function usePluggyItems(options?: { enabled?: boolean }) {
+export function usePluggyItems(options?: {
+	enabled?: boolean;
+	refetchInterval?: number | false;
+}) {
 	return useQuery<PluggyItem[]>({
 		queryKey: ["pluggy-items"],
 		queryFn: () => apiFetch<PluggyItem[]>("/api/pluggy/items"),
@@ -182,10 +191,7 @@ export function usePluggyTransaction(transactionId: string) {
 		isFetching: transactionsQuery.isFetching || accountsQuery.isFetching,
 		isError: transactionsQuery.isError || accountsQuery.isError,
 		refetch: async () => {
-			await Promise.all([
-				transactionsQuery.refetch(),
-				accountsQuery.refetch(),
-			]);
+			await Promise.all([transactionsQuery.refetch(), accountsQuery.refetch()]);
 		},
 	};
 }

@@ -81,6 +81,9 @@ function loadPluggyConnectScript() {
 }
 
 interface PluggyConnectWidgetProps {
+	itemId?: string;
+	buttonLabel?: string;
+	onRefreshStart?: () => void;
 	onSuccess?: (data: PluggyConnectSuccessPayload) => void;
 	onError?: (error: Error) => void;
 	onClose?: () => void;
@@ -88,6 +91,9 @@ interface PluggyConnectWidgetProps {
 }
 
 export function PluggyConnectWidget({
+	itemId,
+	buttonLabel,
+	onRefreshStart,
 	onSuccess,
 	onError,
 	onClose,
@@ -99,9 +105,13 @@ export function PluggyConnectWidget({
 	const handleConnect = async () => {
 		setError(null);
 		setIsConnecting(true);
+		onRefreshStart?.();
 
 		try {
-			const tokenResponse = await fetch("/api/connectors/token", {
+			const tokenUrl = itemId
+				? `/api/pluggy/items/${encodeURIComponent(itemId)}/refresh-token`
+				: "/api/connectors/token";
+			const tokenResponse = await fetch(tokenUrl, {
 				method: "POST",
 				credentials: "include",
 			});
@@ -170,7 +180,7 @@ export function PluggyConnectWidget({
 						Conectando...
 					</>
 				) : (
-					"Conectar Banco"
+					(buttonLabel ?? "Conectar Banco")
 				)}
 			</Button>
 

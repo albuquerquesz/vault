@@ -22,6 +22,7 @@ import {
 	TooltipTrigger,
 } from "@vault/ui/components/tooltip";
 import { cn } from "@vault/ui/lib/utils";
+import dayjs from "dayjs";
 import {
 	CameraIcon,
 	CircleHelpIcon,
@@ -33,15 +34,15 @@ import {
 	SunIcon,
 } from "lucide-react";
 import * as React from "react";
-
+import { McpSettings } from "@/components/mcp-settings";
 import {
 	formatBrlFromCents,
 	maskBrlInput,
 	parseBrlInputToCents,
 } from "@/components/overview/goals/hooks/use-goals-card";
-import { McpSettings } from "@/components/mcp-settings";
 import { PageContent } from "@/components/page-content";
 import { PluggyConnectWidget } from "@/components/pluggy-connect-widget";
+import { PushSettings } from "@/components/push-settings";
 import { useTheme } from "@/components/theme-provider";
 import {
 	usePluggyDeleteItem,
@@ -60,7 +61,6 @@ import {
 } from "@/features/settings/sdk";
 import { authClient } from "@/lib/auth-client";
 import { signOut } from "@/lib/push";
-import { PushSettings } from "@/components/push-settings";
 
 export type SettingsSection = "general" | "account" | "about" | "mcp";
 
@@ -146,7 +146,7 @@ function SettingsSectionChips({
 						value={section.id}
 						className={cn(
 							// Loose chips (not a single segmented track): full pill, muted active fill
-					"min-h-11 h-auto flex-none rounded-full border-0 px-4 text-sm font-medium shadow-none after:hidden",
+							"min-h-11 h-auto flex-none rounded-full border-0 px-4 text-sm font-medium shadow-none after:hidden",
 							"text-muted-foreground hover:bg-muted/50 hover:text-foreground",
 							"data-active:bg-muted data-active:text-foreground",
 							"dark:data-active:border-transparent dark:data-active:bg-muted dark:data-active:text-foreground",
@@ -167,13 +167,46 @@ const THEME_OPTIONS = [
 ] as const;
 
 function ConnectedAccountsList() {
-	const { data: session, isPending: isSessionPending } = authClient.useSession();
+	const { data: session, isPending: isSessionPending } =
+		authClient.useSession();
 	const isAuthenticated = !isSessionPending && Boolean(session?.user);
+	const [refreshPending, setRefreshPending] = React.useState(false);
 	const { data: items, isLoading } = usePluggyItems({
 		enabled: isAuthenticated,
+		refetchInterval: refreshPending ? 5000 : false,
 	});
 	const deleteItem = usePluggyDeleteItem();
 	const [deletingId, setDeletingId] = React.useState<string | null>(null);
+
+	React.useEffect(() => {
+		if (!refreshPending || !items) return;
+		const requestFinished = items.some((item) => {
+			if (!item.refreshRequestedAt || !item.lastWebhookReceivedAt) return false;
+			const webhookAfterRequest = !dayjs(item.lastWebhookReceivedAt).isBefore(
+				dayjs(item.refreshRequestedAt),
+			);
+			const terminal = [
+				"success",
+				"partial_failure",
+				"failed",
+				"waiting_user_action",
+				"waiting_user_input",
+			];
+			return (
+				webhookAfterRequest && terminal.includes(item.lastSyncStatus ?? "")
+			);
+		});
+		if (requestFinished) setRefreshPending(false);
+	}, [items, refreshPending]);
+
+	React.useEffect(() => {
+		if (!refreshPending) return;
+		const timeout = window.setTimeout(
+			() => setRefreshPending(false),
+			3 * 60 * 1000,
+		);
+		return () => window.clearTimeout(timeout);
+	}, [refreshPending]);
 
 	if (isSessionPending || isLoading) {
 		return <p className="text-sm text-muted-foreground">Carregando contas…</p>;
@@ -199,29 +232,66 @@ function ConnectedAccountsList() {
 						<p className="text-xs text-muted-foreground capitalize">
 							{getPluggyStatusLabel(item.status)}
 						</p>
+						<p className="text-xs text-muted-foreground">
+							{(item.lastSyncStatus === "requested" &&
+								item.refreshRequestedAt &&
+								dayjs().diff(dayjs(item.refreshRequestedAt), "minute") < 3) ||
+							(item.lastSyncStatus === "syncing" &&
+								item.lastWebhookReceivedAt &&
+								dayjs().diff(dayjs(item.lastWebhookReceivedAt), "minute") < 3)
+								? "Atualização em andamento…"
+								: item.lastSyncStatus === "requested" ||
+										item.lastSyncStatus === "syncing"
+									? "Ainda sem confirmação da atualização."
+									: item.lastSyncStatus === "waiting_user_action"
+										? "A instituição precisa de uma ação sua."
+										: item.lastSyncStatus === "waiting_user_input"
+											? "A instituição aguarda uma confirmação."
+											: item.lastSyncStatus === "failed" ||
+													item.lastSyncStatus === "partial_failure"
+												? (item.lastSyncError ??
+													"Última sincronização teve falha.")
+												: item.lastSyncCompletedAt
+													? `Vault sincronizou ${dayjs(item.lastSyncCompletedAt).format("DD/MM [às] HH:mm")}`
+													: "Aguardando primeira sincronização"}
+						</p>
+						{item.lastPluggyUpdatedAt ? (
+							<p className="text-xs text-muted-foreground">
+								Pluggy atualizou{" "}
+								{dayjs(item.lastPluggyUpdatedAt).format("DD/MM [às] HH:mm")}
+							</p>
+						) : null}
 						{getPluggyStatusHint(item.status) ? (
 							<p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
 								{getPluggyStatusHint(item.status)}
 							</p>
 						) : null}
 					</div>
-					<Button
-						size="sm"
-						variant="destructive"
-						onClick={async () => {
-							setDeletingId(item.pluggyItemId);
-							await deleteItem.mutateAsync(item.id);
-							setDeletingId(null);
-						}}
-						disabled={deletingId !== null}
-						className="shrink-0"
-					>
-						{deletingId === item.pluggyItemId ? (
-							<Loader2 className="size-3.5 animate-spin" />
-						) : (
-							"Remover"
-						)}
-					</Button>
+					<div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+						<PluggyConnectWidget
+							itemId={item.id}
+							buttonLabel="Atualizar agora"
+							onRefreshStart={() => setRefreshPending(true)}
+							onError={() => setRefreshPending(false)}
+							className="min-h-9 h-auto rounded-md px-3 text-sm"
+						/>
+						<Button
+							size="sm"
+							variant="destructive"
+							onClick={async () => {
+								setDeletingId(item.pluggyItemId);
+								await deleteItem.mutateAsync(item.id);
+								setDeletingId(null);
+							}}
+							disabled={deletingId !== null}
+						>
+							{deletingId === item.pluggyItemId ? (
+								<Loader2 className="size-3.5 animate-spin" />
+							) : (
+								"Remover"
+							)}
+						</Button>
+					</div>
 				</div>
 			))}
 		</div>
@@ -230,7 +300,8 @@ function ConnectedAccountsList() {
 
 function GeneralSettings() {
 	const { theme, setTheme } = useTheme();
-	const { data: session, isPending: isSessionPending } = authClient.useSession();
+	const { data: session, isPending: isSessionPending } =
+		authClient.useSession();
 	const isAuthenticated = !isSessionPending && Boolean(session?.user);
 	const { data: prefs, isLoading: prefsLoading } = useUserPreferences({
 		enabled: isAuthenticated,
@@ -242,11 +313,8 @@ function GeneralSettings() {
 	const [incomeDay, setIncomeDay] = React.useState("");
 	const [pluggyClientId, setPluggyClientId] = React.useState("");
 	const [pluggyClientSecret, setPluggyClientSecret] = React.useState("");
-	const {
-		data: pluggyStatus,
-		isLoading: isLoadingPluggyStatus,
-		isFetching: isFetchingPluggyStatus,
-	} = usePluggyCredentialsStatus({ enabled: isAuthenticated });
+	const { data: pluggyStatus, isLoading: isLoadingPluggyStatus } =
+		usePluggyCredentialsStatus({ enabled: isAuthenticated });
 	const savePluggyCredentials = useSavePluggyCredentials();
 	const deletePluggyCredentials = useDeletePluggyCredentials();
 	const registerItem = usePluggyRegisterItem();
@@ -471,9 +539,7 @@ function GeneralSettings() {
 									return;
 								}
 								const day = Math.min(Number.parseInt(digits, 10), 28);
-								setIncomeDay(
-									Number.isNaN(day) || day < 1 ? "" : String(day),
-								);
+								setIncomeDay(Number.isNaN(day) || day < 1 ? "" : String(day));
 							}}
 							className="h-9 rounded-md px-3 text-sm"
 						/>
@@ -611,10 +677,10 @@ function GeneralSettings() {
 											setPluggyConnectError(
 												result.sync.transactions?.status === "failed" &&
 													result.sync.bills?.status === "success"
-													? result.sync.transactions.error ??
-														"Conta conectada e faturas sincronizadas, mas a sincronização de transações falhou."
-													: result.sync.error ??
-														"Conta conectada, mas a sincronização inicial falhou parcialmente.",
+													? (result.sync.transactions.error ??
+															"Conta conectada e faturas sincronizadas, mas a sincronização de transações falhou.")
+													: (result.sync.error ??
+															"Conta conectada, mas a sincronização inicial falhou parcialmente."),
 											);
 											return;
 										}
@@ -656,7 +722,8 @@ function GeneralSettings() {
 
 function AccountSettings() {
 	const navigate = useNavigate();
-	const { data: session, isPending: isSessionPending } = authClient.useSession();
+	const { data: session, isPending: isSessionPending } =
+		authClient.useSession();
 	const isAuthenticated = !isSessionPending && Boolean(session?.user);
 	const { data: profile, isLoading: profileLoading } = useUserProfile({
 		enabled: isAuthenticated,
