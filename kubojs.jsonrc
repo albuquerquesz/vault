@@ -1,0 +1,22 @@
+{
+	"$schema": "https://r2.kubojs.dev/schema.json",
+	"version": "0.2.2",
+	"createdAt": "2026-09-22T00:00:00.000Z",
+	"database": "postgres",
+	"orm": "drizzle",
+	"backend": "fastify",
+	"runtime": "bun",
+	"frontend": ["tanstack-router"],
+	"addons": ["turborepo", "pwa"],
+	"examples": [],
+	"testing": ["playwright"],
+	"auth": "better-auth",
+	"payments": [],
+	"observability": [],
+	"communication": "notifique",
+	"packageManager": "bun",
+	"dbSetup": "docker",
+	"api": "none",
+	"webDeploy": "vercel",
+	"serverDeploy": "vercel"
+}
