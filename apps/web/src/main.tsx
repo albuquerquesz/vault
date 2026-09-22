@@ -5,6 +5,8 @@ import ReactDOM from "react-dom/client";
 import Loader from "./components/loader";
 import { routeTree } from "./routeTree.gen";
 import { queryClient } from "./utils/api";
+import { registerPwa } from "./lib/pwa";
+import { reconcilePushOwner } from "./lib/push";
 
 const router = createRouter({
 	routeTree,
@@ -33,3 +35,6 @@ if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);
 	root.render(<RouterProvider router={router} />);
 }
+
+registerPwa();
+void reconcilePushOwner();

@@ -59,6 +59,8 @@ import {
 	useUserProfile,
 } from "@/features/settings/sdk";
 import { authClient } from "@/lib/auth-client";
+import { signOut } from "@/lib/push";
+import { PushSettings } from "@/components/push-settings";
 
 export type SettingsSection = "general" | "account" | "about" | "mcp";
 
@@ -344,6 +346,7 @@ function GeneralSettings() {
 
 	return (
 		<div className="space-y-4">
+			<PushSettings />
 			<SettingsSectionCard className="min-h-48">
 				<div>
 					<p className="text-lg font-medium" style={headingStyle}>
@@ -683,14 +686,9 @@ function AccountSettings() {
 				.slice(0, 2)
 		: "?";
 
-	const handleSignOut = () => {
-		authClient.signOut({
-			fetchOptions: {
-				onSuccess: () => {
-					navigate({ to: "/login" });
-				},
-			},
-		});
+	const handleSignOut = async () => {
+		await signOut();
+		await navigate({ to: "/login" });
 	};
 
 	const handleSaveProfile = () => {

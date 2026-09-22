@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
 	server: {
@@ -64,6 +65,18 @@ export default defineConfig({
 		tsconfigPaths: true,
 	},
 	plugins: [
+		VitePWA({
+			strategies: "injectManifest",
+			srcDir: "src",
+			filename: "sw.ts",
+			manifest: false,
+			injectRegister: false,
+			registerType: "prompt",
+			injectManifest: {
+				globPatterns: ["**/*.{js,css,svg,png,ico,woff2,html}"],
+				globIgnores: ["index.html"],
+			},
+		}),
 		tailwindcss(),
 		tanstackRouter({
 			target: "react",

@@ -11,6 +11,7 @@ import {
 import { Skeleton } from "@vault/ui/components/skeleton";
 
 import { authClient } from "@/lib/auth-client";
+import { signOut } from "@/lib/push";
 
 export default function UserMenu() {
 	const navigate = useNavigate();
@@ -46,17 +47,7 @@ export default function UserMenu() {
 					<DropdownMenuItem>{session.user.email}</DropdownMenuItem>
 					<DropdownMenuItem
 						variant="destructive"
-						onClick={() => {
-							authClient.signOut({
-								fetchOptions: {
-									onSuccess: () => {
-										navigate({
-											to: "/",
-										});
-									},
-								},
-							});
-						}}
+						onClick={() => { void signOut().then(() => navigate({ to: "/" })); }}
 					>
 						Sair
 					</DropdownMenuItem>
