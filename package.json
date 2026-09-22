@@ -44,6 +44,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@kubojs/cli": "0.2.2",
 		"@types/bun": "catalog:",
 		"@vault/config": "workspace:*",
 		"turbo": "^2.8.12",

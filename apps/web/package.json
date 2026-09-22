@@ -62,6 +62,9 @@
 		"postcss": "^8.5.10",
 		"tailwindcss": "^4.2.2",
 		"typescript": "catalog:",
-		"vite": "^8.0.8"
+		"vite": "^8.0.8",
+		"vite-plugin-pwa": "1.2.0",
+		"workbox-precaching": "7.4.0",
+		"workbox-window": "7.4.0"
 	}
 }
