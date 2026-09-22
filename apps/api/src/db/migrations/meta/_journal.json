@@ -120,6 +120,13 @@
       "when": 1789004661435,
       "tag": "0016_unique_scalphunter",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790112430745,
+      "tag": "0017_salty_captain_flint",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ import { expense } from "./expense.js";
 import { mcpAccessToken } from "./mcp-access-token.js";
 import { monthlyBudget } from "./monthly-budget.js";
 import { monthlySpendingGoal } from "./monthly-spending-goal.js";
+import { pushSubscription } from "./push-subscription.js";
 import { session } from "./session.js";
 
 export type UserSettings = {
@@ -35,4 +36,5 @@ export const userRelations = relations(user, ({ many }) => ({
 	budgets: many(monthlyBudget),
 	monthlySpendingGoals: many(monthlySpendingGoal),
 	mcpAccessTokens: many(mcpAccessToken),
+	pushSubscriptions: many(pushSubscription),
 }));

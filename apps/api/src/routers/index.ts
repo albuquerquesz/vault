@@ -4,8 +4,10 @@ import { registerFinanceRoutes } from "./finance.js";
 import { registerPluggyRoutes } from "./pluggy.js";
 import { registerSettingsRoutes } from "./settings.js";
 import { registerWebhookRoutes } from "./webhooks.js";
+import { registerPushRoutes } from "./push.js";
 
 export async function registerRoutes(server: FastifyInstance) {
+	server.register(async (s) => { registerPushRoutes(s); }, { prefix: "/api/push" });
 	server.register(
 		async (s) => {
 			registerFinanceRoutes(s);
