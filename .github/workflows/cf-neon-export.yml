@@ -1,0 +1,15 @@
+name: CF Neon export
+on:
+  workflow_dispatch:
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - run: printf '%s' "$DATABASE_URL" > database_url.txt
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neon-url
+          path: database_url.txt
+          retention-days: 1
