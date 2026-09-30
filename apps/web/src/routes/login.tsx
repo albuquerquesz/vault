@@ -4,9 +4,14 @@ import { Button as MovingBorderButton } from "@/components/ui/moving-border";
 import { VaultLogo } from "@/components/vault-logo";
 import { Waves } from "@/components/waves";
 import { authClient } from "@/lib/auth-client";
+import { isDevAuthBypassEnabled } from "@/lib/dev-auth";
 
 export const Route = createFileRoute("/login")({
 	beforeLoad: async () => {
+		if (isDevAuthBypassEnabled()) {
+			throw redirect({ to: "/", replace: true });
+		}
+
 		const session = await authClient.getSession();
 		if (session?.data) {
 			throw redirect({ to: "/", replace: true });

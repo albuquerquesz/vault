@@ -21,7 +21,7 @@
 	},
 	"type": "module",
 	"scripts": {
-		"dev": "turbo --ui=stream dev",
+		"dev": "bun run scripts/dev.ts",
 		"build": "turbo --ui=stream build",
 		"lint": "turbo --ui=stream lint",
 		"check-types": "turbo --ui=stream check-types",

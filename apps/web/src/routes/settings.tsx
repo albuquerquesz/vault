@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { SettingsPage, type SettingsSection } from "@/components/settings-page";
 import { authClient } from "@/lib/auth-client";
+import { isDevAuthBypassEnabled } from "@/lib/dev-auth";
 
 const SETTINGS_SECTIONS = ["general", "account", "about"] as const;
 
@@ -23,6 +24,8 @@ export const Route = createFileRoute("/settings")({
 		return {};
 	},
 	beforeLoad: async () => {
+		if (isDevAuthBypassEnabled()) return;
+
 		const session = await authClient.getSession();
 		if (!session?.data) {
 			throw redirect({ to: "/login", replace: true });
