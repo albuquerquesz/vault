@@ -1,14 +1,9 @@
-import { createServer } from "./app.js";
+import { serve } from "@hono/node-server";
+import { createApp } from "./hono/app.js";
 
-const fastify = await createServer();
+const port = Number(process.env.PORT ?? 3000);
+const app = createApp();
 
-try {
-	await fastify.listen({
-		host: "0.0.0.0",
-		port: Number(process.env.PORT ?? 3000),
-	});
-	console.log("Server running on port", process.env.PORT ?? 3000);
-} catch (error) {
-	fastify.log.error(error);
-	process.exit(1);
-}
+serve({ fetch: app.fetch, port }, () => {
+	console.log("Server running on port", port);
+});

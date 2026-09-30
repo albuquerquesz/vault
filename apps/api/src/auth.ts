@@ -30,8 +30,11 @@ export function createAuth() {
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: {
 			allowedHosts: [
+				"vault-web.pages.dev",
+				"vault-web-1ze.pages.dev",
 				"vault-web-six.vercel.app",
 				"vault-api-phi.vercel.app",
+				"vault-api.albqvictor.workers.dev",
 				"localhost:3000",
 				"localhost:3001",
 			],
@@ -54,4 +57,14 @@ export function createAuth() {
 	});
 }
 
-export const auth = createAuth();
+let authSingleton: ReturnType<typeof createAuth> | undefined;
+
+export function getAuth() {
+	if (!authSingleton) {
+		authSingleton = createAuth();
+	}
+	return authSingleton;
+}
+
+/** @deprecated use getAuth() */
+export const auth = getAuth();

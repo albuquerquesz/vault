@@ -1,6 +1,4 @@
-import type { IncomingHttpHeaders } from "node:http";
-import { fromNodeHeaders } from "better-auth/node";
-import { auth } from "./auth.js";
+import { getAuth } from "./auth.js";
 import type { Context } from "./context.js";
 import {
 	hasBearerToken,
@@ -11,9 +9,10 @@ type RequireSessionOptions = {
 	allowMcpToken?: boolean;
 };
 
-export async function requireSession(req: {
-	headers: IncomingHttpHeaders;
-}, options: RequireSessionOptions = {}): Promise<NonNullable<Context["session"]>> {
+export async function requireSession(
+	req: { headers: Headers },
+	options: RequireSessionOptions = {},
+): Promise<NonNullable<Context["session"]>> {
 	if (options.allowMcpToken && hasBearerToken(req.headers)) {
 		const mcpSession = await resolveMcpAccessToken(req.headers);
 		if (!mcpSession) {
@@ -24,8 +23,8 @@ export async function requireSession(req: {
 		return mcpSession;
 	}
 
-	const session = await auth.api.getSession({
-		headers: fromNodeHeaders(req.headers),
+	const session = await getAuth().api.getSession({
+		headers: req.headers,
 	});
 
 	if (!session) {
