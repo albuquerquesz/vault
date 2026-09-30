@@ -1,0 +1,10 @@
+name = "vault-api"
+main = "src/worker-entry.ts"
+compatibility_date = "2025-09-08"
+compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
+
+[triggers]
+crons = ["0 1 * * *"]
+
+[observability]
+enabled = true
