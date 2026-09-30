@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { createServer, forwardAuthResponseHeaders } from "./app.js";
+import { env } from "./db/env.js";
+import { forwardAuthResponseHeaders } from "./lib/auth-response.js";
+import { createApp } from "./hono/app.js";
 
 describe("auth response forwarding", () => {
 	it("forwards each Set-Cookie value independently", () => {
@@ -39,17 +41,15 @@ describe("auth response forwarding", () => {
 
 describe("OAuth callback failure", () => {
 	it("redirects once to the frontend error route", async () => {
-		const server = await createServer();
-		const response = await server.inject({
-			method: "GET",
-			url: "/api/auth/callback/google?code=invalid&state=invalid",
-		});
-
-		expect(response.statusCode).toBe(302);
-		expect(response.headers.location).toBe(
-			"http://localhost:3001/auth/error?error=please_restart_the_process",
+		const app = createApp();
+		const response = await app.request(
+			"/api/auth/callback/google?code=invalid&state=invalid",
 		);
 
-		await server.close();
+		expect(response.status).toBe(302);
+		const errorBase = `${env.CORS_ORIGIN.replace(/\/$/, "")}/auth/error`;
+		expect(response.headers.get("location")).toBe(
+			`${errorBase}?error=please_restart_the_process`,
+		);
 	});
 });
