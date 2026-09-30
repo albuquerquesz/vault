@@ -13,7 +13,7 @@ import {
 	sql,
 	sum,
 } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
+import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import {
@@ -385,7 +385,7 @@ function serializeSavingsTarget(r: typeof savingsTarget.$inferSelect) {
 	return { ...r, savingsPercentage: Number(r.savingsPercentage) };
 }
 
-export function registerFinanceRoutes(server: FastifyInstance) {
+export function registerFinanceRoutes(server: RouteRegistrar) {
 	server.route({
 		method: "GET",
 		url: "/transactions",

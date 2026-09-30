@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
+import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
 import type { PluggyCredentials } from "../clients/pluggy/types.js";
 import { db } from "../db/index.js";
@@ -79,7 +79,7 @@ function sendKnownError(
 	throw error;
 }
 
-export function registerSettingsRoutes(server: FastifyInstance) {
+export function registerSettingsRoutes(server: RouteRegistrar) {
 	// --- Preferences ---
 
 	server.get("/preferences", async (req, reply) => {

@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { RouteRegistrar, RouteRequest } from "../hono/registrar.js";
 import { z } from "zod";
 import { env } from "../common/env.js";
 import { requireSession } from "../session.js";
@@ -11,11 +11,12 @@ const subscriptionSchema = z.object({
 });
 const endpointSchema = z.object({ endpoint: z.string().max(2048) });
 
-function validOrigin(req: FastifyRequest) {
-	return req.headers.origin === new URL(env.CORS_ORIGIN).origin;
+function validOrigin(req: RouteRequest) {
+	const origin = req.headers.origin;
+	return typeof origin === "string" && origin === new URL(env.CORS_ORIGIN).origin;
 }
 
-export function registerPushRoutes(server: FastifyInstance) {
+export function registerPushRoutes(server: RouteRegistrar) {
 	server.get("/config", async (req, reply) => {
 		try { await requireSession(req.raw); } catch { return reply.code(401).send({ error: "Authentication required" }); }
 		return { available: pushAvailable, publicKey: pushAvailable ? env.VAPID_PUBLIC_KEY : null };

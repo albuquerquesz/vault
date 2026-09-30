@@ -5,6 +5,7 @@ import {
 	randomBytes,
 } from "node:crypto";
 import { env } from "../db/env.js";
+import { bytesToBase64 } from "./bytes-encoding.js";
 
 const ALGO = "aes-256-gcm";
 
@@ -34,9 +35,9 @@ export function encryptSecret(plaintext: string): string {
 	]);
 	const tag = cipher.getAuthTag();
 	return [
-		iv.toString("base64"),
-		tag.toString("base64"),
-		encrypted.toString("base64"),
+		bytesToBase64(iv),
+		bytesToBase64(tag),
+		bytesToBase64(encrypted),
 	].join(".");
 }
 

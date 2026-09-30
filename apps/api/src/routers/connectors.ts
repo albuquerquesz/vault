@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
 import { PluggyAuthError } from "../clients/pluggy/index.js";
 import {
@@ -30,7 +30,7 @@ function sendKnownError(
 	throw error;
 }
 
-export function registerConnectorRoutes(server: FastifyInstance) {
+export function registerConnectorRoutes(server: RouteRegistrar) {
 	server.route({
 		method: "GET",
 		url: "/credentials",

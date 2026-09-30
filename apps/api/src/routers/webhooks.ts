@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
 import { isPluggyWebhookSecretValid } from "../services/pluggy-webhook-config.js";
 import {
@@ -10,7 +10,7 @@ import {
  * Public (unauthenticated) webhook receivers.
  * Pluggy POSTs JSON events here after item auto-sync / product changes.
  */
-export function registerWebhookRoutes(server: FastifyInstance) {
+export function registerWebhookRoutes(server: RouteRegistrar) {
 	server.route({
 		method: "POST",
 		url: "/pluggy",

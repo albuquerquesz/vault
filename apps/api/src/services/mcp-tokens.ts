@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { IncomingHttpHeaders } from "node:http";
 import { and, desc, eq, isNull } from "drizzle-orm";
+import { bytesToBase64Url } from "../lib/bytes-encoding.js";
 import { db } from "../db/index.js";
 import { mcpAccessToken, user } from "../db/schema/index.js";
 
@@ -28,20 +29,28 @@ export function hashMcpToken(token: string) {
 	return createHash("sha256").update(token).digest("hex");
 }
 
-export function extractBearerToken(headers: IncomingHttpHeaders) {
+function readAuthorization(headers: IncomingHttpHeaders | Headers) {
+	if (headers instanceof Headers) {
+		return headers.get("authorization");
+	}
 	const authorization = headers.authorization;
-	if (typeof authorization !== "string") return null;
+	return typeof authorization === "string" ? authorization : null;
+}
+
+export function extractBearerToken(headers: IncomingHttpHeaders | Headers) {
+	const authorization = readAuthorization(headers);
+	if (!authorization) return null;
 
 	const match = authorization.match(/^Bearer\s+(\S+)$/i);
 	return match?.[1] ?? null;
 }
 
-export function hasBearerToken(headers: IncomingHttpHeaders) {
+export function hasBearerToken(headers: IncomingHttpHeaders | Headers) {
 	return extractBearerToken(headers) !== null;
 }
 
 function createMcpTokenValue() {
-	const token = `${MCP_TOKEN_PREFIX}${randomBytes(MCP_TOKEN_BYTES).toString("base64url")}`;
+	const token = `${MCP_TOKEN_PREFIX}${bytesToBase64Url(randomBytes(MCP_TOKEN_BYTES))}`;
 	return {
 		token,
 		tokenHash: hashMcpToken(token),
@@ -111,7 +120,7 @@ export async function revokeMcpAccessToken(params: {
 }
 
 export async function resolveMcpAccessToken(
-	headers: IncomingHttpHeaders,
+	headers: IncomingHttpHeaders | Headers,
 ): Promise<McpUserSession | null> {
 	const token = extractBearerToken(headers);
 	if (!token) return null;

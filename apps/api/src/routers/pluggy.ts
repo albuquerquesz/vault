@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
+import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
 import { PluggyApiError, PluggyAuthError } from "../clients/pluggy/index.js";
 import { db } from "../db/index.js";
@@ -47,7 +47,7 @@ function sendKnownError(
 	throw error;
 }
 
-export function registerPluggyRoutes(server: FastifyInstance) {
+export function registerPluggyRoutes(server: RouteRegistrar) {
 	// POST /api/pluggy/connect - create a connect token and return the Pluggy Connect URL
 	server.route({
 		method: "POST",
