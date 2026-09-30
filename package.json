@@ -27,6 +27,7 @@
 		"check-types": "turbo --ui=stream check-types",
 		"dev:web": "turbo --ui=stream -F web dev",
 		"dev:api": "turbo --ui=stream -F api dev",
+		"cf:deploy": "bun run scripts/cf-deploy.ts",
 		"db:push": "turbo --ui=stream -F api db:push",
 		"db:studio": "turbo --ui=stream -F api db:studio",
 		"db:generate": "turbo --ui=stream -F api db:generate",
