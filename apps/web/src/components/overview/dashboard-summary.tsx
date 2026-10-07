@@ -3,7 +3,7 @@
 import { Link } from "@tanstack/react-router";
 import { Card } from "@vault/ui/components/card";
 import { Skeleton } from "@vault/ui/components/skeleton";
-import { ArrowDownLeft, ArrowUpRight, ChartNoAxesCombined, Target, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, Target, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { useMonthlySpendingGoal } from "@/features/finance/sdk";
@@ -31,18 +31,10 @@ export function DashboardSummary({ month }: { month: string }) {
 	const percentage = target && target > 0 ? spent / target * 100 : 0;
 	const valueClass = "break-words text-2xl font-semibold tracking-tight tabular-nums";
 	return (
-		<div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
-			<Metric title="Receita" icon={ArrowDownLeft} loading={isLoading} error={isError}>
-				<p className={valueClass}>{metrics ? money(metrics.income) : "—"}</p>
-				<p className="text-xs text-muted-foreground">Entradas do mês</p>
-			</Metric>
+		<div className="grid min-w-0 grid-cols-1 gap-6">
 			<Metric title="Gasto" icon={ArrowUpRight} loading={isLoading} error={isError}>
 				<p className={valueClass}>{metrics ? money(metrics.spent) : "—"}</p>
 				<p className="text-xs text-muted-foreground">Saídas do mês</p>
-			</Metric>
-			<Metric title="Resultado parcial" icon={ChartNoAxesCombined} loading={isLoading} error={isError}>
-				<p className={valueClass}>{metrics ? money(metrics.result) : "—"}</p>
-				{metrics ? <p className="text-xs text-muted-foreground">{metrics.changePercent != null ? `${metrics.changePercent > 0 ? "+" : ""}${metrics.changePercent.toFixed(1)}% · ` : ""}vs {money(metrics.previousResult)} no mês anterior</p> : <p className="text-xs text-muted-foreground">Nenhum dado para este mês.</p>}
 			</Metric>
 			<Metric title="Meta de gastos" icon={Target} loading={goal.isPending} error={goal.isError}>
 				{target == null ? <><p className="text-sm text-muted-foreground">Nenhuma meta definida.</p><Link className="mt-auto text-sm font-medium underline underline-offset-4" to="/spending-goal" search={{ month }}>Definir meta</Link></> : <>
