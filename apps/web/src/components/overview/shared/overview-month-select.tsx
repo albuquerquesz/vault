@@ -37,8 +37,8 @@ export function OverviewMonthSelect({
 				}
 			}}
 		>
-			<SelectTrigger className="h-9 min-w-[140px] border-0 bg-transparent text-sm dark:bg-transparent dark:hover:bg-transparent">
-				<CalendarIcon className="mr-2 size-3.5 text-muted-foreground" />
+			<SelectTrigger className="h-10 min-w-[140px] border-0 bg-transparent text-base [&>svg:last-of-type]:size-5 dark:bg-transparent dark:hover:bg-transparent">
+				<CalendarIcon className="mr-2 size-5 text-muted-foreground" />
 				<SelectValue placeholder="Mês">
 					{(selected) =>
 						options.find((option) => option.value === selected)?.label ??
