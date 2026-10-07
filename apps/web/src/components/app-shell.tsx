@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 					}
 				>
 					<AppHeader />
-					<div className="flex min-h-0 flex-1 flex-col px-3 pb-[calc(var(--mobile-bottom-tab-bar-height)+env(safe-area-inset-bottom,0px)+1rem)] sm:px-6 md:pb-0 lg:px-8">
+					<div className="flex min-h-0 flex-1 flex-col dark:bg-[oklch(0.178_0.005_285)] px-3 pb-[calc(var(--mobile-bottom-tab-bar-height)+env(safe-area-inset-bottom,0px)+1rem)] sm:px-6 md:pb-0 lg:px-8">
 						<div className="mx-auto w-full min-w-0">{children}</div>
 					</div>
 					<MobileBottomTabBar />
