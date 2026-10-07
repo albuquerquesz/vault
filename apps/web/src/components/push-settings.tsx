@@ -1,3 +1,4 @@
+import { Switch } from "@vault/ui/components/switch";
 import { Button } from "@vault/ui/components/button";
 import * as React from "react";
 import {
@@ -125,7 +126,26 @@ export function PushSettings() {
 
 	return (
 		<section className="rounded-2xl border border-border/70 bg-background/60 p-5 space-y-3">
-			<h2 className="text-lg font-medium">Notificações</h2>
+			<div className="flex items-center justify-between gap-4">
+				<h2 id="push-notifications-label" className="text-lg font-medium">
+					Notificações
+				</h2>
+				<Switch
+					aria-labelledby="push-notifications-label"
+					checked={enabled}
+					disabled={
+						busy ||
+						(!enabled &&
+							(!supportsPush() ||
+								iosNeedsInstall ||
+								permission === "denied" ||
+								!config?.available))
+					}
+					onCheckedChange={(checked) => {
+						void (checked ? enable() : disable());
+					}}
+				/>
+			</div>
 			{iosNeedsInstall ? (
 				<p className="text-sm text-muted-foreground">
 					No iPhone ou iPad, abra Compartilhar e escolha “Adicionar à Tela de
@@ -149,39 +169,15 @@ export function PushSettings() {
 				</p>
 			) : null}
 			{enabled ? (
-				<div className="flex flex-wrap gap-2">
-					<Button
-						type="button"
-						variant="outline"
-						disabled={busy}
-						onClick={() => void test()}
-					>
-						Enviar teste
-					</Button>
-					<Button
-						type="button"
-						variant="outline"
-						disabled={busy}
-						onClick={() => void disable()}
-					>
-						Desativar
-					</Button>
-				</div>
-			) : (
 				<Button
 					type="button"
-					disabled={
-						busy ||
-						!supportsPush() ||
-						iosNeedsInstall ||
-						permission === "denied" ||
-						!config?.available
-					}
-					onClick={() => void enable()}
+					variant="outline"
+					disabled={busy}
+					onClick={() => void test()}
 				>
-					Ativar notificações
+					Enviar teste
 				</Button>
-			)}
+			) : null}
 			{enabled ? (
 				<div className="space-y-2 border-t border-border/70 pt-3">
 					<label className="flex items-center gap-2 text-sm">
