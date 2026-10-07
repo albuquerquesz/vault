@@ -82,7 +82,7 @@ function AnimatedNavItem({ item, onNavigate }: { item: SidebarNavItem; onNavigat
 	return (
 		<SidebarMenuItem>
 			<SidebarMenuButton
-				className="h-10 text-lg [&_svg]:size-6"
+				className="h-10 text-base [&_svg]:size-6"
 				isActive={item.isActive}
 				onClick={onNavigate}
 				onMouseEnter={start}
