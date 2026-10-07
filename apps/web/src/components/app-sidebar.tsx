@@ -32,6 +32,7 @@ export function AppSidebar() {
 			style={{ fontFamily: '"Space Grotesk", sans-serif' }}
 			variant="inset"
 		>
+			<div className="vault-sidebar-surface flex h-full min-h-0 flex-col">
 			<SidebarHeader className="h-14 justify-center px-2 group-data-[collapsible=icon]:px-0">
 				<div className="flex w-full min-w-0 items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center">
 					<VaultLogo
@@ -58,6 +59,7 @@ export function AppSidebar() {
 					<NavUser compact={state === "collapsed"} />
 				</div>
 			</SidebarContent>
+			</div>
 		</Sidebar>
 	);
 }
