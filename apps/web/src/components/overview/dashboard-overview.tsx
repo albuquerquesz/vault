@@ -19,13 +19,13 @@ export function DashboardOverview() {
 			/>
 			<div className="dashboard-analyses grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 [&_[data-slot=card]]:md:min-h-[480px]">
 				<div className="min-w-0">
-					<GoalsCard />
+					<OrderSourceMixCard month={selectedMonth} />
 				</div>
 				<div className="min-w-0">
 					<MonthlyBillCard month={selectedMonth} />
 				</div>
 				<div className="min-w-0">
-					<OrderSourceMixCard month={selectedMonth} />
+					<GoalsCard />
 				</div>
 				<div className="min-w-0 md:col-span-2 xl:col-span-3">
 					<DailySpendBarCard month={selectedMonth} />
