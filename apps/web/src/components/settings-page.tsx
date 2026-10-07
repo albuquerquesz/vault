@@ -137,7 +137,7 @@ function SettingsSectionChips({
 		>
 			<TabsList
 				aria-label="Seções de configurações"
-				className="h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-0"
+				className="h-auto group-data-horizontal/tabs:h-auto w-full justify-start gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-transparent p-0"
 			>
 				{settingsSections.map((section) => (
 					<TabsTrigger
