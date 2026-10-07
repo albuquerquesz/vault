@@ -78,7 +78,8 @@ export function DailySpendBarContent({
 				</p>
 			) : null}
 			<BarChart
-				className="h-full min-h-40 flex-1 sm:min-h-50"
+				className="h-56 shrink-0 sm:h-72"
+				aspectRatio="auto"
 				data={chartData}
 				margin={{ top: 8, right: 8, bottom: 40, left: 8 }}
 				xDataKey="day"
