@@ -65,15 +65,20 @@ export function DashboardSummary({
 	});
 	const historyLoading = history.some((query) => query.isPending);
 	const historyError = history.some((query) => query.isError);
-	const chartData = history.map((query, index) => ({
+	const monthlyData = history.map((query, index) => ({
 		name: monthLabels[index],
 		balance:
 			query.isError || query.isPending ? null : (query.data?.result ?? 0),
 		selected: index === (selectedMonth ?? 1) - 1,
 	}));
-	const values = chartData.flatMap((point) =>
+	const values = monthlyData.flatMap((point) =>
 		typeof point.balance === "number" ? [point.balance] : [],
 	);
+	const highestBalance = values.length > 0 ? Math.max(...values) : null;
+	const chartData = monthlyData.map((point) => ({
+		...point,
+		highest: point.balance !== null && point.balance === highestBalance,
+	}));
 	const low = Math.min(0, ...values);
 	const high = Math.max(0, ...values);
 	const domain: [number, number] =
@@ -190,15 +195,23 @@ export function DashboardSummary({
 						animate={false}
 						fill="var(--chart-3)"
 						fillAccessor={(point) =>
-							point.selected ? "var(--foreground)" : "var(--chart-3)"
+							point.highest
+								? "var(--foreground)"
+								: point.selected
+									? "var(--chart-1)"
+									: "var(--chart-3)"
 						}
 					/>
 					<BarXAxis labelClassName="text-sm" maxLabels={12} />
 					<ChartTooltip
 						rows={(point) => [
 							{
-								label: `${point.name}${point.selected ? " · selecionado" : ""}`,
-								color: point.selected ? "var(--foreground)" : "var(--chart-3)",
+								label: `${point.name}${point.highest ? " · maior saldo" : ""}${point.selected ? " · selecionado" : ""}`,
+								color: point.highest
+									? "var(--foreground)"
+									: point.selected
+										? "var(--chart-1)"
+										: "var(--chart-3)",
 								value:
 									typeof point.balance === "number"
 										? maskMonetaryText(
