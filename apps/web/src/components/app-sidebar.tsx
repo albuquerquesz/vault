@@ -25,12 +25,12 @@ export function AppSidebar() {
 	return (
 		<Sidebar
 			className={cn(
-				"border-0! *:data-[slot=sidebar-inner]:bg-background dark:*:data-[slot=sidebar-inner]:bg-sidebar",
+				"border-0! md:p-4 *:data-[slot=sidebar-inner]:bg-sidebar",
 				"**:data-[slot=sidebar-menu-button]:[&>span]:text-foreground/75",
 			)}
 			collapsible="icon"
 			style={{ fontFamily: '"Space Grotesk", sans-serif' }}
-			variant="sidebar"
+			variant="inset"
 		>
 			<SidebarHeader className="h-14 justify-center px-2 group-data-[collapsible=icon]:px-0">
 				<div className="flex w-full min-w-0 items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center">
