@@ -44,7 +44,7 @@ export function OrderSourceMixCard({
 				<OverviewCardErrorState message="Não foi possível carregar as despesas do mês." />
 			) : sourceData.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-					<div className="text-2xl font-semibold tabular-nums">
+					<div className="text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl">
 						<MaskedMonetaryValue format={zeroCurrency} value={0} />
 					</div>
 					<p className="text-sm text-muted-foreground">Nenhuma despesa registrada</p>

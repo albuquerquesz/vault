@@ -27,7 +27,7 @@ export function MonthlyBillContent({
 }) {
 	return (
 		<div className="@container flex min-h-0 flex-1 flex-col gap-4 sm:gap-6">
-			<div className="text-2xl font-semibold tabular-nums sm:text-3xl">
+			<div className="text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl">
 				<MaskedMonetaryValue format={fmt} value={totalBill} />
 			</div>
 
@@ -52,13 +52,14 @@ export function MonthlyBillContent({
 									/>
 									<span className="truncate font-medium">{item.name}</span>
 								</div>
-								<div className="flex shrink-0 items-center gap-2 tabular-nums text-base sm:text-lg">
+								<div className="flex min-w-0 flex-wrap items-center gap-2">
 									<span>
-										<MaskedMonetaryValue format={fmt} value={item.paidAmount} />
+										<MaskedMonetaryValue className="text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl" format={fmt} value={item.paidAmount} />
 									</span>
 									<span className="text-muted-foreground">
 										/{" "}
 										<MaskedMonetaryValue
+											className="text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl"
 											format={fmt}
 											value={item.totalAmount}
 										/>
