@@ -60,7 +60,7 @@ export function GoalsCard({ className }: GoalsCardProps) {
 				footerClassName="!border-t-0"
 				footer={
 					<Button
-						className="ml-auto rounded-lg px-4 text-sm font-semibold"
+						className="ml-auto rounded-lg px-6 text-sm font-semibold"
 						size="lg"
 						onClick={openCreate}
 					>
