@@ -1,5 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { isDevAuthBypassEnabled } from "@/lib/dev-auth";
 
 const SANITIZED_ERROR = "Something went wrong. Please try again.";
 
@@ -105,10 +106,17 @@ export async function apiFetch<T>(
 	},
 ): Promise<T> {
 	const hasBody = options?.body !== undefined;
+	const headers: Record<string, string> = {};
+	if (hasBody) {
+		headers["Content-Type"] = "application/json";
+	}
+	if (import.meta.env.DEV && isDevAuthBypassEnabled()) {
+		headers["x-vault-dev-auth-bypass"] = "1";
+	}
 
 	const response = await fetch(path, {
 		method: options?.method ?? "GET",
-		headers: hasBody ? { "Content-Type": "application/json" } : undefined,
+		headers: Object.keys(headers).length > 0 ? headers : undefined,
 		credentials: "include",
 		body: hasBody ? JSON.stringify(options.body) : undefined,
 	});
