@@ -183,7 +183,7 @@ export function DashboardSummary({
 					data={chartData}
 					valueDomain={domain}
 					xDataKey="name"
-					className="h-52 min-w-0 flex-1"
+					className="h-48 min-w-0 shrink-0"
 					aspectRatio="auto"
 					margin={{ top: 12, right: 8, bottom: 42, left: 8 }}
 					status={historyLoading ? "loading" : "ready"}
