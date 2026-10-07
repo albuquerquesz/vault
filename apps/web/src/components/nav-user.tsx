@@ -33,7 +33,7 @@ export function NavUser() {
 				void navigate({ to: "/settings" });
 			}}
 		>
-			<Avatar className="size-8">
+			<Avatar className="size-10">
 				{image ? <AvatarImage src={image} /> : null}
 				<AvatarFallback>{initials}</AvatarFallback>
 			</Avatar>
