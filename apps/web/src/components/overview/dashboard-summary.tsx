@@ -1,71 +1,243 @@
 "use client";
 
+import { useQueries } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Card } from "@vault/ui/components/card";
 import { Skeleton } from "@vault/ui/components/skeleton";
-import { ArrowUpRight, Target, type LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
-import { MaskedMonetaryValue } from "@/components/monetary-visibility";
-import { useMonthlySpendingGoal } from "@/features/finance/sdk";
+import {
+	Bar,
+	BarChart,
+	BarXAxis,
+	ChartTooltip,
+	Grid,
+} from "@/components/bar-chart";
+import {
+	MaskedMonetaryText,
+	MaskedMonetaryValue,
+	maskMonetaryText,
+	useMonetaryVisibility,
+} from "@/components/monetary-visibility";
+import { financeSdk, useMonthlySpendingGoal } from "@/features/finance/sdk";
 import { usePartialResult } from "./partial-result/hooks/use-partial-result";
+import { OverviewMonthSelect } from "./shared/overview-month-select";
 
-const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const money = (value: number) => <MaskedMonetaryValue value={value} format={(amount) => currency.format(amount)} />;
+const currency = new Intl.NumberFormat("pt-BR", {
+	style: "currency",
+	currency: "BRL",
+});
+const money = (value: number) => (
+	<MaskedMonetaryValue
+		value={value}
+		format={(amount) => currency.format(amount)}
+	/>
+);
+const monthLabels = [
+	"Jan",
+	"Fev",
+	"Mar",
+	"Abr",
+	"Mai",
+	"Jun",
+	"Jul",
+	"Ago",
+	"Set",
+	"Out",
+	"Nov",
+	"Dez",
+];
 
-function Metric({ title, icon: Icon, loading, error, children }: {
-	title: string; icon: LucideIcon; loading: boolean; error: boolean; children: ReactNode;
+export function DashboardSummary({
+	month,
+	monthOptions,
+	onMonthChange,
+}: {
+	month: string;
+	monthOptions: { value: string; label: string }[];
+	onMonthChange: (month: string) => void;
 }) {
-	return (
-		<Card className="dashboard-metric min-h-40 gap-3 border-0 bg-muted/40 p-4 ring-0 dark:bg-[oklch(0.215_0.005_285)] sm:p-5">
-			<div className="flex items-center gap-2 text-sm text-muted-foreground"><Icon className="size-4 shrink-0" aria-hidden />{title}</div>
-			{loading ? <div className="space-y-3"><Skeleton className="h-8 w-3/4" /><Skeleton className="h-4 w-1/2" /></div> : error ? <p className="text-sm text-muted-foreground">Não foi possível carregar.</p> : children}
-		</Card>
-	);
-}
-
-export function DashboardSummary({ month }: { month: string }) {
 	const { metrics, isLoading, isError } = usePartialResult(month);
 	const goal = useMonthlySpendingGoal(month);
-	const target = goal.data?.targetAmount;
-	const spent = goal.data?.spent ?? 0;
-	const percentage = target && target > 0 ? spent / target * 100 : 0;
-	const valueClass = "break-words text-2xl font-semibold tracking-tight tabular-nums";
-	return (
-		<div className="grid min-w-0 grid-cols-1 gap-6">
-			<Metric title="Gasto" icon={ArrowUpRight} loading={isLoading} error={isError}>
-				<p className={valueClass}>{metrics ? money(metrics.spent) : "—"}</p>
-				<p className="text-xs text-muted-foreground">Saídas do mês</p>
-			</Metric>
-			<Metric title="Meta de gastos" icon={Target} loading={goal.isPending} error={goal.isError}>
-				{target == null ? <><p className="text-sm text-muted-foreground">Nenhuma meta definida.</p><Link className="mt-auto text-sm font-medium underline underline-offset-4" to="/spending-goal" search={{ month }}>Definir meta</Link></> : <>
-					<div className="flex flex-wrap items-center justify-between gap-2"><p className={valueClass}>{money(target)}</p><Link className="text-xs underline underline-offset-4" to="/spending-goal" search={{ month }}>Editar</Link></div>
-					<div className="space-y-2"><p className={percentage > 100 ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>{Math.round(percentage)}% utilizado</p><div role="progressbar" aria-label="Meta utilizada" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.max(0, percentage))} className="h-1.5 overflow-hidden rounded-full bg-muted"><div className={percentage > 100 ? "h-full bg-destructive" : "h-full bg-primary"} style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }} /></div></div>
-					<p className="text-xs text-muted-foreground">Limite diário: {goal.data?.dailyLimit == null ? "—" : money(goal.data.dailyLimit)}</p>
-				</>}
-			</Metric>
-		</div>
+	const { isVisible } = useMonetaryVisibility();
+	const [year, selectedMonth] = month.split("-").map(Number);
+	const history = useQueries({
+		queries: Array.from({ length: selectedMonth ?? 1 }, (_, index) =>
+			financeSdk.partialResultOptions(
+				`${year}-${String(index + 1).padStart(2, "0")}`,
+			),
+		),
+	});
+	const historyLoading = history.some((query) => query.isPending);
+	const historyError = history.some((query) => query.isError);
+	const chartData = history.map((query, index) => ({
+		name: monthLabels[index],
+		balance:
+			query.isError || query.isPending ? null : (query.data?.result ?? 0),
+		selected: index === (selectedMonth ?? 1) - 1,
+	}));
+	const values = chartData.flatMap((point) =>
+		typeof point.balance === "number" ? [point.balance] : [],
 	);
-}
-
-export function DashboardMonthTotals({ month }: { month: string }) {
-	const { metrics, isLoading, isError } = usePartialResult(month);
-	const totals = [
-		{ label: "Saldo do mês", value: metrics?.result },
-		{ label: "Total gasto", value: metrics?.spent },
-		{ label: "Total recebido", value: metrics?.income },
+	const low = Math.min(0, ...values);
+	const high = Math.max(0, ...values);
+	const domain: [number, number] =
+		low === 0 && high === 0 ? [0, 1] : [low * 1.1, high * 1.1];
+	const total = values.reduce((sum, value) => sum + value, 0);
+	const target = goal.isError ? null : goal.data?.targetAmount;
+	const dailyLimit =
+		target == null || goal.isError ? null : goal.data?.dailyLimit;
+	const stats = [
+		{
+			label: "Recebido",
+			dotClassName: "bg-sky-400",
+			loading: isLoading,
+			value: isError ? null : (metrics?.income ?? 0),
+		},
+		{
+			label: "Gasto",
+			dotClassName: "bg-amber-500",
+			loading: isLoading,
+			value: isError ? null : (metrics?.spent ?? 0),
+		},
+		{
+			label: "Limite diário",
+			dotClassName: "bg-red-500",
+			loading: goal.isPending,
+			value: dailyLimit,
+		},
 	];
+
 	return (
-		<div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">
-			{totals.map(({ label, value }) => (
-				<div key={label} className="min-w-0 space-y-2">
-					<p className="sr-only">{label}</p>
-					{isLoading ? <Skeleton className="h-7 w-28" /> : (
-						<p className="break-words text-xl font-semibold tracking-tight tabular-nums">
-							{value == null || isError ? "—" : money(value)}
+		<section
+			aria-label="Resumo do mês"
+			className="grid min-w-0 gap-6 rounded-[18px] bg-muted/40 p-6 xl:min-h-[360px] xl:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]"
+		>
+			<div className="flex min-w-0 flex-col gap-6 rounded-xl bg-background/70 p-6 dark:bg-secondary/70">
+				<div className="flex flex-wrap items-center justify-between gap-2">
+					<h1 className="text-base font-medium">Saldo do mês</h1>
+					<OverviewMonthSelect
+						value={month}
+						options={monthOptions}
+						onValueChange={onMonthChange}
+					/>
+				</div>
+				<div className="space-y-3">
+					{isLoading ? (
+						<Skeleton className="h-14 w-3/4" />
+					) : (
+						<p className="break-words text-4xl font-semibold leading-tight tracking-tight tabular-nums sm:text-[56px]">
+							{isError ? (
+								<span className="text-lg">Indisponível</span>
+							) : (
+								money(metrics?.result ?? 0)
+							)}
+						</p>
+					)}
+					{isLoading ? (
+						<Skeleton className="h-4 w-2/3" />
+					) : isError ? (
+						<p className="text-sm text-muted-foreground">
+							Não foi possível carregar o saldo.
+						</p>
+					) : (
+						<p className="text-sm text-muted-foreground">
+							{metrics?.changePercent != null && (
+								<>
+									<MaskedMonetaryText prefix="">{`${metrics.changePercent > 0 ? "+" : ""}${metrics.changePercent.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}</MaskedMonetaryText>{" "}
+									vs. mês anterior ·{" "}
+								</>
+							)}
+							Saldo anterior: {money(metrics?.previousResult ?? 0)}
 						</p>
 					)}
 				</div>
-			))}
-		</div>
+				<div className="mt-auto grid min-w-0 grid-cols-1 gap-4 border-t border-border/60 pt-4 sm:grid-cols-3 sm:gap-0">
+					{stats.map((stat) => (
+						<div
+							key={stat.label}
+							className="min-w-0 space-y-2 border-border/60 not-first:border-t not-first:pt-4 sm:not-first:border-t-0 sm:not-first:border-l sm:not-first:pt-0 sm:not-first:pl-2 sm:not-last:pr-2"
+						>
+							<p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+								<span
+									aria-hidden="true"
+									className={`size-1.5 shrink-0 rounded-full ${stat.dotClassName}`}
+								/>
+								{stat.label}
+							</p>
+							{stat.loading ? (
+								<Skeleton className="h-6 w-24" />
+							) : (
+								<p className="break-words text-xl font-semibold leading-tight tracking-tight tabular-nums sm:text-base xl:text-sm 2xl:text-xl">
+									{money(stat.value ?? 0)}
+								</p>
+							)}
+						</div>
+					))}
+				</div>
+				<Link
+					className="self-start text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+					to="/spending-goal"
+					search={{ month }}
+				>
+					{target == null ? "Definir meta" : "Editar meta"}
+				</Link>
+			</div>
+			<div className="flex min-w-0 flex-col gap-3 py-2 xl:pl-2">
+				<h2 className="text-sm font-medium text-muted-foreground">
+					Saldo acumulado em {year}
+				</h2>
+				{historyLoading ? (
+					<Skeleton className="h-9 w-48" />
+				) : (
+					<p className="break-words text-3xl font-semibold tracking-tight tabular-nums">
+						{historyError ? "Indisponível" : money(total)}
+					</p>
+				)}
+				<BarChart
+					data={chartData}
+					valueDomain={domain}
+					xDataKey="name"
+					className="h-52 min-w-0 flex-1"
+					aspectRatio="auto"
+					margin={{ top: 12, right: 8, bottom: 30, left: 8 }}
+					status={historyLoading ? "loading" : "ready"}
+					barGap={0.35}
+				>
+					<Grid
+						rowTickValues={[0]}
+						stroke="var(--muted-foreground)"
+						strokeOpacity={0.4}
+						strokeDasharray=""
+						fadeHorizontal={false}
+					/>
+					<Bar
+						dataKey="balance"
+						lineCap={6}
+						animate={false}
+						fill="var(--chart-3)"
+						fillAccessor={(point) =>
+							point.selected ? "var(--foreground)" : "var(--chart-3)"
+						}
+					/>
+					<BarXAxis maxLabels={12} />
+					<ChartTooltip
+						rows={(point) => [
+							{
+								label: `${point.name}${point.selected ? " · selecionado" : ""}`,
+								color: point.selected ? "var(--foreground)" : "var(--chart-3)",
+								value:
+									typeof point.balance === "number"
+										? maskMonetaryText(
+												currency.format(point.balance),
+												isVisible,
+											)
+										: "Indisponível",
+							},
+						]}
+						showDatePill={false}
+						showCrosshair={false}
+						showDots={false}
+					/>
+				</BarChart>
+			</div>
+		</section>
 	);
 }
