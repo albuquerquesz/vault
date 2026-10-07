@@ -17,7 +17,7 @@ export function MonetaryVisibilityToggle() {
 				isVisible ? "Ocultar valores monetários" : "Mostrar valores monetários"
 			}
 			aria-pressed={!isVisible}
-			className="size-10 rounded-full p-0 text-white"
+			className="size-10 rounded-full p-0 text-muted-foreground"
 			onClick={toggle}
 			size="icon"
 			type="button"
