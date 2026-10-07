@@ -33,6 +33,7 @@
 		"db:generate": "turbo --ui=stream -F api db:generate",
 		"db:migrate": "turbo --ui=stream -F api db:migrate",
 		"db:seed": "turbo --ui=stream -F api db:seed",
+		"db:seed:rich": "bash scripts/db-seed-rich.sh",
 		"db:up": "turbo --ui=stream -F api db:start",
 		"db:watch": "turbo --ui=stream -F api db:watch",
 		"db:stop": "turbo --ui=stream -F api db:stop",

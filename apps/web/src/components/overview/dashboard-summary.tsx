@@ -1,7 +1,6 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { Skeleton } from "@vault/ui/components/skeleton";
 import {
 	Bar,
@@ -165,20 +164,13 @@ export function DashboardSummary({
 							{stat.loading ? (
 								<Skeleton className="h-6 w-24" />
 							) : (
-								<p className="break-words text-xl font-semibold leading-tight tracking-tight tabular-nums sm:text-base xl:text-sm 2xl:text-xl">
+								<p className="break-words text-xl font-medium leading-tight tracking-tight tabular-nums sm:text-base xl:text-sm 2xl:text-xl">
 									{money(stat.value ?? 0)}
 								</p>
 							)}
 						</div>
 					))}
 				</div>
-				<Link
-					className="self-start text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
-					to="/spending-goal"
-					search={{ month }}
-				>
-					{target == null ? "Definir meta" : "Editar meta"}
-				</Link>
 			</div>
 			<div className="flex min-w-0 flex-col gap-3 py-2 xl:pl-2">
 				<h2 className="text-sm font-medium text-muted-foreground">
