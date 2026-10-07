@@ -11,7 +11,7 @@ export function FinancialDashboard() {
           background-color: color-mix(in oklab, var(--muted) 40%, transparent) !important;
         }
         .dark .financial-dashboard .dashboard-analyses [data-slot="card"] {
-          background-color: oklch(0.215 0.005 285) !important;
+          background-color: oklch(0.205 0.005 285) !important;
         }
         .financial-dashboard {
           font-family: var(--font-sans);
