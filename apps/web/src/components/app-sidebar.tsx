@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarFooter,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
@@ -14,6 +15,7 @@ import {
 } from "@vault/ui/components/sidebar";
 import { cn } from "@vault/ui/lib/utils";
 import { type SidebarNavItem, useNavLinks } from "@/components/app-shared";
+import { NavUser } from "@/components/nav-user";
 import { MonetaryVisibilityToggle } from "@/components/monetary-visibility-toggle";
 import { VaultLogo } from "@/components/vault-logo";
 
@@ -54,7 +56,9 @@ export function AppSidebar() {
 					))}
 				</SidebarMenu>
 			</SidebarContent>
-
+			<SidebarFooter className="items-start p-3 group-data-[collapsible=icon]:items-center">
+				<NavUser />
+			</SidebarFooter>
 		</Sidebar>
 	);
 }
