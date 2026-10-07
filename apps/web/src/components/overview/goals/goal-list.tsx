@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@vault/ui/components/button";
+import { Checkbox } from "@vault/ui/components/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -57,6 +58,21 @@ export function GoalList({
 						className="flex items-center justify-between gap-3 py-1"
 					>
 						<div className="flex min-w-0 flex-1 items-center gap-2">
+							<Checkbox
+								aria-label={
+									isCompleted
+										? `Meta concluída: ${goal.name}`
+										: `Concluir meta ${goal.name}`
+								}
+								checked={isCompleted}
+								className="size-5 rounded-full disabled:cursor-default disabled:opacity-100"
+								disabled={isCompleted}
+								onCheckedChange={(checked) => {
+									if (checked) {
+										onComplete(goal);
+									}
+								}}
+							/>
 							{goal.url ? (
 								<a
 									href={goal.url}
