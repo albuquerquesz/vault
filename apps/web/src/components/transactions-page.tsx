@@ -125,8 +125,7 @@ export function TransactionsPage() {
 				<CreateTransactionSheet month={selectedMonth} />
 			</div>
 			<div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
-			{/* Keep search and filters in the thumb zone before the list on phones. */}
-			<div className="order-first flex min-w-0 flex-col gap-4 lg:order-none lg:col-start-2 lg:row-start-1 lg:pt-5">
+			<div className="flex min-w-0 flex-col gap-4">
 				<div className="flex w-full min-w-0 flex-col items-stretch gap-3 p-4 sm:gap-4">
 					<div className="flex w-full min-w-0 items-center gap-2">
 						<div className="relative min-w-0 flex-1">
@@ -150,20 +149,19 @@ export function TransactionsPage() {
 						stats={periodStats}
 					/>
 				</div>
+				<TransactionsTable
+					transactions={filteredTransactions}
+					hasActiveFilters={hasActiveFilters}
+					monthLabel={monthLabel}
+				/>
+			</div>
+			<div className="min-w-0 lg:pt-5">
 				<div className="flex w-full min-w-0 flex-col overflow-hidden">
 					<TransactionsCategoryBarChart
 						transactions={filteredTransactions}
 						periodLabel={monthLabel}
 					/>
 				</div>
-			</div>
-
-			<div className="order-last min-w-0 lg:order-none lg:col-start-1 lg:row-start-1">
-				<TransactionsTable
-					transactions={filteredTransactions}
-					hasActiveFilters={hasActiveFilters}
-					monthLabel={monthLabel}
-				/>
 			</div>
 			</div>
 		</div>
