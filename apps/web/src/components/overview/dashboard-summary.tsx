@@ -123,20 +123,12 @@ export function DashboardSummary({
 						<Skeleton className="h-14 w-3/4" />
 					) : (
 						<p className="break-words text-4xl font-semibold leading-tight tracking-tight tabular-nums sm:text-[56px]">
-							{isError ? (
-								<span className="text-lg">Indisponível</span>
-							) : (
-								money(metrics?.result ?? 0)
-							)}
+							{money(isError ? 0 : (metrics?.result ?? 0))}
 						</p>
 					)}
 					{isLoading ? (
 						<Skeleton className="h-4 w-2/3" />
-					) : isError ? (
-						<p className="text-sm text-muted-foreground">
-							Não foi possível carregar o saldo.
-						</p>
-					) : (
+					) : isError ? null : (
 						<p className="text-sm text-muted-foreground">
 							{metrics?.changePercent != null && (
 								<>
@@ -164,7 +156,7 @@ export function DashboardSummary({
 							{stat.loading ? (
 								<Skeleton className="h-6 w-24" />
 							) : (
-								<p className="break-words text-xl font-medium leading-tight tracking-tight tabular-nums sm:text-base xl:text-sm 2xl:text-xl">
+								<p className="break-words text-2xl font-medium leading-tight tracking-tight tabular-nums sm:text-base xl:text-sm 2xl:text-2xl">
 									{money(stat.value ?? 0)}
 								</p>
 							)}
@@ -179,8 +171,8 @@ export function DashboardSummary({
 				{historyLoading ? (
 					<Skeleton className="h-9 w-48" />
 				) : (
-					<p className="break-words text-3xl font-semibold tracking-tight tabular-nums">
-						{historyError ? "Indisponível" : money(total)}
+					<p className="break-words text-3xl font-medium tracking-tight tabular-nums">
+						{money(historyError ? 0 : total)}
 					</p>
 				)}
 				<BarChart
