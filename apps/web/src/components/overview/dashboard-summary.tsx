@@ -197,21 +197,17 @@ export function DashboardSummary({
 						fillAccessor={(point) =>
 							point.highest
 								? "var(--foreground)"
-								: point.selected
-									? "var(--chart-1)"
-									: "var(--chart-3)"
+								: "var(--chart-3)"
 						}
 					/>
 					<BarXAxis labelClassName="text-sm" maxLabels={12} />
 					<ChartTooltip
 						rows={(point) => [
 							{
-								label: `${point.name}${point.highest ? " · maior saldo" : ""}${point.selected ? " · selecionado" : ""}`,
+								label: `${point.name}${point.highest ? " · maior saldo" : ""}`,
 								color: point.highest
 									? "var(--foreground)"
-									: point.selected
-										? "var(--chart-1)"
-										: "var(--chart-3)",
+									: "var(--chart-3)",
 								value:
 									typeof point.balance === "number"
 										? maskMonetaryText(
