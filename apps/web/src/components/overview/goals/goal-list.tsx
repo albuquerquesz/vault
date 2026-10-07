@@ -75,7 +75,7 @@ export function GoalList({
 									href={goal.url}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="min-w-0 truncate text-lg font-medium underline-offset-4 hover:underline"
+									className="min-w-0 truncate text-lg font-medium no-underline underline-offset-4 hover:underline"
 									title={goal.name}
 								>
 									{displayName}
