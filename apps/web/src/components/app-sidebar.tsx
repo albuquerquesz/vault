@@ -6,7 +6,6 @@ import { Link } from "@tanstack/react-router";
 import {
 	Sidebar,
 	SidebarContent,
-	SidebarFooter,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
@@ -21,7 +20,7 @@ import { VaultLogo } from "@/components/vault-logo";
 
 export function AppSidebar() {
 	const navLinks = useNavLinks();
-	const { setOpenMobile } = useSidebar();
+	const { setOpenMobile, state } = useSidebar();
 
 	return (
 		<Sidebar
@@ -55,10 +54,10 @@ export function AppSidebar() {
 						<AnimatedNavItem key={item.title} item={item} onNavigate={() => setOpenMobile(false)} />
 					))}
 				</SidebarMenu>
+				<div className="mt-auto mb-4 pt-2">
+					<NavUser compact={state === "collapsed"} />
+				</div>
 			</SidebarContent>
-			<SidebarFooter className="items-start p-3 group-data-[collapsible=icon]:items-center">
-				<NavUser />
-			</SidebarFooter>
 		</Sidebar>
 	);
 }
