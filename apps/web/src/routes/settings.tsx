@@ -58,7 +58,7 @@ function RouteComponent() {
 			>
 				<SheetContent
 					showCloseButton={false}
-					className="data-[side=right]:inset-y-4 data-[side=right]:right-4 data-[side=right]:h-[calc(100dvh-32px)] data-[side=right]:w-[calc(100%-32px)] data-[side=right]:sm:max-w-[600px]"
+					className="rounded-[18px] overflow-hidden data-[side=right]:inset-y-4 data-[side=right]:right-4 data-[side=right]:h-[calc(100dvh-32px)] data-[side=right]:w-[calc(100%-32px)] data-[side=right]:sm:max-w-[600px]"
 				>
 					<SheetHeader className="shrink-0 gap-1 p-4 pr-14 sm:p-6 sm:pr-14">
 						<SheetTitle
