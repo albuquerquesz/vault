@@ -1,9 +1,20 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import {
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@vault/ui/components/sheet";
+import { Button } from "@vault/ui/components/button";
+import { XIcon } from "lucide-react";
+import { FinancialDashboard } from "@/components/financial-dashboard";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { SettingsPage, type SettingsSection } from "@/components/settings-page";
 import { authClient } from "@/lib/auth-client";
 import { isDevAuthBypassEnabled } from "@/lib/dev-auth";
 
-const SETTINGS_SECTIONS = ["general", "account", "about"] as const;
+const SETTINGS_SECTIONS = ["general", "account", "about", "mcp"] as const;
 
 function isSettingsSection(value: unknown): value is SettingsSection {
 	return (
@@ -35,5 +46,48 @@ export const Route = createFileRoute("/settings")({
 });
 
 function RouteComponent() {
-	return <SettingsPage />;
+	const navigate = useNavigate();
+	return (
+		<>
+			<FinancialDashboard />
+			<Sheet
+				open
+				onOpenChange={(open) => {
+					if (!open) void navigate({ to: "/", replace: true });
+				}}
+			>
+				<SheetContent
+					showCloseButton={false}
+					className="data-[side=right]:w-full data-[side=right]:sm:max-w-[720px]"
+				>
+					<SheetHeader className="shrink-0 gap-1 p-4 pr-14 sm:p-6 sm:pr-14">
+						<SheetTitle
+							className="text-2xl font-semibold tracking-tight"
+							style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+						>
+							Configurações
+						</SheetTitle>
+						<SheetDescription className="text-sm">
+							Ajustes da conta, preferências e integrações.
+						</SheetDescription>
+					</SheetHeader>
+					<SheetClose
+						render={
+							<Button
+								variant="ghost"
+								size="icon-sm"
+								className="absolute right-4 top-4"
+							/>
+						}
+						aria-label="Fechar configurações"
+					>
+						<XIcon />
+					</SheetClose>
+					<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6 sm:px-6">
+						<SettingsPage />
+					</div>
+				</SheetContent>
+			</Sheet>
+		</>
+	);
 }

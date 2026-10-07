@@ -40,7 +40,6 @@ import {
 	maskBrlInput,
 	parseBrlInputToCents,
 } from "@/components/overview/goals/hooks/use-goals-card";
-import { PageContent } from "@/components/page-content";
 import { PluggyConnectWidget } from "@/components/pluggy-connect-widget";
 import { PushSettings } from "@/components/push-settings";
 import { useTheme } from "@/components/theme-provider";
@@ -941,19 +940,7 @@ export function SettingsPage() {
 	};
 
 	return (
-		<PageContent className="space-y-5 py-4 sm:space-y-6 sm:py-6">
-			<div className="space-y-1">
-				<h1
-					className="text-2xl font-semibold tracking-tight sm:text-3xl"
-					style={headingStyle}
-				>
-					Configurações
-				</h1>
-				<p className="text-sm text-muted-foreground">
-					Ajustes da conta, preferências e integrações.
-				</p>
-			</div>
-
+		<div className="min-w-0 space-y-5">
 			<SettingsSectionChips
 				activeSection={activeSection}
 				onSectionChange={setActiveSection}
@@ -965,6 +952,6 @@ export function SettingsPage() {
 				{activeSection === "about" ? <AboutSettings /> : null}
 				{activeSection === "mcp" ? <McpSettings /> : null}
 			</div>
-		</PageContent>
+		</div>
 	);
 }
