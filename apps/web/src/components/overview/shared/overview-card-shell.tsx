@@ -16,6 +16,7 @@ type OverviewCardShellProps = {
 	tooltip: string;
 	children: ReactNode;
 	footer?: ReactNode;
+	footerClassName?: string;
 	className?: string;
 	contentClassName?: string;
 	headerClassName?: string;
@@ -27,6 +28,7 @@ export function OverviewCardShell({
 	tooltip,
 	children,
 	footer,
+	footerClassName,
 	className,
 	contentClassName,
 	headerClassName,
@@ -47,7 +49,7 @@ export function OverviewCardShell({
 				</div>
 			</CardHeader>
 			<CardContent className={contentClassName}>{children}</CardContent>
-			{footer ? <CardFooter>{footer}</CardFooter> : null}
+			{footer ? <CardFooter className={footerClassName}>{footer}</CardFooter> : null}
 		</Card>
 	);
 }

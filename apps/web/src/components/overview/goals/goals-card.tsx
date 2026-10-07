@@ -57,6 +57,7 @@ export function GoalsCard({ className }: GoalsCardProps) {
 				icon={<Target className="size-4 text-muted-foreground" />}
 				tooltip="Acompanhe o progresso das suas metas financeiras"
 				contentClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
+				footerClassName="!border-t-0"
 				footer={
 					<Button className="ml-auto" size="sm" onClick={openCreate}>
 						Nova meta
