@@ -37,7 +37,7 @@ export function OverviewMonthSelect({
 				}
 			}}
 		>
-			<SelectTrigger className="h-9 min-w-[160px] text-sm">
+			<SelectTrigger className="h-9 min-w-[160px] border-0 bg-transparent text-sm dark:bg-transparent dark:hover:bg-transparent">
 				<CalendarIcon className="mr-2 size-3.5 text-muted-foreground" />
 				<SelectValue placeholder="Mês">
 					{(selected) =>
