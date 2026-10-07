@@ -10,8 +10,8 @@ import { DashboardMonthTotals, DashboardSummary } from "./dashboard-summary";
 export function DashboardOverview() {
 	const { firstName, monthOptions, selectedMonth, setSelectedMonth } = useDashboardOverview();
 	return (
-		<div className="grid min-w-0 gap-4 py-4 sm:py-6">
-			<div className="grid min-w-0 gap-4 xl:grid-cols-[3fr_2fr]">
+		<div className="grid min-w-0 gap-6 py-4 sm:py-6">
+			<div className="grid min-w-0 gap-6 xl:min-h-[320px] xl:grid-cols-[3fr_2fr]">
 				<section className="flex min-w-0 flex-col gap-6 rounded-2xl bg-muted/20 p-5 sm:p-8" aria-label="Resumo do mês">
 					<div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Suas finanças</p><OverviewMonthSelect onValueChange={setSelectedMonth} options={monthOptions} value={selectedMonth} /></div>
 					<div className="space-y-4">
@@ -22,7 +22,7 @@ export function DashboardOverview() {
 				</section>
 				<DashboardSummary month={selectedMonth} />
 			</div>
-			<div className="dashboard-analyses grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 [&_[data-slot=card]]:md:min-h-[480px]">
+			<div className="dashboard-analyses grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 [&_[data-slot=card]]:md:min-h-[480px]">
 				<div className="min-w-0 md:col-span-2 xl:col-span-1"><DailySpendBarCard month={selectedMonth} /></div>
 				<div className="min-w-0"><MonthlyBillCard month={selectedMonth} /></div>
 				<div className="min-w-0"><OrderSourceMixCard month={selectedMonth} /></div>
