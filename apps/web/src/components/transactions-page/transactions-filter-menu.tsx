@@ -82,7 +82,7 @@ export function TransactionsFilterMenu({
 					>
 						<span
 							className={cn(
-						"inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-transparent text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground",
+						"inline-flex min-h-11 min-w-[60px] shrink-0 items-center justify-center rounded-lg border border-border/70 bg-transparent text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground",
 								isActive && "border-primary/60 bg-primary/10 text-foreground",
 							)}
 						>
