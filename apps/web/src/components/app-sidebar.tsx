@@ -1,10 +1,11 @@
 "use client";
 
+import { cloneElement, isValidElement, useRef, useState, type ReactElement } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { Link } from "@tanstack/react-router";
 import {
 	Sidebar,
 	SidebarContent,
-	SidebarFooter,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
@@ -12,8 +13,7 @@ import {
 	useSidebar,
 } from "@vault/ui/components/sidebar";
 import { cn } from "@vault/ui/lib/utils";
-import { footerNavLinks, useNavLinks } from "@/components/app-shared";
-import { LatestChange } from "@/components/latest-change";
+import { type SidebarNavItem, useNavLinks } from "@/components/app-shared";
 import { MonetaryVisibilityToggle } from "@/components/monetary-visibility-toggle";
 import { VaultLogo } from "@/components/vault-logo";
 
@@ -31,11 +31,11 @@ export function AppSidebar() {
 			style={{ fontFamily: '"Space Grotesk", sans-serif' }}
 			variant="sidebar"
 		>
-			<SidebarHeader className="h-14 justify-center border-b px-2 group-data-[collapsible=icon]:px-0">
+			<SidebarHeader className="h-14 justify-center px-2 group-data-[collapsible=icon]:px-0">
 				<div className="flex w-full min-w-0 items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center">
 					<VaultLogo
 						size="sm"
-						className="min-w-0 group-data-[collapsible=icon]:hidden [&_span]:truncate [&_span]:font-medium [&_span]:text-foreground!"
+						className="min-w-0 group-data-[collapsible=icon]:hidden [&_span]:truncate [&_span]:text-xl [&_span]:font-medium [&_span]:text-foreground!"
 					/>
 					<VaultLogo
 						size="sm"
@@ -50,43 +50,53 @@ export function AppSidebar() {
 			<SidebarContent className="px-3 pt-4">
 				<SidebarMenu className="gap-1">
 					{navLinks.map((item) => (
-						<SidebarMenuItem key={item.title}>
-							<SidebarMenuButton
-								isActive={item.isActive}
-								onClick={() => setOpenMobile(false)}
-								render={<Link to={item.path ?? "#"} />}
-							>
-								{item.icon}
-								<span>{item.title}</span>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
+						<AnimatedNavItem key={item.title} item={item} onNavigate={() => setOpenMobile(false)} />
 					))}
 				</SidebarMenu>
 			</SidebarContent>
-			<SidebarFooter className="gap-0 p-0">
-				<LatestChange />
-				<SidebarMenu className="border-t p-2">
-					{footerNavLinks.map((item) => (
-						<SidebarMenuItem key={item.title}>
-							<SidebarMenuButton
-								className="text-muted-foreground"
-								isActive={item.isActive}
-								onClick={() => setOpenMobile(false)}
-								size="sm"
-								render={<a href={item.path} />}
-							>
-								{item.icon}
-								<span>{item.title}</span>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-					))}
-				</SidebarMenu>
-				<div className="px-4 pt-4 pb-2 transition-opacity group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0">
-					<p className="text-nowrap text-[9px] text-muted-foreground">
-						© {new Date().getFullYear()} Vault
-					</p>
-				</div>
-			</SidebarFooter>
+
 		</Sidebar>
+	);
+}
+
+function AnimatedNavItem({ item, onNavigate }: { item: SidebarNavItem; onNavigate: () => void }) {
+	const iconRef = useRef<{ startAnimation: () => void; stopAnimation: () => void }>(null);
+	const [hovered, setHovered] = useState(false);
+	const reducedMotion = useReducedMotion();
+	const controlled = item.path === "/" || item.path === "/transactions";
+	const icon = controlled && isValidElement(item.icon)
+		? cloneElement(item.icon as ReactElement<{ ref: typeof iconRef }>, { ref: iconRef })
+		: item.icon;
+	const start = () => {
+		if (reducedMotion) return;
+		setHovered(true);
+		iconRef.current?.startAnimation();
+	};
+	const stop = () => {
+		setHovered(false);
+		iconRef.current?.stopAnimation();
+	};
+	return (
+		<SidebarMenuItem>
+			<SidebarMenuButton
+				className="h-10 text-lg [&_svg]:size-6"
+				isActive={item.isActive}
+				onClick={onNavigate}
+				onMouseEnter={start}
+				onMouseLeave={stop}
+				onFocus={start}
+				onBlur={stop}
+				render={<Link to={item.path ?? "#"} />}
+			>
+				<motion.div
+					className="flex shrink-0 items-center justify-center"
+					animate={hovered && !controlled ? { rotate: [0, -12, 12, 0], scale: [1, 1.12, 1] } : { rotate: 0, scale: 1 }}
+					transition={{ duration: 0.4, ease: "easeOut" }}
+				>
+					{icon}
+				</motion.div>
+				<span>{item.title}</span>
+			</SidebarMenuButton>
+		</SidebarMenuItem>
 	);
 }
