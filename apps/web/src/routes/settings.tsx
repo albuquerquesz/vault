@@ -83,7 +83,7 @@ function RouteComponent() {
 					>
 						<XIcon />
 					</SheetClose>
-					<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6 sm:px-6">
+					<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-4 pb-6 sm:px-6">
 						<SettingsPage />
 					</div>
 				</SheetContent>
