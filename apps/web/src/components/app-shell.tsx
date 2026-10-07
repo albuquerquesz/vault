@@ -13,6 +13,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 			<SidebarProvider defaultOpen>
 				<AppSidebar />
 				<SidebarInset
+					className="min-w-0 dark:bg-[oklch(0.178_0.005_285)] md:overflow-hidden md:peer-data-[variant=inset]:m-4 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-[24px] md:peer-data-[variant=inset]:shadow-none md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-4"
 					style={
 						{
 							"--mobile-bottom-tab-bar-height": MOBILE_BOTTOM_TAB_BAR_HEIGHT,
