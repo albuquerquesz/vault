@@ -112,6 +112,7 @@ export interface Goal {
 	url: string | null;
 	targetAmount: number;
 	currentAmount: number;
+	isCompleted: boolean;
 	currency: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -149,6 +150,7 @@ export interface UpdateGoalInput {
 	name?: string;
 	targetAmount?: number;
 	currentAmount?: number;
+	isCompleted?: boolean;
 	url?: string | null;
 }
 

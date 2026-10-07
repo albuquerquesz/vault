@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+	boolean,
 	index,
 	numeric,
 	pgTable,
@@ -25,6 +26,7 @@ export const goal = pgTable(
 		currentAmount: numeric("current_amount", { precision: 12, scale: 2 })
 			.default("0")
 			.notNull(),
+		isCompleted: boolean("is_completed").default(false).notNull(),
 		currency: text("currency").default("BRL").notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")

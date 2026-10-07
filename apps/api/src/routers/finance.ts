@@ -897,6 +897,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						url,
 						targetAmount: targetAmount.toString(),
 						currentAmount: (currentAmount ?? 0).toString(),
+						isCompleted: (currentAmount ?? 0) >= targetAmount,
 					})
 					.returning();
 				return reply.code(201).send(serializeGoal(record!));
@@ -922,6 +923,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						name: z.string().trim().min(1).max(128).optional(),
 						targetAmount: z.number().positive().optional(),
 						currentAmount: z.number().min(0).optional(),
+						isCompleted: z.boolean().optional(),
 						url: optionalGoalUrl,
 					})
 					.refine(
@@ -929,6 +931,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 							data.name !== undefined ||
 							data.targetAmount !== undefined ||
 							data.currentAmount !== undefined ||
+							data.isCompleted !== undefined ||
 							data.url !== undefined,
 						{ message: "At least one field is required" },
 					)
@@ -951,6 +954,16 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						...(body.currentAmount !== undefined
 							? { currentAmount: body.currentAmount.toString() }
 							: {}),
+						...(body.isCompleted !== undefined
+							? { isCompleted: body.isCompleted }
+							: body.currentAmount !== undefined ||
+									body.targetAmount !== undefined
+								? {
+										isCompleted:
+											(body.currentAmount ?? Number(existing.currentAmount)) >=
+											(body.targetAmount ?? Number(existing.targetAmount)),
+									}
+								: {}),
 						...(body.url !== undefined ? { url: body.url } : {}),
 					})
 					.where(eq(goal.id, id))

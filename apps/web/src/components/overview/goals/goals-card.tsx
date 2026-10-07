@@ -30,7 +30,7 @@ type GoalsCardProps = {
 export function GoalsCard({ className }: GoalsCardProps) {
 	const {
 		goals,
-		handleComplete,
+		handleToggleComplete,
 		handleDelete,
 		handleSubmit,
 		isEditing,
@@ -75,7 +75,7 @@ export function GoalsCard({ className }: GoalsCardProps) {
 						<OverviewOverflowPanel>
 							<GoalList
 								goals={goals}
-								onComplete={handleComplete}
+								onToggleComplete={handleToggleComplete}
 								onDelete={handleDelete}
 								onEdit={openEdit}
 							/>

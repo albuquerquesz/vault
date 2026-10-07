@@ -141,11 +141,8 @@ export function useGoalsCard() {
 		);
 	};
 
-	const handleComplete = (goal: Goal) => {
-		updateGoal.mutate({
-			id: goal.id,
-			currentAmount: goal.targetAmount,
-		});
+	const handleToggleComplete = (goal: Goal, isCompleted: boolean) => {
+		updateGoal.mutate({ id: goal.id, isCompleted });
 	};
 
 	const handleDelete = (goal: Goal) => {
@@ -167,7 +164,7 @@ export function useGoalsCard() {
 		url,
 		setUrl,
 		handleSubmit,
-		handleComplete,
+		handleToggleComplete,
 		handleDelete,
 		isEditing: editingGoal !== null,
 		isSubmitting: createGoal.isPending || updateGoal.isPending,

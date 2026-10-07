@@ -35,21 +35,21 @@ function maskGoalName(name: string) {
 
 type GoalListProps = {
 	goals: Goal[];
-	onComplete: (goal: Goal) => void;
+	onToggleComplete: (goal: Goal, isCompleted: boolean) => void;
 	onEdit: (goal: Goal) => void;
 	onDelete: (goal: Goal) => void;
 };
 
 export function GoalList({
 	goals,
-	onComplete,
+	onToggleComplete,
 	onEdit,
 	onDelete,
 }: GoalListProps) {
 	return (
 		<div className="flex flex-col gap-1">
 			{goals.map((goal) => {
-				const isCompleted = goal.currentAmount >= goal.targetAmount;
+				const isCompleted = goal.isCompleted;
 				const displayName = maskGoalName(goal.name);
 
 				return (
@@ -61,16 +61,13 @@ export function GoalList({
 							<Checkbox
 								aria-label={
 									isCompleted
-										? `Meta concluída: ${goal.name}`
+										? `Desmarcar meta ${goal.name}`
 										: `Concluir meta ${goal.name}`
 								}
 								checked={isCompleted}
-								className="size-5 rounded-full disabled:cursor-default disabled:opacity-100"
-								disabled={isCompleted}
+								className="size-5 rounded-full"
 								onCheckedChange={(checked) => {
-									if (checked) {
-										onComplete(goal);
-									}
+									onToggleComplete(goal, checked === true);
 								}}
 							/>
 							{goal.url ? (
@@ -127,7 +124,9 @@ export function GoalList({
 								/>
 								<DropdownMenuContent align="end" className="min-w-36 bg-card">
 									{!isCompleted && (
-										<DropdownMenuItem onClick={() => onComplete(goal)}>
+										<DropdownMenuItem
+											onClick={() => onToggleComplete(goal, true)}
+										>
 											<CheckIcon className="size-4" />
 											Concluir
 										</DropdownMenuItem>
