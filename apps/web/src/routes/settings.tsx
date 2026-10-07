@@ -67,7 +67,7 @@ function RouteComponent() {
 						>
 							Configurações
 						</SheetTitle>
-						<SheetDescription className="text-sm">
+						<SheetDescription className="sr-only">
 							Ajustes da conta, preferências e integrações.
 						</SheetDescription>
 					</SheetHeader>
