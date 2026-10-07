@@ -7,7 +7,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@vault/ui/components/select";
-import { CalendarIcon } from "lucide-react";
 
 type MonthOption = {
 	value: string;
@@ -37,8 +36,7 @@ export function OverviewMonthSelect({
 				}
 			}}
 		>
-			<SelectTrigger className="h-10 min-w-[140px] justify-center px-2 border-0 bg-transparent text-base [&>svg:last-of-type]:size-5 dark:bg-transparent dark:hover:bg-transparent">
-				<CalendarIcon className="size-5 text-muted-foreground" />
+			<SelectTrigger className="h-10 min-w-[140px] justify-center rounded-md px-2 border-0 bg-[oklch(0.93_0.003_285)] text-base [&>svg:last-of-type]:size-5 dark:bg-[oklch(0.93_0.003_285)] dark:hover:bg-[oklch(0.91_0.003_285)]">
 				<SelectValue className="flex-none text-center" placeholder="Mês">
 					{(selected) =>
 						options.find((option) => option.value === selected)?.label ??

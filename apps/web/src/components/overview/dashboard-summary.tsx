@@ -2,6 +2,7 @@
 
 import { useQueries } from "@tanstack/react-query";
 import { Skeleton } from "@vault/ui/components/skeleton";
+import { WalletIcon } from "lucide-react";
 import {
 	Bar,
 	BarChart,
@@ -17,6 +18,7 @@ import {
 import { financeSdk, useMonthlySpendingGoal } from "@/features/finance/sdk";
 import { usePartialResult } from "./partial-result/hooks/use-partial-result";
 import { OverviewMonthSelect } from "./shared/overview-month-select";
+import { SummarySelectedBarLabel } from "./summary-selected-bar-label";
 
 const currency = new Intl.NumberFormat("pt-BR", {
 	style: "currency",
@@ -111,11 +113,14 @@ export function DashboardSummary({
 	return (
 		<section
 			aria-label="Resumo do mês"
-			className="grid min-w-0 gap-6 rounded-[18px] bg-muted/40 p-6 xl:min-h-[360px] xl:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]"
+			className="dashboard-summary-light grid min-w-0 gap-6 rounded-[18px] bg-background p-6 text-foreground xl:min-h-[360px] xl:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]"
 		>
-			<div className="flex min-w-0 flex-col gap-6 rounded-xl bg-background/70 p-6 dark:bg-secondary/70">
+			<div className="flex min-w-0 flex-col gap-6 rounded-[22px] border border-border/60 bg-background p-6 ring-4 ring-muted">
 				<div className="flex flex-wrap items-center justify-between gap-2">
-					<h1 className="text-base font-medium">Saldo do mês</h1>
+					<h1 className="flex items-center gap-2 text-lg leading-6 font-medium">
+						<WalletIcon aria-hidden="true" className="size-5 shrink-0" />
+						<span>Saldo do mês</span>
+					</h1>
 					<OverviewMonthSelect
 						value={month}
 						options={monthOptions}
@@ -168,7 +173,7 @@ export function DashboardSummary({
 					))}
 				</div>
 			</div>
-			<div className="flex min-w-0 flex-col gap-3 py-2 xl:pl-2">
+			<div className="flex min-w-0 flex-col gap-2 xl:pl-2">
 				<h2 className="text-sm font-medium text-muted-foreground">
 					Saldo acumulado em {year}
 				</h2>
@@ -183,31 +188,30 @@ export function DashboardSummary({
 					data={chartData}
 					valueDomain={domain}
 					xDataKey="name"
-					className="h-48 min-w-0 shrink-0"
+					className="min-h-48 min-w-0 flex-1"
 					aspectRatio="auto"
-					margin={{ top: 12, right: 8, bottom: 42, left: 8 }}
+					margin={{ top: 24, right: 8, bottom: 36, left: 8 }}
 					status={historyLoading ? "loading" : "ready"}
-					barGap={0.35}
 				>
 					<Bar
 						dataKey="balance"
-						lineCap={6}
 						animate={false}
-						fill="var(--chart-3)"
+						fill="var(--chart-2)"
 						fillAccessor={(point) =>
-							point.highest
+							point.selected
 								? "var(--foreground)"
-								: "var(--chart-3)"
+								: "var(--chart-2)"
 						}
 					/>
-					<BarXAxis labelClassName="text-sm" maxLabels={12} />
+					<BarXAxis labelClassName="text-[10px] sm:text-xs xl:text-sm" maxLabels={12} />
+					<SummarySelectedBarLabel />
 					<ChartTooltip
 						rows={(point) => [
 							{
 								label: `${point.name}${point.highest ? " · maior saldo" : ""}`,
-								color: point.highest
+								color: point.selected
 									? "var(--foreground)"
-									: "var(--chart-3)",
+									: "var(--chart-2)",
 								value:
 									typeof point.balance === "number"
 										? maskMonetaryText(
