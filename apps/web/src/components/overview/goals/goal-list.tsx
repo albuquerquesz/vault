@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@vault/ui/components/badge";
 import { Button } from "@vault/ui/components/button";
 import { Checkbox } from "@vault/ui/components/checkbox";
 import {
@@ -21,6 +22,8 @@ import type { Goal } from "@/features/finance/sdk";
 const currencyFmt = new Intl.NumberFormat("pt-BR", {
 	style: "currency",
 	currency: "BRL",
+	minimumFractionDigits: 0,
+	maximumFractionDigits: 0,
 });
 
 const MAX_NAME_LENGTH = 20;
@@ -102,12 +105,17 @@ export function GoalList({
 						</div>
 
 						<div className="flex shrink-0 items-center gap-1">
-							<MaskedMonetaryValue
-								className="text-xl font-sans font-medium tabular-nums text-white"
-								format={(value) => currencyFmt.format(value)}
-								animated
-								value={goal.targetAmount}
-							/>
+							<Badge
+								variant="secondary"
+								className="h-auto rounded-full px-3 py-1 text-sm"
+							>
+								<MaskedMonetaryValue
+									className="text-sm font-sans font-medium tabular-nums"
+									format={(value) => currencyFmt.format(value)}
+									animated
+									value={goal.targetAmount}
+								/>
+							</Badge>
 
 							<DropdownMenu>
 								<DropdownMenuTrigger
