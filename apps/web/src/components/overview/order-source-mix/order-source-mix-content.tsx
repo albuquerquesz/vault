@@ -105,8 +105,8 @@ export function OrderSourceMixContent({
 	const pieInner = 72;
 
 	return (
-		<div className="flex flex-1 flex-col items-center gap-6 lg:flex-row lg:items-center lg:gap-12">
-			<div className="flex w-full min-w-0 shrink-0 items-center justify-center lg:flex-[2]">
+		<div className="@container flex flex-1 flex-col items-center gap-6 @min-[640px]:flex-row @min-[640px]:items-center @min-[640px]:gap-12">
+			<div className="flex w-full min-w-0 shrink-0 items-center justify-center @min-[640px]:flex-[2]">
 				<div className="relative flex size-[min(100%,260px)] max-w-full shrink-0 items-center justify-center">
 					<PieChart data={pieData} innerRadius={pieInner} size={pieSize}>
 						{sourceData.map((datum, index) => {
@@ -147,7 +147,7 @@ export function OrderSourceMixContent({
 				</div>
 			</div>
 
-			<div className="flex w-full min-w-0 flex-col gap-3 pr-0 lg:flex-[3] lg:gap-4 lg:pr-8">
+			<div className="flex w-full min-w-0 flex-col gap-3 pr-0 @min-[640px]:flex-[3] @min-[640px]:gap-4">
 				{sourceData.map((datum, index) => (
 					<div key={datum.source} className="flex items-center gap-3">
 						<div className="flex min-w-0 items-center gap-2">

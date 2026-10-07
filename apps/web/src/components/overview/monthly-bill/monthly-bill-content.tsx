@@ -26,7 +26,7 @@ export function MonthlyBillContent({
 	items: MonthlyBillItem[];
 }) {
 	return (
-		<div className="flex min-h-0 flex-1 flex-col gap-4 sm:gap-6">
+		<div className="@container flex min-h-0 flex-1 flex-col gap-4 sm:gap-6">
 			<div className="text-2xl font-semibold tabular-nums sm:text-3xl">
 				<MaskedMonetaryValue format={fmt} value={totalBill} />
 			</div>
@@ -42,7 +42,7 @@ export function MonthlyBillContent({
 						return (
 							<div
 								key={item.id ?? item.name}
-								className="flex flex-col items-start gap-2 text-base sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+								className="flex flex-col items-start gap-2 text-base @min-[560px]:flex-row @min-[560px]:items-center @min-[560px]:justify-between @min-[560px]:gap-4"
 							>
 								<div className="flex min-w-0 items-center gap-2.5">
 									<InstitutionMark

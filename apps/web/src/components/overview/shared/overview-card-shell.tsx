@@ -7,13 +7,7 @@ import {
 	CardFooter,
 	CardHeader,
 } from "@vault/ui/components/card";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@vault/ui/components/tooltip";
 import { cn } from "@vault/ui/lib/utils";
-import { Info } from "lucide-react";
 import type { ReactNode } from "react";
 
 type OverviewCardShellProps = {
@@ -40,24 +34,16 @@ export function OverviewCardShell({
 	return (
 		<Card
 			className={cn(
-				"financial-panel-border flex h-full min-h-0 w-full flex-col ring-0 sm:min-h-[18rem] xl:min-h-[24rem]",
+				"@container financial-panel-border flex h-full min-h-0 w-full flex-col ring-0 sm:min-h-[18rem] xl:min-h-[24rem]",
 				className,
 			)}
 		>
-			<CardHeader className={cn("border-b", headerClassName)}>
+			<CardHeader className={headerClassName}>
 				<div className="flex items-center justify-between gap-2">
-					<CardDescription className="flex items-center gap-2 text-base">
+					<CardDescription aria-description={tooltip} className="flex items-center gap-2 text-base">
 						{icon}
 						<span>{title}</span>
 					</CardDescription>
-					<Tooltip>
-						<TooltipTrigger
-							render={() => (
-								<Info className="mt-0.5 size-4 text-muted-foreground" />
-							)}
-						/>
-						<TooltipContent>{tooltip}</TooltipContent>
-					</Tooltip>
 				</div>
 			</CardHeader>
 			<CardContent className={contentClassName}>{children}</CardContent>
