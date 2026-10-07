@@ -1,6 +1,5 @@
 import type * as React from "react";
 import { SidebarInset, SidebarProvider } from "@vault/ui/components/sidebar";
-import { AppHeader } from "@/components/app-header";
 import {
 	MOBILE_BOTTOM_TAB_BAR_HEIGHT,
 	MobileBottomTabBar,
@@ -20,7 +19,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 						} as React.CSSProperties
 					}
 				>
-					<AppHeader />
 					<div className="flex min-h-0 flex-1 flex-col dark:bg-[oklch(0.178_0.005_285)] px-3 pb-[calc(var(--mobile-bottom-tab-bar-height)+env(safe-area-inset-bottom,0px)+1rem)] sm:px-6 md:pb-0 lg:px-8">
 						<div className="mx-auto w-full min-w-0">{children}</div>
 					</div>
