@@ -9,7 +9,7 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { Input } from "@vault/ui/components/input";
-import { SearchIcon } from "lucide-react";
+import { ChartColumnIncreasingIcon, SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getMonthValue, useFinanceTransactions } from "@/features/finance/sdk";
 import { TransactionsCategoryBarChart } from "./transactions-page/transactions-category-bar-chart";
@@ -119,8 +119,9 @@ export function TransactionsPage() {
 	return (
 		<div className="w-full min-w-0 overflow-x-clip pt-4 sm:pt-6 md:overflow-x-visible">
 			<div className="mb-4 flex items-center justify-between gap-3">
-				<div className="min-w-0">
-					<h1 className="truncate text-2xl font-semibold tracking-tight sm:text-3xl">Transações</h1>
+				<div className="flex min-w-0 items-center gap-2">
+					<ChartColumnIncreasingIcon aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+					<h1 className="truncate text-xl font-semibold tracking-tight">Transações</h1>
 				</div>
 				<CreateTransactionSheet month={selectedMonth} />
 			</div>
