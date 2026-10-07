@@ -45,7 +45,7 @@ export function useDashboardOverview() {
 	const { data: session } = authClient.useSession();
 	const [selectedMonth, setSelectedMonth] = useState(getMonthValue());
 	const monthOptions = useMemo(() => generateMonthOptions(6), []);
-	const firstName = session?.user.name?.split(" ")[0] ?? "";
+	const firstName = session?.user.name?.trim().split(/\s+/)[0] ?? "";
 
 	return {
 		selectedMonth,
