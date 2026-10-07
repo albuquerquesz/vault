@@ -59,7 +59,11 @@ export function GoalsCard({ className }: GoalsCardProps) {
 				contentClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
 				footerClassName="!border-t-0"
 				footer={
-					<Button className="ml-auto" size="sm" onClick={openCreate}>
+					<Button
+						className="ml-auto rounded-lg px-4 text-sm font-semibold"
+						size="lg"
+						onClick={openCreate}
+					>
 						Nova meta
 					</Button>
 				}
