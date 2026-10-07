@@ -57,6 +57,8 @@ const FALLBACK_LOADING_BARS = 12;
 export type BarOrientation = "vertical" | "horizontal";
 
 export interface BarChartProps {
+	/** Optional numeric domain; includes zero for signed balances. */
+	valueDomain?: [number, number];
 	/** Data array - each item should have an x-axis key and numeric values */
 	data: Record<string, unknown>[];
 	/** Key in data for the categorical axis. Default: "name" */
@@ -144,6 +146,7 @@ function extractBarConfigs(children: ReactNode): LineConfig[] {
 }
 
 interface ChartInnerProps {
+	valueDomain?: [number, number];
 	width: number;
 	height: number;
 	data: Record<string, unknown>[];
@@ -193,6 +196,7 @@ const ChartCore = memo(function ChartCore({
 	containerRef,
 	onPhaseChange,
 	status,
+	valueDomain,
 }: ChartInnerProps) {
 	const { tooltipData, setTooltipData, scheduleTooltip, clearTooltip } =
 		useScheduledTooltip<TooltipData>();
@@ -285,10 +289,12 @@ const ChartCore = memo(function ChartCore({
 		const range = isHorizontal ? [0, innerWidth] : [innerHeight, 0];
 		return scaleLinear({
 			range,
-			domain: [0, maxValue * 1.1],
+			domain: valueDomain
+				? [Math.min(0, valueDomain[0]), Math.max(0, valueDomain[1])]
+				: [0, maxValue * 1.1],
 			nice: true,
 		});
-	}, [innerWidth, innerHeight, maxValue, isHorizontal]);
+	}, [innerWidth, innerHeight, maxValue, isHorizontal, valueDomain]);
 
 	const yScales = useMemo(() => {
 		if (isHorizontal) {
@@ -299,6 +305,8 @@ const ChartCore = memo(function ChartCore({
 			data,
 			innerHeight,
 			resolveDomain: (dataKeys) => {
+				if (valueDomain)
+					return [Math.min(0, valueDomain[0]), Math.max(0, valueDomain[1])];
 				let max = 0;
 				for (const d of data) {
 					for (const key of dataKeys) {
@@ -311,7 +319,7 @@ const ChartCore = memo(function ChartCore({
 				return [0, (max || 100) * 1.1];
 			},
 		});
-	}, [data, innerHeight, isHorizontal, lines, valueScale]);
+	}, [data, innerHeight, isHorizontal, lines, valueScale, valueDomain]);
 
 	const primaryYScale = getPrimaryYScale(yScales, valueScale);
 
@@ -688,6 +696,7 @@ export function BarChart({
 	children,
 	onPhaseChange,
 	status = "ready",
+	valueDomain,
 }: BarChartProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const margin = { ...DEFAULT_MARGIN, ...marginProp };
@@ -706,6 +715,7 @@ export function BarChart({
 						barGap={barGap}
 						barWidthProp={barWidth}
 						containerRef={containerRef}
+						valueDomain={valueDomain}
 						data={data}
 						enterTransition={enterTransition}
 						height={height}
