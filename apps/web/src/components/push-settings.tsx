@@ -125,7 +125,7 @@ export function PushSettings() {
 	}
 
 	return (
-		<section className="rounded-2xl border border-border/70 bg-background/60 p-5 space-y-3">
+		<section className="rounded-2xl border-0 bg-background/60 p-5 space-y-3">
 			<div className="flex items-center justify-between gap-4">
 				<h2 id="push-notifications-label" className="text-lg font-medium">
 					Notificações

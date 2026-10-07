@@ -111,7 +111,7 @@ function SettingsSectionCard({
 	return (
 		<Card
 			className={cn(
-				"rounded-2xl border border-border/70 bg-background/60 ring-0",
+				"rounded-2xl border-0 bg-background/60 ring-0",
 				className,
 			)}
 		>
@@ -791,7 +791,7 @@ function AccountSettings() {
 
 	return (
 		<div className="space-y-4">
-			<Card className="rounded-2xl border border-border/70 bg-background/60 ring-0">
+			<Card className="rounded-2xl border-0 bg-background/60 ring-0">
 				<CardHeader>
 					<CardTitle className="text-lg font-medium" style={headingStyle}>
 						Conta
