@@ -24,7 +24,7 @@ export function AppSidebar() {
 	return (
 		<Sidebar
 			className={cn(
-				"*:data-[slot=sidebar-inner]:bg-background",
+				"border-0! *:data-[slot=sidebar-inner]:bg-background dark:*:data-[slot=sidebar-inner]:bg-sidebar",
 				"**:data-[slot=sidebar-menu-button]:[&>span]:text-foreground/75",
 			)}
 			collapsible="icon"
