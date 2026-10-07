@@ -13,6 +13,8 @@ export interface BarXAxisProps {
 	showAllLabels?: boolean;
 	/** Maximum number of labels to show. Default: 12 */
 	maxLabels?: number;
+	/** Optional class for axis label styling. */
+	labelClassName?: string;
 }
 
 interface BarXAxisLabelProps {
@@ -21,6 +23,7 @@ interface BarXAxisLabelProps {
 	crosshairX: number | null;
 	isHovering: boolean;
 	tickerHalfWidth: number;
+	labelClassName?: string;
 }
 
 function BarXAxisLabel({
@@ -29,6 +32,7 @@ function BarXAxisLabel({
 	crosshairX,
 	isHovering,
 	tickerHalfWidth,
+	labelClassName,
 }: BarXAxisLabelProps) {
 	const fadeBuffer = 20;
 	const fadeRadius = tickerHalfWidth + fadeBuffer;
@@ -57,7 +61,10 @@ function BarXAxisLabel({
 		>
 			<motion.span
 				animate={{ opacity }}
-				className={cn("whitespace-nowrap text-chart-label text-xs")}
+				className={cn(
+					"whitespace-nowrap text-chart-label text-xs",
+					labelClassName,
+				)}
 				initial={{ opacity: 1 }}
 				transition={{ duration: 0.4, ease: "easeInOut" }}
 			>
@@ -91,6 +98,7 @@ const BarXAxisInner = memo(function BarXAxisInner({
 	tickerHalfWidth = 50,
 	showAllLabels = false,
 	maxLabels = 12,
+	labelClassName,
 	container,
 }: BarXAxisProps & { container: HTMLDivElement }) {
 	const { margin, tooltipData, barScale, bandWidth, barXAccessor, data } =
@@ -139,6 +147,7 @@ const BarXAxisInner = memo(function BarXAxisInner({
 					isHovering={isHovering}
 					key={`${item.label}-${item.x}`}
 					label={item.label}
+					labelClassName={labelClassName}
 					tickerHalfWidth={tickerHalfWidth}
 					x={item.x}
 				/>

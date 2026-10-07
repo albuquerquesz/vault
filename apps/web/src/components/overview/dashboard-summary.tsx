@@ -7,7 +7,6 @@ import {
 	BarChart,
 	BarXAxis,
 	ChartTooltip,
-	Grid,
 } from "@/components/bar-chart";
 import {
 	MaskedMonetaryText,
@@ -122,7 +121,7 @@ export function DashboardSummary({
 					{isLoading ? (
 						<Skeleton className="h-14 w-3/4" />
 					) : (
-						<p className="break-words text-4xl font-semibold leading-tight tracking-tight tabular-nums sm:text-[56px]">
+						<p className="break-words text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl">
 							{money(isError ? 0 : (metrics?.result ?? 0))}
 						</p>
 					)}
@@ -181,17 +180,10 @@ export function DashboardSummary({
 					xDataKey="name"
 					className="h-52 min-w-0 flex-1"
 					aspectRatio="auto"
-					margin={{ top: 12, right: 8, bottom: 30, left: 8 }}
+					margin={{ top: 12, right: 8, bottom: 42, left: 8 }}
 					status={historyLoading ? "loading" : "ready"}
 					barGap={0.35}
 				>
-					<Grid
-						rowTickValues={[0]}
-						stroke="var(--muted-foreground)"
-						strokeOpacity={0.4}
-						strokeDasharray=""
-						fadeHorizontal={false}
-					/>
 					<Bar
 						dataKey="balance"
 						lineCap={6}
@@ -201,7 +193,7 @@ export function DashboardSummary({
 							point.selected ? "var(--foreground)" : "var(--chart-3)"
 						}
 					/>
-					<BarXAxis maxLabels={12} />
+					<BarXAxis labelClassName="text-sm" maxLabels={12} />
 					<ChartTooltip
 						rows={(point) => [
 							{

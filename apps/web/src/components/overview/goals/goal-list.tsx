@@ -62,14 +62,14 @@ export function GoalList({
 									href={goal.url}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="min-w-0 truncate text-sm font-medium underline-offset-4 hover:underline"
+									className="min-w-0 truncate text-lg font-medium underline-offset-4 hover:underline"
 									title={goal.name}
 								>
 									{displayName}
 								</a>
 							) : (
 								<span
-									className="min-w-0 truncate text-sm font-medium"
+									className="min-w-0 truncate text-lg font-medium"
 									title={goal.name}
 								>
 									{displayName}
@@ -90,7 +90,7 @@ export function GoalList({
 
 						<div className="flex shrink-0 items-center gap-1">
 							<MaskedMonetaryValue
-								className="text-sm font-semibold tabular-nums text-white"
+								className="text-xl font-semibold tabular-nums text-white"
 								format={(value) => currencyFmt.format(value)}
 								animated
 								value={goal.targetAmount}
