@@ -55,7 +55,7 @@ export function GoalList({
 				return (
 					<div
 						key={goal.id}
-						className="flex flex-col items-start gap-3 py-1"
+						className="flex items-center justify-between gap-3 py-1"
 					>
 						<div className="flex min-w-0 flex-1 items-center gap-2">
 							<Checkbox
@@ -101,9 +101,9 @@ export function GoalList({
 							) : null}
 						</div>
 
-						<div className="flex w-full min-w-0 items-center justify-between gap-1">
+						<div className="flex shrink-0 items-center gap-1">
 							<MaskedMonetaryValue
-								className="text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl text-foreground"
+								className="text-xl font-sans font-medium tabular-nums text-white"
 								format={(value) => currencyFmt.format(value)}
 								animated
 								value={goal.targetAmount}

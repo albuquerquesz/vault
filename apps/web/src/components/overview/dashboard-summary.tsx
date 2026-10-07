@@ -24,7 +24,6 @@ const currency = new Intl.NumberFormat("pt-BR", {
 });
 const money = (value: number) => (
 	<MaskedMonetaryValue
-		className="text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl"
 		value={value}
 		format={(amount) => currency.format(amount)}
 	/>
@@ -127,7 +126,7 @@ export function DashboardSummary({
 					{isLoading ? (
 						<Skeleton className="h-14 w-3/4" />
 					) : (
-						<p className="break-words text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl">
+						<p className="break-words text-4xl font-sans font-medium leading-tight tracking-tight tabular-nums sm:text-5xl">
 							{money(isError ? 0 : (metrics?.result ?? 0))}
 						</p>
 					)}
@@ -145,11 +144,11 @@ export function DashboardSummary({
 						</p>
 					)}
 				</div>
-				<div className="mt-auto grid min-w-0 grid-cols-1 gap-4 border-t border-border/60 pt-4 2xl:grid-cols-1">
+				<div className="mt-auto grid min-w-0 grid-cols-1 gap-4 border-t border-border/60 pt-4 sm:grid-cols-3 sm:gap-0">
 					{stats.map((stat) => (
 						<div
 							key={stat.label}
-							className="min-w-0 space-y-2 border-border/60 not-first:border-t not-first:pt-4 "
+							className="min-w-0 space-y-2 border-border/60 not-first:border-t not-first:pt-4 sm:not-first:border-t-0 sm:not-first:border-l sm:not-first:pt-0 sm:not-first:pl-2 sm:not-last:pr-2"
 						>
 							<p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
 								<span
@@ -161,7 +160,7 @@ export function DashboardSummary({
 							{stat.loading ? (
 								<Skeleton className="h-6 w-24" />
 							) : (
-								<p className="break-words text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl">
+								<p className="break-words text-2xl font-sans font-medium leading-tight tracking-tight tabular-nums sm:text-base xl:text-sm 2xl:text-2xl">
 									{money(stat.value ?? 0)}
 								</p>
 							)}
@@ -176,7 +175,7 @@ export function DashboardSummary({
 				{historyLoading ? (
 					<Skeleton className="h-9 w-48" />
 				) : (
-					<p className="break-words text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl">
+					<p className="break-words text-3xl font-sans font-medium tracking-tight tabular-nums">
 						{money(historyError ? 0 : total)}
 					</p>
 				)}

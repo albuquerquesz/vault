@@ -73,7 +73,7 @@ export function DailySpendBarContent({
 	return (
 		<div className="flex h-full min-h-40 w-full flex-1 flex-col gap-2 sm:min-h-55">
 			{peakDay ? (
-				<p className="mb-4 shrink-0 self-start text-4xl font-medium leading-tight tracking-tight tabular-nums sm:text-5xl text-foreground sm:mb-8">
+				<p className="mb-4 shrink-0 self-start text-2xl font-sans font-medium tracking-tight tabular-nums text-foreground sm:mb-8 sm:text-4xl">
 					<MaskedMonetaryValue format={formatBrlWhole} value={peakDay.amount} />
 				</p>
 			) : null}
