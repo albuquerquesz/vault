@@ -105,7 +105,6 @@ export function TransactionsPage() {
 				<FinancialPanel className="min-w-0 !border-0" contentClassName="min-w-0 p-0">
 					<TransactionsCategoryBarChart
 						transactions={filteredTransactions}
-						periodLabel={monthLabel}
 						headerAction={<FinanceMonthSelect value={selectedMonth} options={monthOptions} onValueChange={setSelectedMonth} triggerClassName="!min-w-[112px] border-0 px-0.5" />}
 					/>
 				</FinancialPanel>
