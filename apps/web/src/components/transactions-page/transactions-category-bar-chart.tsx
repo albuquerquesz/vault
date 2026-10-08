@@ -334,8 +334,9 @@ export function TransactionsCategoryBarChart({
 function ChartHeader({ action }: { action?: ReactNode }) {
 	return (
 		<div className="flex flex-wrap items-start justify-between gap-3">
-			<div>
-				<p className="text-lg font-medium tracking-tight">Gastos por categoria</p>
+			<div className="space-y-1">
+				<p className="text-2xl font-medium tracking-tight">Gastos por categoria</p>
+				<p className="text-sm text-muted-foreground">Veja como as despesas se distribuem entre as categorias.</p>
 			</div>
 			{action}
 		</div>

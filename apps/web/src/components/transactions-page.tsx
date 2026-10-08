@@ -100,8 +100,11 @@ export function TransactionsPage() {
 					className="min-w-0 !border-0"
 					header={
 						<div className="grid gap-4">
-							<div className="flex items-baseline justify-between gap-3">
-								<p className="text-base font-medium">Movimentações</p>
+							<div className="flex items-center justify-between gap-3">
+								<div className="space-y-1">
+									<p className="text-2xl font-medium tracking-tight">Movimentações</p>
+									<p className="text-sm text-muted-foreground">Consulte, filtre e registre entradas e despesas.</p>
+								</div>
 								<CreateTransactionSheet month={selectedMonth} />
 							</div>
 							<DataQueryToolbar
