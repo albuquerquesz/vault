@@ -113,9 +113,9 @@ export function DashboardSummary({
 	return (
 		<section
 			aria-label="Resumo do mês"
-			className="dashboard-summary-light grid min-w-0 gap-6 rounded-[18px] bg-background p-6 text-foreground xl:min-h-[360px] xl:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]"
+			className="dashboard-summary-dark grid min-w-0 gap-6 rounded-[18px] bg-background p-6 text-foreground xl:min-h-[360px] xl:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]"
 		>
-			<div className="flex min-w-0 flex-col gap-6 rounded-[22px] border border-border/60 bg-background p-6 ring-4 ring-muted">
+			<div className="flex min-w-0 flex-col gap-6 rounded-[22px] border border-border/60 bg-secondary p-6 ring-4 ring-muted">
 				<div className="flex flex-wrap items-center justify-between gap-2">
 					<h1 className="flex items-center gap-2 text-lg leading-6 font-medium">
 						<WalletIcon aria-hidden="true" className="size-5 shrink-0" />
@@ -138,14 +138,16 @@ export function DashboardSummary({
 					{isLoading ? (
 						<Skeleton className="h-4 w-2/3" />
 					) : isError ? null : (
-						<p className="text-sm text-muted-foreground">
+						<p className="text-base font-medium text-muted-foreground">
 							{metrics?.changePercent != null && (
 								<>
 									<MaskedMonetaryText prefix="">{`${metrics.changePercent > 0 ? "+" : ""}${metrics.changePercent.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}</MaskedMonetaryText>{" "}
-									vs. mês anterior ·{" "}
+									vs mês anterior{" "}
 								</>
 							)}
-							Saldo anterior: {money(metrics?.previousResult ?? 0)}
+							<span className="whitespace-nowrap">
+								({money(metrics?.previousResult ?? 0)})
+							</span>
 						</p>
 					)}
 				</div>
@@ -155,7 +157,7 @@ export function DashboardSummary({
 							key={stat.label}
 							className="min-w-0 space-y-2 border-border/60 not-first:border-t not-first:pt-4 sm:not-first:border-t-0 sm:not-first:border-l sm:not-first:pt-0 sm:not-first:pl-2 sm:not-last:pr-2"
 						>
-							<p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+							<p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
 								<span
 									aria-hidden="true"
 									className={`size-1.5 shrink-0 rounded-full ${stat.dotClassName}`}
@@ -174,7 +176,7 @@ export function DashboardSummary({
 				</div>
 			</div>
 			<div className="flex min-w-0 flex-col gap-2 xl:pl-2">
-				<h2 className="text-sm font-medium text-muted-foreground">
+				<h2 className="text-base font-medium text-muted-foreground">
 					Saldo acumulado em {year}
 				</h2>
 				{historyLoading ? (

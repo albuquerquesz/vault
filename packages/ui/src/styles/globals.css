@@ -130,19 +130,19 @@
 	--muted-foreground: oklch(0.708 0 0);
 }
 
-.dashboard-summary-light {
-	color-scheme: light;
-	--background: oklch(0.99 0.002 285);
-	--foreground: oklch(0.205 0.005 285);
-	--muted: oklch(0.96 0.003 285);
-	--muted-foreground: oklch(0.48 0.005 285);
-	--secondary: var(--muted);
+.dashboard-summary-dark {
+	color-scheme: dark;
+	--background: oklch(0.178 0.005 285);
+	--foreground: oklch(0.985 0 0);
+	--muted: oklch(0.22 0.005 285);
+	--muted-foreground: oklch(0.708 0 0);
+	--secondary: oklch(0.205 0.005 285);
 	--secondary-foreground: var(--foreground);
-	--accent: var(--muted);
+	--accent: oklch(0.269 0.005 285);
 	--accent-foreground: var(--foreground);
-	--border: oklch(0.88 0.005 285);
-	--input: var(--border);
-	--ring: oklch(0.55 0.005 285);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.556 0 0);
 	--chart-background: var(--background);
 	--chart-foreground: var(--foreground);
 	--chart-foreground-muted: var(--muted-foreground);
