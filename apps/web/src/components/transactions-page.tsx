@@ -114,7 +114,7 @@ export function TransactionsPage() {
 							/>
 						</div>
 					}
-					headerClassName="border-b p-4 sm:p-5"
+					headerClassName="p-4 sm:p-5"
 					contentClassName="min-w-0 p-3 sm:p-5"
 				>
 					<TransactionsTable transactions={filteredTransactions} hasActiveFilters={hasActiveFilters} monthLabel={monthLabel} onClearFilters={clearQuery} />
