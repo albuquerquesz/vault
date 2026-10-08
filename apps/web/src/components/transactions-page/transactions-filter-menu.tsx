@@ -76,7 +76,7 @@ export function TransactionsFilterMenu({
 			<DropdownMenuTrigger
 				render={
 					<button
-						aria-label="Filtrar transações"
+						aria-label={isActive ? "Filtrar transações; filtros ativos" : "Filtrar transações"}
 						className="focus-visible:outline-none"
 						type="button"
 					>
@@ -87,6 +87,7 @@ export function TransactionsFilterMenu({
 							)}
 						>
 							<SlidersHorizontalIcon className="size-4" />
+							{isActive ? <span className="ml-1 text-xs font-medium">{appliedFilters.accounts.length + appliedFilters.dates.length + appliedFilters.categories.length}</span> : null}
 						</span>
 					</button>
 				}

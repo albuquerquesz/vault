@@ -3,6 +3,7 @@
 import type { Row } from "@tanstack/react-table";
 import { useNavigate } from "@tanstack/react-router";
 import { Badge } from "@vault/ui/components/badge";
+import { Button } from "@vault/ui/components/button";
 import { cn } from "@vault/ui/lib/utils";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { useMemo } from "react";
@@ -23,10 +24,12 @@ export function TransactionsTable({
 	transactions,
 	monthLabel,
 	hasActiveFilters = false,
+	onClearFilters,
 }: {
 	transactions: FinanceTransaction[];
 	monthLabel: string;
 	hasActiveFilters?: boolean;
+	onClearFilters?: () => void;
 }) {
 	const navigate = useNavigate();
 
@@ -69,7 +72,7 @@ export function TransactionsTable({
 		return (
 			<div
 				className={cn(
-					"min-h-[4.5rem] rounded-2xl border border-border/60 bg-card/70 px-3 py-3.5 shadow-sm backdrop-blur-sm transition-colors",
+					"min-h-[4.5rem] border-b border-border/60 px-1 py-3.5 transition-colors last:border-b-0",
 					transaction.source === "pluggy" &&
 						"cursor-pointer hover:border-border hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
 				)}
@@ -153,6 +156,9 @@ export function TransactionsTable({
 						? "Tente limpar a busca ou os filtros para expandir a lista."
 						: "Quando transações forem sincronizadas ou registradas, elas aparecerão aqui."}
 				</p>
+				{hasActiveFilters && onClearFilters ? (
+					<div><Button onClick={onClearFilters} size="sm" variant="outline">Limpar filtros</Button></div>
+				) : null}
 			</div>
 		);
 	}

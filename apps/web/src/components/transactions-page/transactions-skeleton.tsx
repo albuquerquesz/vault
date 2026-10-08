@@ -1,71 +1,25 @@
 "use client";
 
+function Block({ className }: { className: string }) {
+	return <div aria-hidden className={`animate-pulse rounded-md bg-muted ${className}`} />;
+}
+
 export function TransactionsSkeleton() {
 	return (
-		<div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
-			<div className="min-w-0 rounded-none border border-border/60 bg-card">
-				<div className="border-b p-4">
-					<div className="flex items-center gap-2">
-						<div className="size-4 rounded-full bg-muted/40" />
-						<div className="h-4 w-20 rounded-md bg-muted/40" />
-					</div>
+		<>
+			<section aria-label="Carregando resumo das transações" className="rounded-[18px] bg-zinc-950 p-5 sm:p-6">
+				<div className="flex flex-wrap items-start justify-between gap-4">
+					<div className="space-y-2"><Block className="h-5 w-28 bg-white/15" /><Block className="h-4 w-40 bg-white/10" /></div>
+					<div className="flex gap-2"><Block className="h-10 w-36 bg-white/15" /><Block className="h-10 w-28 bg-white/15" /></div>
 				</div>
-				<div className="space-y-5 p-4">
-					{Array.from({ length: 4 }).map((_, groupIndex) => (
-						<div key={`transaction-group-${groupIndex}`} className="space-y-3">
-							<div className="flex items-center justify-between gap-3">
-								<div className="h-3 w-44 rounded bg-muted/40" />
-								<div className="h-3 w-16 rounded bg-muted/40" />
-							</div>
-							<div className="space-y-2">
-								{Array.from({ length: 3 }).map((__, rowIndex) => (
-									<div
-										key={`transaction-row-${groupIndex}-${rowIndex}`}
-										className="flex items-center gap-3 rounded-lg px-3 py-3"
-									>
-										<div className="size-2 rounded-full bg-muted/40" />
-										<div className="min-w-0 flex-1 space-y-2">
-											<div className="h-4 w-44 rounded bg-muted/40" />
-											<div className="h-3 w-20 rounded bg-muted/40" />
-										</div>
-										<div className="h-5 w-24 rounded bg-muted/40" />
-									</div>
-								))}
-							</div>
-						</div>
-					))}
+				<div className="mt-5 grid grid-cols-2 gap-4 border-t border-white/15 pt-4 sm:grid-cols-4 sm:gap-0">
+					{Array.from({ length: 4 }).map((_, index) => <div className="space-y-2 sm:px-5 first:sm:pl-0" key={index}><Block className="h-3 w-20 bg-white/10" /><Block className="h-6 w-28 bg-white/15" /></div>)}
 				</div>
+			</section>
+			<div className="grid grid-cols-1 gap-6 xl:grid-cols-[3fr_2fr]">
+				<div className="rounded-2xl border border-border bg-card p-5"><Block className="h-5 w-32" /><Block className="mt-2 h-4 w-52" /><Block className="mt-5 h-10 w-full" /><div className="mt-5 space-y-3">{Array.from({ length: 8 }).map((_, index) => <Block className="h-12 w-full" key={index} />)}</div></div>
+				<div className="rounded-2xl border border-border bg-card p-5"><Block className="h-5 w-40" /><Block className="mt-2 h-4 w-32" /><div className="mt-6 space-y-4">{Array.from({ length: 5 }).map((_, index) => <Block className="h-8" key={index} />)}</div></div>
 			</div>
-
-			<div className="flex min-w-0 flex-col gap-4 pt-4 sm:gap-8 sm:pt-5">
-				<div className="flex w-full flex-col items-stretch gap-3 p-4 sm:gap-4">
-					<div className="flex w-full items-center gap-2">
-						<div className="h-9 min-w-0 flex-1 rounded-md bg-muted/40" />
-						<div className="size-9 shrink-0 rounded-lg bg-muted/40" />
-					</div>
-					<div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
-						<div className="h-9 rounded-2xl bg-muted/40 sm:h-8 sm:w-28 sm:rounded-full" />
-						<div className="h-9 rounded-2xl bg-muted/40 sm:h-5 sm:w-12 sm:rounded" />
-						<div className="h-9 rounded-2xl bg-muted/40 sm:h-5 sm:w-24 sm:rounded" />
-						<div className="h-9 rounded-2xl bg-muted/40 sm:h-5 sm:w-24 sm:rounded" />
-					</div>
-				</div>
-				<div className="flex w-full flex-col gap-3 p-4 sm:p-5">
-					<div className="space-y-2">
-						<div className="h-4 w-36 rounded bg-muted/40" />
-						<div className="h-3 w-28 rounded bg-muted/40" />
-					</div>
-					<div className="flex flex-col gap-1">
-						{Array.from({ length: 5 }).map((_, index) => (
-							<div
-								key={`chart-bar-skel-${index}`}
-								className="h-9 rounded-md bg-muted/40"
-								style={{ width: `${55 + ((index * 13) % 40)}%` }}
-							/>
-						))}
-					</div>
-				</div>
-			</div>
-		</div>
+		</>
 	);
 }

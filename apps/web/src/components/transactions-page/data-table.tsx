@@ -11,6 +11,8 @@ import {
 	Table,
 	TableBody,
 	TableCell,
+	TableHead,
+	TableHeader,
 	TableRow,
 } from "@vault/ui/components/table";
 import { cn } from "@vault/ui/lib/utils";
@@ -124,6 +126,27 @@ export function DataTable<TData, TValue>({
 			) : (
 				<div className="w-full overflow-x-auto">
 					<Table className="w-full table-fixed border-separate border-spacing-0">
+						<TableHeader>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow className="hover:bg-transparent" key={headerGroup.id}>
+									{headerGroup.headers.map((header, index) => (
+										<TableHead
+											className={cn(
+												"h-9 border-b border-border/60 px-2 text-xs font-medium text-muted-foreground sm:px-3",
+												index === 0 && "w-[46%]",
+												index === 1 && "w-[26%]",
+												index === 2 && "w-[28%] min-w-[8.5rem]",
+											)}
+											key={header.id}
+										>
+											{header.isPlaceholder
+												? null
+												: flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
+									))}
+								</TableRow>
+							))}
+						</TableHeader>
 						<TableBody>
 							{rows.length ? (
 								rows.map((row, index) => {

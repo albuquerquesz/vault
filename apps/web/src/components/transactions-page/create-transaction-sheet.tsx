@@ -27,7 +27,6 @@ import { ArrowDownIcon, ArrowUpIcon, BanknoteIcon, PlusIcon } from "lucide-react
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-	getTodayValue,
 	type CreateManualTransactionInput,
 	useCreateManualTransaction,
 } from "@/features/finance/sdk";
@@ -51,10 +50,18 @@ const incomeCategories = [
 
 type TransactionKind = CreateManualTransactionInput["kind"];
 
+function getDefaultDateForMonth(month: string) {
+	const now = new Date();
+	const [year, monthIndex] = month.split("-").map(Number);
+	const lastDay = new Date(year, monthIndex, 0).getDate();
+	const day = Math.min(now.getDate(), lastDay);
+	return `${month}-${String(day).padStart(2, "0")}`;
+}
+
 export function CreateTransactionSheet({ month }: { month: string }) {
 	const [open, setOpen] = useState(false);
 	const [kind, setKind] = useState<TransactionKind>("expense");
-	const [date, setDate] = useState(getTodayValue());
+	const [date, setDate] = useState(() => getDefaultDateForMonth(month));
 	const [amount, setAmount] = useState("");
 	const [category, setCategory] = useState(expenseCategories[0]);
 	const [note, setNote] = useState("");
@@ -65,9 +72,13 @@ export function CreateTransactionSheet({ month }: { month: string }) {
 		setCategory(categories[0] ?? "Outros");
 	}, [kind]);
 
+	useEffect(() => {
+		if (open) setDate(getDefaultDateForMonth(month));
+	}, [month, open]);
+
 	function resetForm() {
 		setKind("expense");
-		setDate(getTodayValue());
+		setDate(getDefaultDateForMonth(month));
 		setAmount("");
 		setCategory(expenseCategories[0]);
 		setNote("");

@@ -163,27 +163,32 @@ export type TransactionsPeriodStats = {
 	count: number;
 	totalOut: number;
 	totalIn: number;
+	balance: number;
 };
 
 export function buildPeriodStats(
 	transactions: FinanceTransaction[],
 ): TransactionsPeriodStats {
-	return {
-		count: transactions.length,
-		totalOut: transactions.reduce((sum, transaction) => {
+	const totalOut = transactions.reduce((sum, transaction) => {
 			if (!isExpenseTransaction(transaction)) {
 				return sum;
 			}
 
 			return sum + Math.abs(Number(transaction.amount));
-		}, 0),
-		totalIn: transactions.reduce((sum, transaction) => {
+		}, 0);
+	const totalIn = transactions.reduce((sum, transaction) => {
 			if (isExpenseTransaction(transaction)) {
 				return sum;
 			}
 
 			return sum + Number(transaction.amount);
-		}, 0),
+		}, 0);
+
+	return {
+		count: transactions.length,
+		totalOut,
+		totalIn,
+		balance: totalIn - totalOut,
 	};
 }
 
