@@ -2,7 +2,7 @@
 
 import { Button } from "@vault/ui/components/button";
 import { Skeleton } from "@vault/ui/components/skeleton";
-import { Target } from "lucide-react";
+import { PlusIcon, Target } from "lucide-react";
 import { CreateGoalDialog } from "@/components/overview/goals/create-goal-dialog";
 import { GoalList } from "@/components/overview/goals/goal-list";
 import { OverviewOverflowPanel } from "@/components/overview/shared/overview-overflow-panel";
@@ -60,10 +60,11 @@ export function GoalsCard({ className }: GoalsCardProps) {
 				footerClassName="!border-t-0"
 				footer={
 					<Button
-						className="ml-auto rounded-lg px-6 text-sm font-semibold"
+						className="ml-auto rounded-lg px-6 text-base font-medium"
 						size="lg"
 						onClick={openCreate}
 					>
+						<PlusIcon data-icon="inline-start" />
 						Nova meta
 					</Button>
 				}
