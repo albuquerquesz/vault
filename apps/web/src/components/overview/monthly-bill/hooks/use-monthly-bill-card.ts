@@ -12,6 +12,8 @@ export type CreditCardListItem = {
 	name: string;
 	/** Best-effort institution label for brand mark (bank / Open Finance). */
 	provider: string | null;
+	/** Current credit limit available, when supplied by the institution. */
+	availableAmount: number | null;
 	/** Amount paid toward the invoice (or used balance when from Pluggy bills). */
 	paidAmount: number;
 	/** Invoice total for the selected month. */
@@ -25,7 +27,7 @@ const GENERIC_ITEM_PROVIDER = /^(meu\s*pluggy|unknown institution|pluggy)$/i;
  * Used when Pluggy item.provider is a sandbox multipurpose connector (MeuPluggy).
  */
 const INSTITUTION_NAME_HINT =
-	/nu\s*pagamentos|nubank|\bnu\b|mercado\s*pago|mercadopago|banco do brasil|\bbb\b|ita[uú]|bradesco|santander|inter|c6|picpay|caixa|btg|xp|will|neon|original|safra|sicoob|sicredi/i;
+	/nu\s*pagamentos|nubank|\bnu\b|mercado\s*pago|mercadopago|pagbank|pagseguro|banco\s+do\s+brasil|\bbb\b|ita[uú]|bradesco|santander|banco\s+inter|\binter\b|banco\s+pan|\bpan\b|\bc6\b|picpay|caixa|btg|\bxp\b|will|neon|original|safra|sicoob|sicredi|banrisul|banestes|\bbv\b|bmg|digio|porto|sofisa|agibank|daycoval|cresol/i;
 
 /**
  * When the item-level provider is generic (sandbox), infer institution from
@@ -55,6 +57,13 @@ function resolveCardInstitution(
 		return bankHint.name.trim();
 	}
 
+	const namedBankAccounts = siblings.filter(
+		(account) => account.type === "BANK" && account.name?.trim(),
+	);
+	if (namedBankAccounts.length === 1) {
+		return namedBankAccounts[0]?.name?.trim() ?? null;
+	}
+
 	const anyHint = siblings.find(
 		(account) =>
 			account.name?.trim() && INSTITUTION_NAME_HINT.test(account.name),
@@ -67,7 +76,7 @@ function resolveCardInstitution(
 		return card.name.trim();
 	}
 
-	return itemProvider;
+	return null;
 }
 
 function resolveProviderForBillName(
@@ -108,13 +117,30 @@ export function useMonthlyBillCard(month?: string) {
 		const accounts = accountsQuery.data ?? [];
 
 		return billItems
-			.map((item) => ({
-				id: item.id,
-				name: item.name,
-				provider: resolveProviderForBillName(item.name, accounts),
-				paidAmount: item.paidAmount,
-				totalAmount: item.totalAmount,
-			}))
+			.map((item) => {
+				const matchingCard = accounts.find(
+					(account) =>
+						account.type === "CREDIT" &&
+						account.name?.trim().toLowerCase() ===
+							item.name.trim().toLowerCase(),
+				);
+				const availableBalance =
+					matchingCard?.availableBalance != null
+						? Number(matchingCard.availableBalance)
+						: null;
+
+				return {
+					id: item.id,
+					name: item.name,
+					provider: resolveProviderForBillName(item.name, accounts),
+					availableAmount:
+						availableBalance != null && Number.isFinite(availableBalance)
+							? availableBalance
+							: null,
+					paidAmount: item.paidAmount,
+					totalAmount: item.totalAmount,
+				};
+			})
 			.sort((left, right) => right.totalAmount - left.totalAmount);
 	}, [accountsQuery.data, billsQuery.data?.items]);
 

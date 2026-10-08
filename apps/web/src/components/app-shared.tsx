@@ -1,5 +1,5 @@
 import { useLocation } from "@tanstack/react-router";
-import { Settings2Icon, TargetIcon } from "lucide-react";
+import { CreditCardIcon, Settings2Icon, TargetIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import {
 	AnimatedSidebarChartColumnIncreasingIcon,
@@ -41,6 +41,12 @@ const navItemsStatic: SidebarNavItem[] = [
 		path: "/transactions",
 		icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
 		surfaces: PRIMARY_NAV_SURFACES,
+	},
+	{
+		title: "Cartões",
+		path: "/cards",
+		icon: <CreditCardIcon className="size-5" />,
+		surfaces: ["sidebar", "breadcrumbs"],
 	},
 	{
 		title: "Meta de gastos",
@@ -118,6 +124,11 @@ export const navGroups: SidebarNavGroup[] = [
 				title: "Transações",
 				path: "/transactions",
 				icon: <AnimatedSidebarChartColumnIncreasingIcon size={20} />,
+			},
+			{
+				title: "Cartões",
+				path: "/cards",
+				icon: <CreditCardIcon className="size-4" />,
 			},
 			{
 				title: "Meta de gastos",

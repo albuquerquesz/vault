@@ -26,15 +26,21 @@ export function MonthlyBillCard({ month }: { month?: string }) {
 			title="Cartões"
 			icon={<CreditCardIcon className="size-4 text-muted-foreground" />}
 			tooltip="Faturas de cartão de crédito do mês selecionado (Open Finance)"
-			className="bg-muted dark:bg-card"
+			className="h-[30rem] min-h-0 max-h-[30rem] bg-muted dark:bg-card xl:h-[34rem] xl:max-h-[34rem]"
 			contentClassName="flex min-h-0 flex-1 flex-col p-4 sm:px-(--card-spacing) sm:pb-(--card-spacing) sm:pt-0"
 		>
 			{isError ? (
 				<OverviewCardErrorState message="Não foi possível carregar as faturas de cartão." />
 			) : !bill || items.length === 0 ? (
-				<MonthlyBillContent totalBill={0} items={[]} />
+				<MonthlyBillContent
+					totalBill={0}
+					items={[]}
+				/>
 			) : (
-				<MonthlyBillContent totalBill={bill.totalBill} items={items} />
+				<MonthlyBillContent
+					totalBill={bill.totalBill}
+					items={items}
+				/>
 			)}
 		</OverviewCardShell>
 	);

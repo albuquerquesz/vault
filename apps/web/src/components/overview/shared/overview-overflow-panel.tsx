@@ -8,17 +8,26 @@ type OverviewOverflowPanelProps = {
 	children: ReactNode;
 	className?: string;
 	scrollAreaClassName?: string;
+	scrollable?: boolean;
 	buttonLabel?: string;
+	footerAction?: ReactNode;
+	blurFooter?: boolean;
+	reserveFooterSpace?: boolean;
 };
 
 export function OverviewOverflowPanel({
 	children,
 	className,
 	scrollAreaClassName,
+	scrollable = true,
 	buttonLabel = "Ver mais",
+	footerAction,
+	blurFooter = false,
+	reserveFooterSpace = true,
 }: OverviewOverflowPanelProps) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [isOverflowing, setIsOverflowing] = useState(false);
+	const showFooter = isOverflowing || Boolean(footerAction);
 
 	useEffect(() => {
 		const element = scrollRef.current;
@@ -49,25 +58,39 @@ export function OverviewOverflowPanel({
 			<div
 				ref={scrollRef}
 				className={cn(
-					"min-h-0 h-full overflow-y-auto",
-					isOverflowing ? "pb-14" : "",
+					"min-h-0 h-full",
+					scrollable ? "overflow-y-auto" : "overflow-hidden",
+					showFooter && reserveFooterSpace ? "pb-14" : "",
 					scrollAreaClassName,
 				)}
 			>
 				{children}
 			</div>
 
-			{isOverflowing ? (
+			{showFooter ? (
 				<div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center px-4 pb-2 pt-8">
-					<div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/95 to-transparent" />
-					<Button
-						className="pointer-events-auto relative text-muted-foreground"
-						disabled
-						size="xs"
-						variant="ghost"
-					>
-						{buttonLabel}
-					</Button>
+					<div
+						className={cn(
+							"absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/95 to-transparent",
+							blurFooter && "backdrop-blur-sm",
+						)}
+					/>
+					{footerAction !== undefined ? (
+						footerAction ? (
+							<div className="pointer-events-auto relative z-10">
+								{footerAction}
+							</div>
+						) : null
+					) : (
+						<Button
+							className="pointer-events-auto relative text-muted-foreground"
+							disabled
+							size="xs"
+							variant="ghost"
+						>
+							{buttonLabel}
+						</Button>
+					)}
 				</div>
 			) : null}
 		</div>
