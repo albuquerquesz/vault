@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@vault/ui/components/button";
-import { ChartColumnIncreasingIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { DataQueryToolbar } from "@/components/shared/data-query-toolbar";
 import { FinancialPanel } from "@/components/shared/financial-panel";
@@ -58,15 +57,6 @@ export function TransactionsPage() {
 		setAppliedFilters(EMPTY_TRANSACTIONS_FILTERS);
 	};
 
-	const pageHeader = (
-		<header className="flex flex-wrap items-center justify-between gap-4">
-			<div className="flex min-w-0 items-center gap-2">
-				<ChartColumnIncreasingIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
-				<h1 className="truncate text-xl font-semibold tracking-tight">Transações</h1>
-			</div>
-		</header>
-	);
-
 	if (transactionsQuery.isPending) {
 		return (
 			<div className="grid w-full min-w-0 gap-6 py-4 sm:py-6">
@@ -78,7 +68,6 @@ export function TransactionsPage() {
 	if (transactionsQuery.isError) {
 		return (
 			<div className="grid w-full min-w-0 gap-6 py-4 sm:py-6">
-				{pageHeader}
 				<FinancialPanel
 					header={<div><p className="text-base font-medium">Não foi possível abrir o extrato</p></div>}
 					headerClassName="border-b p-5"
@@ -100,7 +89,6 @@ export function TransactionsPage() {
 
 	return (
 		<div className="grid w-full min-w-0 gap-6 py-4 sm:py-6">
-			{pageHeader}
 			<div className="grid min-w-0 gap-6">
 				<FinancialPanel className="min-w-0 !border-0" contentClassName="min-w-0 p-0">
 					<TransactionsCategoryBarChart
