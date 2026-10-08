@@ -60,7 +60,7 @@ export function GoalsCard({ className }: GoalsCardProps) {
 				footerClassName="!border-t-0"
 				footer={
 					<Button
-						className="ml-auto rounded-lg px-6 text-base font-medium"
+						className="ml-auto rounded-lg px-6 py-2 text-base font-medium"
 						size="lg"
 						onClick={openCreate}
 					>
