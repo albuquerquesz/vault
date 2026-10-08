@@ -129,7 +129,7 @@ export function MonthlyBillContent({
 		.sort((left, right) => right.totalAmount - left.totalAmount)
 		.slice(0, 2);
 	return (
-		<div className="@container flex min-h-0 flex-1 flex-col gap-3">
+		<div className="@container flex min-h-0 flex-1 flex-col gap-6">
 			<div className="shrink-0">
 				<p className="text-xs text-muted-foreground">Total das faturas</p>
 				<p className="text-2xl font-sans font-medium tabular-nums sm:text-3xl">
