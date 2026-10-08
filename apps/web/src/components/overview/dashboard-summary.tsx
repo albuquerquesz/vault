@@ -16,7 +16,7 @@ import {
 	maskMonetaryText,
 	useMonetaryVisibility,
 } from "@/components/monetary-visibility";
-import { financeSdk, useMonthlySpendingGoal } from "@/features/finance/sdk";
+import { financeSdk } from "@/features/finance/sdk";
 import { usePartialResult } from "./partial-result/hooks/use-partial-result";
 import { OverviewMonthSelect } from "./shared/overview-month-select";
 import { SummarySelectedBarLabel } from "./summary-selected-bar-label";
@@ -56,7 +56,6 @@ export function DashboardSummary({
 	onMonthChange: (month: string) => void;
 }) {
 	const { metrics, isLoading, isError } = usePartialResult(month);
-	const goal = useMonthlySpendingGoal(month);
 	const { isVisible } = useMonetaryVisibility();
 	const [year, selectedMonth] = month.split("-").map(Number);
 	const history = useQueries({
@@ -87,9 +86,6 @@ export function DashboardSummary({
 	const domain: [number, number] =
 		low === 0 && high === 0 ? [0, 1] : [low * 1.1, high * 1.1];
 	const total = values.reduce((sum, value) => sum + value, 0);
-	const target = goal.isError ? null : goal.data?.targetAmount;
-	const dailyLimit =
-		target == null || goal.isError ? null : goal.data?.dailyLimit;
 	const stats = [
 		{
 			label: "Recebido",
@@ -102,12 +98,6 @@ export function DashboardSummary({
 			dotClassName: "bg-amber-500",
 			loading: isLoading,
 			value: isError ? null : (metrics?.spent ?? 0),
-		},
-		{
-			label: "Limite diário",
-			dotClassName: "bg-red-500",
-			loading: goal.isPending,
-			value: dailyLimit,
 		},
 	];
 
@@ -161,7 +151,7 @@ export function DashboardSummary({
 						</div>
 					)}
 				</div>
-				<div className="mt-auto grid min-w-0 grid-cols-1 gap-4 border-t border-border/60 pt-4 sm:grid-cols-3 sm:gap-0">
+				<div className="mt-auto grid min-w-0 grid-cols-1 gap-4 border-t border-border/60 pt-4 sm:grid-cols-2 sm:gap-0">
 					{stats.map((stat) => (
 						<div
 							key={stat.label}
@@ -202,7 +192,7 @@ export function DashboardSummary({
 					xDataKey="name"
 					className="min-h-48 min-w-0 flex-1"
 					aspectRatio="auto"
-					margin={{ top: 24, right: 8, bottom: 36, left: 8 }}
+					margin={{ top: 24, right: 8, bottom: 52, left: 8 }}
 					status={historyLoading ? "loading" : "ready"}
 				>
 					<Bar
@@ -215,7 +205,7 @@ export function DashboardSummary({
 								: "var(--chart-2)"
 						}
 					/>
-					<BarXAxis labelClassName="text-[10px] sm:text-xs xl:text-sm" maxLabels={12} />
+					<BarXAxis labelClassName="text-xs sm:text-sm xl:text-base" maxLabels={12} />
 					<SummarySelectedBarLabel />
 					<ChartTooltip
 						rows={(point) => [
