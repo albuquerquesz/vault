@@ -15,7 +15,7 @@ import {
 	maskMonthlySpendingGoalInput,
 	parseMonthlySpendingGoalInput,
 } from "@/components/monthly-spending-goal-utils";
-import { OverviewMonthSelect } from "@/components/overview/shared/overview-month-select";
+import { FinanceMonthSelect } from "@/components/shared/finance-month-select";
 import {
 	getMonthValue,
 	useMonthlySpendingGoal,
@@ -114,7 +114,7 @@ export function MonthlySpendingGoalPage({ initialMonth }: { initialMonth?: strin
 					<h1 className="font-display text-2xl font-semibold tracking-tight sm:text-4xl">Meta de gastos</h1>
 				</div>
 				<div className="w-full lg:w-auto">
-					<OverviewMonthSelect onValueChange={setMonth} options={monthOptions} value={month} />
+					<FinanceMonthSelect onValueChange={setMonth} options={monthOptions} value={month} />
 				</div>
 			</header>
 

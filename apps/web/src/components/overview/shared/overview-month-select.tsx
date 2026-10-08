@@ -1,21 +1,13 @@
 "use client";
 
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@vault/ui/components/select";
-
-type MonthOption = {
-	value: string;
-	label: string;
-};
+	FinanceMonthSelect,
+	type FinanceMonthOption,
+} from "@/components/shared/finance-month-select";
 
 type OverviewMonthSelectProps = {
 	value: string;
-	options: MonthOption[];
+	options: FinanceMonthOption[];
 	onValueChange: (value: string) => void;
 };
 
@@ -24,33 +16,12 @@ export function OverviewMonthSelect({
 	options,
 	onValueChange,
 }: OverviewMonthSelectProps) {
-	const selectedLabel =
-		options.find((option) => option.value === value)?.label ?? value;
-
 	return (
-		<Select
+		<FinanceMonthSelect
 			value={value}
-			onValueChange={(nextValue) => {
-				if (nextValue) {
-					onValueChange(nextValue);
-				}
-			}}
-		>
-			<SelectTrigger className="h-10 min-w-[140px] justify-center gap-2 rounded-md border-0 bg-white/10 px-1.5 text-base hover:bg-white/15 [&>svg:last-of-type]:size-5">
-				<SelectValue className="flex-none text-center" placeholder="Mês">
-					{(selected) =>
-						options.find((option) => option.value === selected)?.label ??
-						selectedLabel
-					}
-				</SelectValue>
-			</SelectTrigger>
-			<SelectContent>
-				{options.map((option) => (
-					<SelectItem key={option.value} value={option.value}>
-						{option.label}
-					</SelectItem>
-				))}
-			</SelectContent>
-		</Select>
+			options={options}
+			onValueChange={onValueChange}
+			tone="dark"
+		/>
 	);
 }

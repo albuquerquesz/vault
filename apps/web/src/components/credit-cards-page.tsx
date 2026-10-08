@@ -9,30 +9,11 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { MonthlyBillList, formatMonthlyBillCurrency } from "@/components/overview/monthly-bill/monthly-bill-content";
-import { OverviewMonthSelect } from "@/components/overview/shared/overview-month-select";
+import { buildFinanceMonthOptions } from "@/components/shared/finance-month-options";
+import { FinanceMonthSelect } from "@/components/shared/finance-month-select";
 import { useMonthlyBillCard } from "@/components/overview/monthly-bill/hooks/use-monthly-bill-card";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { getMonthValue } from "@/features/finance/sdk";
-
-type MonthOption = { value: string; label: string };
-
-function createMonthOptions(count = 12): MonthOption[] {
-	const now = new Date();
-	const currentYear = now.getFullYear();
-
-	return Array.from({ length: count }, (_, index) => {
-		const date = new Date(now.getFullYear(), now.getMonth() - index, 1);
-		const month = date.toLocaleDateString("pt-BR", { month: "long" });
-		const label = `${month.charAt(0).toUpperCase()}${month.slice(1)}`;
-		return {
-			value: getMonthValue(date),
-			label:
-				date.getFullYear() === currentYear
-					? label
-					: `${label} ${date.getFullYear()}`,
-		};
-	});
-}
 
 export function CreditCardsPage({
 	initialMonth,
@@ -40,7 +21,7 @@ export function CreditCardsPage({
 	initialMonth: string;
 }) {
 	const [month, setMonth] = useState(initialMonth);
-	const monthOptions = useMemo(() => createMonthOptions(), []);
+	const monthOptions = useMemo(() => buildFinanceMonthOptions(), []);
 	const { bill, isError, isLoading, items } = useMonthlyBillCard(month);
 
 	return (
@@ -54,7 +35,7 @@ export function CreditCardsPage({
 						Acompanhe todas as faturas e pagamentos do mês.
 					</p>
 				</div>
-				<OverviewMonthSelect
+				<FinanceMonthSelect
 					value={month}
 					options={monthOptions}
 					onValueChange={setMonth}

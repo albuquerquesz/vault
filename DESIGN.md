@@ -146,6 +146,8 @@ Buttons are compact, direct, and familiar. Primary actions use the dark-ink fill
 
 Cards and panels are structural containers, not decorative trophies. The shared `Card` primitive is square by default, while Vault's local product surfaces often soften this into `2xl` or `3xl` radii for settings sections and dashboard groupings. Use borders, muted backgrounds, and measured padding to separate modules. Avoid nesting flashy card treatments inside other card treatments.
 
+Financial analytics use four shared app primitives: `FinancialPanel` for the neutral bordered surface, `FinanceMonthSelect` for month-scoped views, `FinanceMetricStrip` for compact period metrics, and `DataQueryToolbar` for search plus filters. A page may use one dark summary surface to establish period context; its operational panels remain light in light mode and token-driven in dark mode. Do not add shadows, blur, or internal scrolling to these resting data surfaces.
+
 Inputs are thin, legible, and operational. They should keep transparent or near-transparent fills, visible input borders, and a clear ring response on focus. Disabled and error states should remain explicit but restrained. Navigation follows the authenticated shell pattern first: persistent sidebar, compact sticky header, muted default text, stronger active states, and predictable mobile collapse. The login screen is secondary and may be darker, more branded, and more testimonial-driven, but it should not redefine the component baseline for the rest of the app.
 
 ## Do's and Don'ts
