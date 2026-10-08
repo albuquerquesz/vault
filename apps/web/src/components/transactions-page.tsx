@@ -1,12 +1,10 @@
 "use client";
 
 import { Button } from "@vault/ui/components/button";
-import { ChartColumnIncreasingIcon, ClipboardListIcon, ArrowDownIcon, ArrowUpIcon, ScaleIcon } from "lucide-react";
+import { ChartColumnIncreasingIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { DataQueryToolbar } from "@/components/shared/data-query-toolbar";
 import { FinancialPanel } from "@/components/shared/financial-panel";
-import { FinanceMetricStrip } from "@/components/shared/finance-metric-strip";
 import { formatFinanceMonth, buildFinanceMonthOptions } from "@/components/shared/finance-month-options";
 import { FinanceMonthSelect } from "@/components/shared/finance-month-select";
 import { getMonthValue, useFinanceTransactions } from "@/features/finance/sdk";
@@ -17,10 +15,8 @@ import { TransactionsTable } from "./transactions-page/transactions-table";
 import { CreateTransactionSheet } from "./transactions-page/create-transaction-sheet";
 import {
 	applyTransactionFilters,
-	buildPeriodStats,
 	EMPTY_TRANSACTIONS_FILTERS,
 	hasActiveTransactionFilters,
-	formatBRL,
 	type TransactionsFilters,
 } from "./transactions-page/utils";
 
@@ -51,8 +47,6 @@ export function TransactionsPage() {
 		return next;
 	}, [transactions, appliedFilters, searchQuery]);
 
-	const periodStats = useMemo(() => buildPeriodStats(transactions), [transactions]);
-
 	const monthLabel = useMemo(() => formatFinanceMonth(selectedMonth), [selectedMonth]);
 
 	const hasActiveFilters =
@@ -64,32 +58,13 @@ export function TransactionsPage() {
 		setAppliedFilters(EMPTY_TRANSACTIONS_FILTERS);
 	};
 
-	const pageHero = (
-		<section className="rounded-[18px] bg-zinc-950 p-5 text-zinc-50 sm:p-6" aria-label="Resumo das transações">
-			<div className="flex flex-col gap-5">
-				<div className="flex flex-wrap items-start justify-between gap-4">
-					<div className="space-y-1">
-						<div className="flex items-center gap-2 text-zinc-300">
-							<ChartColumnIncreasingIcon aria-hidden className="size-5" />
-							<h1 className="text-lg font-medium text-zinc-50">Transações</h1>
-						</div>
-						<p className="text-sm text-zinc-400">Movimentações de {monthLabel}</p>
-					</div>
-					<div className="flex items-center gap-2">
-						<FinanceMonthSelect tone="dark" value={selectedMonth} options={monthOptions} onValueChange={setSelectedMonth} />
-						<CreateTransactionSheet month={selectedMonth} />
-					</div>
-				</div>
-				<FinanceMetricStrip
-					metrics={[
-						{ label: "Lançamentos", value: periodStats.count, icon: ClipboardListIcon },
-						{ label: "Entradas", value: <MaskedMonetaryValue format={formatBRL} value={periodStats.totalIn} />, icon: ArrowUpIcon, tone: "income" },
-						{ label: "Saídas", value: <MaskedMonetaryValue format={formatBRL} value={periodStats.totalOut} />, icon: ArrowDownIcon, tone: "expense" },
-						{ label: "Saldo", value: <MaskedMonetaryValue format={formatBRL} value={periodStats.balance} />, icon: ScaleIcon, tone: periodStats.balance < 0 ? "expense" : "income" },
-					]}
-				/>
+	const pageHeader = (
+		<header className="flex flex-wrap items-center justify-between gap-4">
+			<div className="flex min-w-0 items-center gap-2">
+				<ChartColumnIncreasingIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+				<h1 className="truncate text-xl font-semibold tracking-tight">Transações</h1>
 			</div>
-		</section>
+		</header>
 	);
 
 	if (transactionsQuery.isPending) {
@@ -103,7 +78,7 @@ export function TransactionsPage() {
 	if (transactionsQuery.isError) {
 		return (
 			<div className="grid w-full min-w-0 gap-6 py-4 sm:py-6">
-				{pageHero}
+				{pageHeader}
 				<FinancialPanel
 					header={<div><p className="text-base font-medium">Não foi possível abrir o extrato</p></div>}
 					headerClassName="border-b p-5"
@@ -125,15 +100,22 @@ export function TransactionsPage() {
 
 	return (
 		<div className="grid w-full min-w-0 gap-6 py-4 sm:py-6">
-			{pageHero}
-			<div className="grid min-w-0 grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(20rem,2fr)]">
+			{pageHeader}
+			<div className="grid min-w-0 gap-6">
+				<FinancialPanel className="min-w-0 !border-0" contentClassName="min-w-0 p-0">
+					<TransactionsCategoryBarChart
+						transactions={filteredTransactions}
+						periodLabel={monthLabel}
+						headerAction={<FinanceMonthSelect value={selectedMonth} options={monthOptions} onValueChange={setSelectedMonth} triggerClassName="!min-w-[112px] border-0 px-0.5" />}
+					/>
+				</FinancialPanel>
 				<FinancialPanel
 					className="min-w-0 !border-0"
 					header={
 						<div className="grid gap-4">
 							<div className="flex items-baseline justify-between gap-3">
-								<div><p className="text-base font-medium">Movimentações</p><p className="text-sm text-muted-foreground">Busque e filtre o extrato do mês.</p></div>
-								<p className="shrink-0 text-sm tabular-nums text-muted-foreground">{filteredTransactions.length} de {transactions.length}</p>
+								<p className="text-base font-medium">Movimentações</p>
+								<CreateTransactionSheet month={selectedMonth} />
 							</div>
 							<DataQueryToolbar
 								activeFilters={Object.values(appliedFilters).reduce((total, values) => total + values.length, 0)}
@@ -149,9 +131,6 @@ export function TransactionsPage() {
 					contentClassName="min-w-0 p-3 sm:p-5"
 				>
 					<TransactionsTable transactions={filteredTransactions} hasActiveFilters={hasActiveFilters} monthLabel={monthLabel} onClearFilters={clearQuery} />
-				</FinancialPanel>
-				<FinancialPanel className="min-w-0 !border-0" contentClassName="min-w-0 p-0">
-					<TransactionsCategoryBarChart transactions={filteredTransactions} periodLabel={monthLabel} />
 				</FinancialPanel>
 			</div>
 		</div>

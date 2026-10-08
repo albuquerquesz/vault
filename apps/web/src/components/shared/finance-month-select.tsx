@@ -19,11 +19,13 @@ export function FinanceMonthSelect({
 	options,
 	onValueChange,
 	tone = "default",
+	triggerClassName,
 }: {
 	value: string;
 	options: FinanceMonthOption[];
 	onValueChange: (value: string) => void;
 	tone?: "default" | "dark";
+	triggerClassName?: string;
 }) {
 	const selectedLabel = options.find((option) => option.value === value)?.label ?? value;
 
@@ -40,6 +42,7 @@ export function FinanceMonthSelect({
 					tone === "dark"
 						? "border-0 bg-white/15 text-white hover:bg-white/20"
 						: "border-border/70 bg-muted/70 text-foreground hover:bg-muted",
+					triggerClassName,
 				)}
 			>
 				<SelectValue className="flex-none text-center" placeholder="Mês">

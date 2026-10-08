@@ -6,7 +6,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@vault/ui/components/chart";
-import { useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 import {
 	Bar,
 	BarChart,
@@ -226,11 +226,13 @@ type TransactionsCategoryBarChartProps = {
 	transactions: FinanceTransaction[];
 	/** e.g. "julho de 2026" */
 	periodLabel?: string;
+	headerAction?: ReactNode;
 };
 
 export function TransactionsCategoryBarChart({
 	transactions,
 	periodLabel,
+	headerAction,
 }: TransactionsCategoryBarChartProps) {
 	const chartData = useMemo(
 		() => buildCategorySpendRows(transactions),
@@ -243,27 +245,16 @@ export function TransactionsCategoryBarChart({
 
 	if (chartData.length === 0) {
 		return (
-			<div className="flex w-full flex-col items-center justify-center gap-1 p-4 text-center sm:p-5">
-				<p className="text-sm font-medium">Gastos por categoria</p>
-				<p className="text-sm text-muted-foreground">
-					Nenhuma despesa neste período.
-				</p>
+			<div className="flex w-full flex-col gap-8 p-4 sm:p-5">
+				<ChartHeader action={headerAction} periodLabel={periodLabel} />
+				<p className="text-center text-sm text-muted-foreground">Nenhuma despesa neste período.</p>
 			</div>
 		);
 	}
 
 	return (
 		<div className="flex w-full min-w-0 flex-col gap-3 p-4 sm:p-5">
-			<div className="space-y-1">
-				<p className="text-base font-medium tracking-tight">
-					Gastos por categoria
-				</p>
-				<p className="text-sm text-muted-foreground">
-					{periodLabel
-						? periodLabel.charAt(0).toUpperCase() + periodLabel.slice(1)
-						: "Período atual"}
-				</p>
-			</div>
+			<ChartHeader action={headerAction} periodLabel={periodLabel} />
 
 			<ChartContainer
 				className="aspect-auto w-full"
@@ -339,6 +330,22 @@ export function TransactionsCategoryBarChart({
 					</Bar>
 				</BarChart>
 			</ChartContainer>
+		</div>
+	);
+}
+
+function ChartHeader({ action, periodLabel }: { action?: ReactNode; periodLabel?: string }) {
+	return (
+		<div className="flex flex-wrap items-start justify-between gap-3">
+			<div className="space-y-1">
+				<p className="text-lg font-medium tracking-tight">Gastos por categoria</p>
+				<p className="text-sm text-muted-foreground">
+					{periodLabel
+						? periodLabel.charAt(0).toUpperCase() + periodLabel.slice(1)
+						: "Período atual"}
+				</p>
+			</div>
+			{action}
 		</div>
 	);
 }

@@ -110,7 +110,7 @@ export function CreateTransactionSheet({ month }: { month: string }) {
 
 	return (
 		<>
-			<Button aria-label="Adicionar lançamento" onClick={() => setOpen(true)}>
+			<Button aria-label="Adicionar lançamento" onClick={() => setOpen(true)} variant="default">
 				<PlusIcon data-icon="inline-start" />
 				Adicionar
 			</Button>
