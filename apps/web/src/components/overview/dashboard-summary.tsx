@@ -143,7 +143,7 @@ export function DashboardSummary({
 							{metrics?.changePercent != null && (
 								<Badge
 									variant="secondary"
-									className={`h-auto gap-1.5 rounded-full border-0 px-3 py-1.5 text-sm font-semibold tabular-nums sm:text-base ${
+									className={`h-auto gap-1.5 rounded-full border-0 px-3 py-1.5 text-sm font-medium tabular-nums ${
 										metrics.changePercent > 0
 											? "bg-emerald-950/70 text-emerald-300"
 											: metrics.changePercent < 0

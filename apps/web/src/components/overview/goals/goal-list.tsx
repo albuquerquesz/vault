@@ -107,7 +107,7 @@ export function GoalList({
 						<div className="flex shrink-0 items-center gap-1">
 							<Badge
 								variant="secondary"
-								className="h-auto rounded-full px-3 py-1 text-sm"
+								className="h-auto rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-800 dark:bg-muted dark:text-foreground"
 							>
 								<MaskedMonetaryValue
 									className="text-sm font-sans font-medium tabular-nums"

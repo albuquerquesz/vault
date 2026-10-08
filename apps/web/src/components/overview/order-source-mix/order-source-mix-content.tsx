@@ -108,7 +108,12 @@ export function OrderSourceMixContent({
 		<div className="@container flex flex-1 flex-col items-center gap-4 @min-[640px]:flex-row @min-[640px]:items-center @min-[640px]:gap-12">
 			<div className="flex w-full min-w-0 shrink-0 items-center justify-center @min-[640px]:flex-[2]">
 				<div className="relative flex size-[min(100%,240px)] max-w-full shrink-0 items-center justify-center">
-					<PieChart data={pieData} innerRadius={pieInner} size={pieSize}>
+					<PieChart
+						className="distribution-pie"
+						data={pieData}
+						innerRadius={pieInner}
+						size={pieSize}
+					>
 						{sourceData.map((datum, index) => {
 							const preset = patternPresetForIndex(index);
 							const stroke =
@@ -117,7 +122,7 @@ export function OrderSourceMixContent({
 							return (
 								<PatternLines
 									key={`${datum.source}-pattern`}
-									background="transparent"
+									background={`color-mix(in oklab, ${stroke} 60%, transparent)`}
 									height={preset.height}
 									id={patternIdForIndex(index)}
 									orientation={[...preset.orientation]}

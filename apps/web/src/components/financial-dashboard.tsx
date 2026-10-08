@@ -4,14 +4,18 @@ export function FinancialDashboard() {
 	return (
 		<main className="financial-dashboard h-full w-full text-foreground">
 			<style>{`
-        .financial-dashboard { background-color: transparent; }
+				.financial-dashboard { background-color: var(--muted); }
         .financial-dashboard [data-slot="card"]:not(.dashboard-metric) { background-color: #0000 !important; }
         .financial-dashboard .dashboard-analyses [data-slot="card"] {
           border: 0;
-          background-color: color-mix(in oklab, var(--muted) 30%, transparent) !important;
+		  background-color: var(--card) !important;
         }
+				.dark .financial-dashboard { background-color: var(--background); }
         .dark .financial-dashboard .dashboard-analyses [data-slot="card"] {
           background-color: oklch(0.195 0.005 285) !important;
+        }
+        .dark .financial-dashboard .distribution-pie .visx-pattern-line-background {
+          fill: transparent;
         }
         .financial-dashboard {
           font-family: var(--font-sans);

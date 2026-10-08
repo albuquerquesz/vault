@@ -36,7 +36,7 @@ export function OverviewMonthSelect({
 				}
 			}}
 		>
-			<SelectTrigger className="h-10 min-w-[140px] justify-center rounded-md px-1.5 border-0 bg-muted text-base [&>svg:last-of-type]:size-5 dark:bg-muted dark:hover:bg-muted">
+			<SelectTrigger className="h-10 min-w-[140px] justify-center gap-2 rounded-md border-0 bg-white/10 px-1.5 text-base hover:bg-white/15 [&>svg:last-of-type]:size-5">
 				<SelectValue className="flex-none text-center" placeholder="Mês">
 					{(selected) =>
 						options.find((option) => option.value === selected)?.label ??

@@ -24,7 +24,7 @@ export function SummarySelectedBarLabel() {
 			y={Math.max(-12, Math.min(innerHeight - 12, top - 10))}
 			textAnchor="middle"
 			fill="var(--foreground)"
-			className="pointer-events-none text-xs font-semibold"
+			className="pointer-events-none text-sm font-semibold"
 		>
 			{maskMonetaryText(compactCurrency.format(point.balance), isVisible)}
 		</text>
