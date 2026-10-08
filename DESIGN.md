@@ -74,8 +74,8 @@ components:
     textColor: "{colors.paper-canvas}"
     typography: "{typography.label}"
     rounded: "{rounded.md}"
-    padding: "0.5rem 0.625rem"
-    height: "2rem"
+    padding: "0.5rem 0.75rem"
+    height: "2.25rem"
   button-outline:
     backgroundColor: "{colors.paper-canvas}"
     textColor: "{colors.ink-text}"
