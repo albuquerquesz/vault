@@ -60,7 +60,7 @@ function RouteComponent() {
 					showCloseButton={false}
 					className="rounded-[18px] overflow-hidden data-[side=right]:inset-y-4 data-[side=right]:right-4 data-[side=right]:h-[calc(100dvh-32px)] data-[side=right]:w-[calc(100%-32px)] data-[side=right]:sm:max-w-[600px]"
 				>
-					<SheetHeader className="shrink-0 gap-1 p-4 pr-14 sm:p-6 sm:pr-14">
+					<SheetHeader className="shrink-0 gap-1 p-2 pr-14 sm:p-2 sm:pr-14">
 						<SheetTitle
 							className="text-2xl font-semibold tracking-tight"
 							style={{ fontFamily: '"Space Grotesk", sans-serif' }}
@@ -83,7 +83,7 @@ function RouteComponent() {
 					>
 						<XIcon />
 					</SheetClose>
-					<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-4 pb-6 sm:px-6">
+					<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden p-2">
 						<SettingsPage />
 					</div>
 				</SheetContent>
