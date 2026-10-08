@@ -131,7 +131,7 @@ export function DashboardSummary({
 					{isLoading ? (
 						<Skeleton className="h-14 w-3/4" />
 					) : (
-						<p className="break-words text-4xl font-sans font-medium leading-tight tracking-tight tabular-nums sm:text-5xl">
+						<p className="break-words text-4xl font-sans font-medium leading-tight tracking-tight tabular-nums sm:text-5xl [&>span>span]:gap-3 [&>span>span>span:last-child]:gap-2">
 							{money(isError ? 0 : (metrics?.result ?? 0))}
 						</p>
 					)}
