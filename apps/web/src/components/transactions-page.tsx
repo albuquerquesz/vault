@@ -128,7 +128,7 @@ export function TransactionsPage() {
 			{pageHero}
 			<div className="grid min-w-0 grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(20rem,2fr)]">
 				<FinancialPanel
-					className="min-w-0"
+					className="min-w-0 !border-0"
 					header={
 						<div className="grid gap-4">
 							<div className="flex items-baseline justify-between gap-3">
@@ -150,7 +150,7 @@ export function TransactionsPage() {
 				>
 					<TransactionsTable transactions={filteredTransactions} hasActiveFilters={hasActiveFilters} monthLabel={monthLabel} onClearFilters={clearQuery} />
 				</FinancialPanel>
-				<FinancialPanel className="min-w-0" contentClassName="min-w-0 p-0">
+				<FinancialPanel className="min-w-0 !border-0" contentClassName="min-w-0 p-0">
 					<TransactionsCategoryBarChart transactions={filteredTransactions} periodLabel={monthLabel} />
 				</FinancialPanel>
 			</div>
