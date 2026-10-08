@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
+import { Badge } from "@vault/ui/components/badge";
 import { Skeleton } from "@vault/ui/components/skeleton";
 import { WalletIcon } from "lucide-react";
 import {
@@ -138,17 +139,26 @@ export function DashboardSummary({
 					{isLoading ? (
 						<Skeleton className="h-4 w-2/3" />
 					) : isError ? null : (
-						<p className="text-base font-medium text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-2 text-base font-medium text-muted-foreground">
 							{metrics?.changePercent != null && (
-								<>
+								<Badge
+									variant="secondary"
+									className={`h-auto gap-1.5 rounded-full border-0 px-3 py-1.5 text-sm font-semibold tabular-nums sm:text-base ${
+										metrics.changePercent > 0
+											? "bg-emerald-950/70 text-emerald-300"
+											: metrics.changePercent < 0
+												? "bg-rose-950/70 text-rose-300"
+												: "bg-white/10 text-white/70"
+									}`}
+								>
 									<MaskedMonetaryText prefix="">{`${metrics.changePercent > 0 ? "+" : ""}${metrics.changePercent.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}</MaskedMonetaryText>{" "}
-									vs mês anterior{" "}
-								</>
+									vs mês anterior
+								</Badge>
 							)}
-							<span className="whitespace-nowrap">
+							<span className="whitespace-nowrap text-sm sm:text-base">
 								({money(metrics?.previousResult ?? 0)})
 							</span>
-						</p>
+						</div>
 					)}
 				</div>
 				<div className="mt-auto grid min-w-0 grid-cols-1 gap-4 border-t border-border/60 pt-4 sm:grid-cols-3 sm:gap-0">
