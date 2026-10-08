@@ -45,7 +45,7 @@ export function MonthlyBillTile({ item }: { item: MonthlyBillItem }) {
 	const status = getPaymentStatus(item.paidAmount, item.totalAmount);
 
 	return (
-		<article className="@container flex min-h-36 flex-col justify-between gap-2 rounded-[18px] bg-background p-3 text-card-foreground dark:bg-secondary">
+		<article className="@container flex min-h-36 flex-col justify-between gap-2 rounded-[18px] border border-border/60 bg-background p-3 text-card-foreground dark:bg-secondary">
 			<div className="flex min-w-0 items-center justify-between gap-3">
 				<div className="flex min-w-0 items-center gap-2.5">
 					<div
@@ -60,7 +60,7 @@ export function MonthlyBillTile({ item }: { item: MonthlyBillItem }) {
 							className="size-3.5 rounded-[3px] text-[6px]"
 						/>
 					</div>
-					<p className="min-w-0 truncate text-base font-semibold text-card-foreground sm:text-lg">
+					<p className="min-w-0 truncate text-base font-medium text-card-foreground sm:text-lg">
 						{item.name}
 					</p>
 				</div>
