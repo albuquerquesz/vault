@@ -8,10 +8,10 @@ export function FinancialDashboard() {
         .financial-dashboard [data-slot="card"]:not(.dashboard-metric) { background-color: #0000 !important; }
         .financial-dashboard .dashboard-analyses [data-slot="card"] {
           border: 0;
-          background-color: color-mix(in oklab, var(--muted) 40%, transparent) !important;
+          background-color: color-mix(in oklab, var(--muted) 30%, transparent) !important;
         }
         .dark .financial-dashboard .dashboard-analyses [data-slot="card"] {
-          background-color: oklch(0.205 0.005 285) !important;
+          background-color: oklch(0.195 0.005 285) !important;
         }
         .financial-dashboard {
           font-family: var(--font-sans);
