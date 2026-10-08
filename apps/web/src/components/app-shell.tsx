@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 						} as React.CSSProperties
 					}
 				>
-					<div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden dark:bg-[oklch(0.178_0.005_285)] px-3 pb-[calc(var(--mobile-bottom-tab-bar-height)+env(safe-area-inset-bottom,0px)+1rem)] sm:px-6 md:pb-0 lg:px-8">
+					<div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-[color-mix(in_oklab,var(--muted)_55%,var(--background))] dark:bg-[oklch(0.178_0.005_285)] px-4 pb-[calc(var(--mobile-bottom-tab-bar-height)+env(safe-area-inset-bottom,0px)+1rem)] md:pb-0">
 						<div className="mx-auto min-h-0 w-full min-w-0 flex-1">{children}</div>
 					</div>
 					<MobileBottomTabBar />
