@@ -30,6 +30,8 @@ export function createAuth() {
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: {
 			allowedHosts: [
+				"vault.albuquerquesz.com",
+				"vault-api.albuquerquesz.com",
 				"vault-web.pages.dev",
 				"vault-web-1ze.pages.dev",
 				"vault-web-six.vercel.app",
