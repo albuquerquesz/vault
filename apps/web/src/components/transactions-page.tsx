@@ -7,7 +7,7 @@ import { FinancialPanel } from "@/components/shared/financial-panel";
 import { formatFinanceMonth, buildFinanceMonthOptions } from "@/components/shared/finance-month-options";
 import { FinanceMonthSelect } from "@/components/shared/finance-month-select";
 import { getMonthValue, useFinanceTransactions } from "@/features/finance/sdk";
-import { TransactionsCategoryBarChart } from "./transactions-page/transactions-category-bar-chart";
+import { TransactionsDailySpendAreaChart } from "./transactions-page/transactions-daily-spend-area-chart";
 import { TransactionsFilterMenu } from "./transactions-page/transactions-filter-menu";
 import { TransactionsSkeleton } from "./transactions-page/transactions-skeleton";
 import { TransactionsTable } from "./transactions-page/transactions-table";
@@ -91,7 +91,8 @@ export function TransactionsPage() {
 		<div className="grid w-full min-w-0 gap-6 py-4 sm:py-6">
 			<div className="grid min-w-0 gap-6">
 				<FinancialPanel className="min-w-0 !border-0" contentClassName="min-w-0 p-0">
-					<TransactionsCategoryBarChart
+					<TransactionsDailySpendAreaChart
+						month={selectedMonth}
 						transactions={filteredTransactions}
 						headerAction={<FinanceMonthSelect value={selectedMonth} options={monthOptions} onValueChange={setSelectedMonth} triggerClassName="!min-w-[112px] border-0 px-0.5" />}
 					/>
