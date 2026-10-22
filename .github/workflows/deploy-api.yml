@@ -77,7 +77,7 @@ jobs:
       - name: Smoke-test webhook endpoint
         run: |
           set -euo pipefail
-          base="https://vault-api-phi.vercel.app"
+          base="https://vault-api.albuquerquesz.com"
           # Production alias should always be the stable webhook URL.
           code=$(curl -sS -o /tmp/wh.json -w "%{http_code}" -X POST \
             "$base/api/webhooks/pluggy" \

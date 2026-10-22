@@ -110,7 +110,7 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
   - Paths: `apps/api/**` (e relacionados) no PR
   - Secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID_API`
   - Projeto Vercel: `vault-api` (Root Directory `apps/api`, install `bun install`)
-  - Alias estável: `https://vault-api-phi.vercel.app`
+  - Alias estável: `https://vault-api.albuquerquesz.com`
   - `workflow_dispatch` ainda permite deploy manual de produção
 - O projeto Vercel também está **conectado ao GitHub** (previews em branches não-production).
 - Smoke pós-deploy do workflow valida `POST /api/webhooks/pluggy`.

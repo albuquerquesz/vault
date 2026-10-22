@@ -7,11 +7,11 @@
 	"rewrites": [
 		{
 			"source": "/api/auth/(.*)",
-			"destination": "https://vault-api-phi.vercel.app/api/auth/$1"
+			"destination": "https://vault-api.albuquerquesz.com/api/auth/$1"
 		},
 		{
 			"source": "/api/(.*)",
-			"destination": "https://vault-api-phi.vercel.app/api/$1"
+			"destination": "https://vault-api.albuquerquesz.com/api/$1"
 		},
 		{
 			"source": "/(.*)",
