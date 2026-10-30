@@ -20,6 +20,7 @@ export type ClassifiedPluggyRow = {
 	date: string;
 	rawAmount: number;
 	category: string | null;
+	categoryOverride: string | null;
 	description: string | null;
 	provider: string | null;
 	accountId: string | null;
@@ -69,6 +70,7 @@ export async function loadClassifiedPluggyTransactions(params: {
 			date: pluggyTransactions.date,
 			rawAmount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number),
 			category: pluggyTransactions.category,
+			categoryOverride: pluggyTransactions.categoryOverride,
 			description: pluggyTransactions.description,
 			provider: pluggyItems.provider,
 			accountId: pluggyTransactions.pluggyAccountId,
