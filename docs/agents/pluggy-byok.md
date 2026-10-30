@@ -106,14 +106,12 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
 ## Deploy / CI
 
 - **Migrations:** `.github/workflows/api-migrate.yml` em push para `dev`/`main` quando mudam arquivos de API/DB (secret `NEON_DATABASE_URL`, injetado como `DATABASE_URL` no job).
-- **API production:** `.github/workflows/deploy-api.yml` só quando um **PR é mergeado em `main`** (não roda em push na `dev`, nem em todo push).
-  - Paths: `apps/api/**` (e relacionados) no PR
-  - Secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID_API`
-  - Projeto Vercel: `vault-api` (Root Directory `apps/api`, install `bun install`)
-  - Alias estável: `https://vault-api.albuquerquesz.com`
-  - `workflow_dispatch` ainda permite deploy manual de produção
-- O projeto Vercel também está **conectado ao GitHub** (previews em branches não-production).
-- Smoke pós-deploy do workflow valida `POST /api/webhooks/pluggy`.
+- **API production:** `.github/workflows/deploy-api.yml` em **push para `main`** (e `workflow_dispatch`), via `wrangler deploy` do Worker Cloudflare `vault-api`.
+  - Paths: `apps/api/**`, o próprio workflow, `package.json`, `bun.lock`
+  - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+  - Deploy só de código: secrets do Worker não são alterados (use `bun run cf:deploy -- --sync-secrets` para isso)
+  - Domínio estável: `https://vault-api.albuquerquesz.com`
+- Smoke pós-deploy do workflow valida `POST /api/webhooks/pluggy` e o início do OAuth Google (`invalid_client` falha o job).
 
 ## Checklist mínimo antes de encerrar uma mudança
 
