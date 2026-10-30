@@ -16,6 +16,7 @@ import {
 import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
 import { db } from "../db/index.js";
+import { errorBody } from "../lib/http-errors.js";
 import {
 	expense,
 	goal,
@@ -396,7 +397,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!monthPattern.test(month))
 					return reply
 						.status(400)
-						.send({ error: "Invalid month format. Use YYYY-MM" });
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
 
 				const records = await listFinanceTransactions({
 					userId: session.user.id,
@@ -405,7 +406,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send(records);
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},
@@ -421,7 +422,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!monthPattern.test(month))
 					return reply
 						.status(400)
-						.send({ error: "Invalid month format. Use YYYY-MM" });
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
 				const { start, end } = getMonthBounds(month);
 				const records = await db
 					.select()
@@ -433,7 +434,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send(records.map(serializeExpense));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},
@@ -461,7 +462,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.code(201).send(serializeExpense(record!));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -491,7 +492,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.code(201).send(serializeExpense(record!));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -525,7 +526,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send({ deleted: deleted.length });
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -592,7 +593,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send({ hidden: hidden.length });
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -627,7 +628,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send(serializeMonthlyBudget(record!));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -645,7 +646,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!monthPattern.test(query.month))
 					return reply
 						.status(400)
-						.send({ error: "Invalid month format. Use YYYY-MM" });
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
 				const { start, end } = getMonthBounds(query.month);
 				const budget = await db
 					.select()
@@ -699,7 +700,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},
@@ -716,7 +717,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!month || !monthPattern.test(month)) {
 					return reply
 						.status(400)
-						.send({ error: "Invalid month format. Use YYYY-MM" });
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
 				}
 				const today = query.today ?? new Date().toISOString().slice(0, 10);
 				if (
@@ -726,7 +727,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				) {
 					return reply
 						.status(400)
-						.send({ error: "Invalid today format. Use YYYY-MM-DD" });
+						.send(errorBody("VALIDATION_ERROR", "Data inválida. Use o formato AAAA-MM-DD."));
 				}
 
 				const [record, spent] = await Promise.all([
@@ -765,7 +766,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},
@@ -800,7 +801,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send(serializeMonthlySpendingGoal(record!));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -818,7 +819,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!monthPattern.test(query.month))
 					return reply
 						.status(400)
-						.send({ error: "Invalid month format. Use YYYY-MM" });
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
 
 				const previousMonth = getPreviousMonthValue(query.month);
 				const [currentMonthMetrics, previousMonthMetrics] = await Promise.all([
@@ -849,7 +850,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},
@@ -869,7 +870,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send(records.map(serializeGoal));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},
@@ -903,7 +904,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.code(201).send(serializeGoal(record!));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -943,7 +944,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					.limit(1)
 					.then((r) => r[0]);
 				if (!existing)
-					return reply.status(404).send({ error: "Goal not found" });
+					return reply.status(404).send(errorBody("NOT_FOUND", "Meta não encontrada."));
 				const [record] = await db
 					.update(goal)
 					.set({
@@ -971,7 +972,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send(serializeGoal(record!));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -993,12 +994,12 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					.limit(1)
 					.then((r) => r[0]);
 				if (!existing)
-					return reply.status(404).send({ error: "Goal not found" });
+					return reply.status(404).send(errorBody("NOT_FOUND", "Meta não encontrada."));
 				await db.delete(goal).where(eq(goal.id, id));
 				return reply.status(204).send();
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
@@ -1016,7 +1017,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!monthPattern.test(month))
 					return reply
 						.status(400)
-						.send({ error: "Invalid month format. Use YYYY-MM" });
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
 				const bills = await db
 					.select()
 					.from(monthlyBill)
@@ -1045,7 +1046,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},
@@ -1066,7 +1067,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!monthPattern.test(month)) {
 					return reply
 						.status(400)
-						.send({ error: "Invalid month format. Use YYYY-MM" });
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
 				}
 
 				const [result] = await db
@@ -1086,7 +1087,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send(serializeSavingsTarget(result));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},
@@ -1103,7 +1104,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!monthPattern.test(body.month)) {
 					return reply
 						.status(400)
-						.send({ error: "Invalid month format. Use YYYY-MM" });
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
 				}
 
 				const percentage = body.savingsPercentage;
@@ -1114,7 +1115,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				) {
 					return reply
 						.status(400)
-						.send({ error: "savingsPercentage must be between 0 and 100" });
+						.send(errorBody("VALIDATION_ERROR", "O percentual de economia deve estar entre 0 e 100."));
 				}
 
 				const existing = await db
@@ -1148,7 +1149,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send({ month: body.month, savingsPercentage: percentage });
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
-					return reply.status(401).send({ error: "Authentication required" });
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},

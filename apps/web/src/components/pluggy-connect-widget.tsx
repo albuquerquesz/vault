@@ -3,6 +3,7 @@
 import { Button } from "@vault/ui/components/button";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { formatApiError, parseApiError } from "@/utils/api";
 
 const PLUGGY_CONNECT_SCRIPT_SRC =
 	"https://cdn.pluggy.ai/pluggy-connect/v1.3.1/pluggy-connect.js";
@@ -42,7 +43,7 @@ let pluggyConnectScriptPromise: Promise<void> | null = null;
 function loadPluggyConnectScript() {
 	if (typeof window === "undefined") {
 		return Promise.reject(
-			new Error("Pluggy Connect is only available in the browser"),
+			new Error("O Pluggy Connect só funciona no navegador."),
 		);
 	}
 
@@ -63,7 +64,12 @@ function loadPluggyConnectScript() {
 			existing.addEventListener("load", () => resolve(), { once: true });
 			existing.addEventListener(
 				"error",
-				() => reject(new Error("Failed to load Pluggy Connect")),
+				() =>
+					reject(
+						new Error(
+							"Não foi possível carregar o Pluggy Connect. Verifique sua conexão e tente novamente.",
+						),
+					),
 				{ once: true },
 			);
 			return;
@@ -73,7 +79,12 @@ function loadPluggyConnectScript() {
 		script.src = PLUGGY_CONNECT_SCRIPT_SRC;
 		script.async = true;
 		script.onload = () => resolve();
-		script.onerror = () => reject(new Error("Failed to load Pluggy Connect"));
+		script.onerror = () =>
+			reject(
+				new Error(
+					"Não foi possível carregar o Pluggy Connect. Verifique sua conexão e tente novamente.",
+				),
+			);
 		document.head.appendChild(script);
 	});
 
@@ -118,7 +129,7 @@ export function PluggyConnectWidget({
 
 			if (!tokenResponse.ok) {
 				const body = await tokenResponse.text().catch(() => "");
-				throw new Error(body || "Failed to create Pluggy connect token");
+				throw parseApiError(tokenResponse.status, body);
 			}
 
 			const { accessToken } = (await tokenResponse.json()) as {
@@ -126,13 +137,17 @@ export function PluggyConnectWidget({
 			};
 
 			if (!accessToken) {
-				throw new Error("Missing Pluggy connect token");
+				throw new Error(
+					"Não foi possível iniciar a conexão com a Pluggy. Tente novamente.",
+				);
 			}
 
 			await loadPluggyConnectScript();
 
 			if (!window.PluggyConnect) {
-				throw new Error("Pluggy Connect SDK unavailable");
+				throw new Error(
+					"Não foi possível carregar o Pluggy Connect. Recarregue a página e tente novamente.",
+				);
 			}
 
 			const widget = new window.PluggyConnect({
@@ -143,7 +158,9 @@ export function PluggyConnectWidget({
 				},
 				onError: (sdkError) => {
 					const nextError = new Error(
-						sdkError.message || "Failed to connect account with Pluggy",
+						sdkError.message
+							? `Falha ao conectar o banco: ${sdkError.message}. Tente novamente.`
+							: "Falha ao conectar o banco. Tente novamente.",
 					);
 					setIsConnecting(false);
 					setError(nextError.message);
@@ -160,9 +177,11 @@ export function PluggyConnectWidget({
 			const nextError =
 				caughtError instanceof Error
 					? caughtError
-					: new Error("Failed to initialize Pluggy Connect");
+					: new Error(
+							"Não foi possível iniciar a conexão com a Pluggy. Tente novamente.",
+						);
 			setIsConnecting(false);
-			setError(nextError.message);
+			setError(formatApiError(nextError));
 			onError?.(nextError);
 		}
 	};

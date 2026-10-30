@@ -1,14 +1,13 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { PluggyApiError, PluggyAuthError } from "../clients/pluggy/client.js";
 import type { PluggyCredentials } from "../clients/pluggy/types.js";
 import { db } from "../db/index.js";
 import { type UserSettings, user } from "../db/schema/user.js";
 import type { RouteRegistrar } from "../hono/registrar.js";
+import { errorBody, sendKnownError } from "../lib/http-errors.js";
 import {
 	deletePluggyCredentials,
 	getPluggyCredentialsStatus,
-	MissingPluggyCredentialsError,
 	savePluggyCredentials,
 } from "../services/connectors/credentials.js";
 import {
@@ -63,27 +62,6 @@ function mergeSettings(
 		(merged as Record<string, unknown>)[key] = value;
 	}
 	return merged;
-}
-
-function sendKnownError(
-	reply: { status: (code: number) => { send: (body: unknown) => unknown } },
-	error: unknown,
-) {
-	if ((error as { statusCode?: number }).statusCode === 401) {
-		return reply.status(401).send({ error: "Authentication required" });
-	}
-	if (error instanceof z.ZodError) {
-		return reply.status(400).send({ error: error.message });
-	}
-	if (error instanceof MissingPluggyCredentialsError) {
-		return reply.status(error.statusCode).send({ error: error.message });
-	}
-	// Surface the real Pluggy error instead of a generic 500.
-	if (error instanceof PluggyAuthError || error instanceof PluggyApiError) {
-		console.warn("[pluggy] request failed:", error.message);
-		return reply.status(error.statusCode).send({ error: error.message });
-	}
-	throw error;
 }
 
 export function registerSettingsRoutes(server: RouteRegistrar) {
@@ -183,7 +161,9 @@ export function registerSettingsRoutes(server: RouteRegistrar) {
 			});
 
 			if (!u) {
-				return reply.status(404).send({ error: "User not found" });
+				return reply
+					.status(404)
+					.send(errorBody("NOT_FOUND", "Usuário não encontrado."));
 			}
 
 			return reply.send({ name: u.name, email: u.email, image: u.image });
@@ -223,14 +203,20 @@ export function registerSettingsRoutes(server: RouteRegistrar) {
 
 			// Validate it's an image data URL
 			if (!body.dataUrl.startsWith("data:image/")) {
-				return reply.status(400).send({ error: "Invalid image format" });
+				return reply
+					.status(400)
+					.send(errorBody("VALIDATION_ERROR", "Formato de imagem inválido."));
 			}
 
 			// Check size (base64 padding inflates by ~33%)
 			const base64Data = body.dataUrl.split(",")[1] ?? "";
 			const rawSize = Math.round((base64Data.length * 3) / 4);
 			if (rawSize > 5 * 1024 * 1024) {
-				return reply.status(400).send({ error: "Image too large (max 5MB)" });
+				return reply
+					.status(400)
+					.send(
+						errorBody("VALIDATION_ERROR", "Imagem muito grande (máximo 5 MB)."),
+					);
 			}
 
 			const result = await db
@@ -311,7 +297,10 @@ export function registerSettingsRoutes(server: RouteRegistrar) {
 				userId: session.user.id,
 				tokenId: params.id,
 			});
-			if (!revoked) return reply.status(404).send({ error: "Token not found" });
+			if (!revoked)
+				return reply
+					.status(404)
+					.send(errorBody("NOT_FOUND", "Token não encontrado."));
 			return reply.status(204).send();
 		} catch (error) {
 			return sendKnownError(reply, error);

@@ -1,18 +1,15 @@
 import dayjs from "dayjs";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
-import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
-import { PluggyApiError, PluggyAuthError } from "../clients/pluggy/index.js";
 import { db } from "../db/index.js";
 import {
 	pluggyAccounts,
 	pluggyItems,
 	pluggyTransactions,
 } from "../db/schema/index.js";
-import {
-	MissingPluggyCredentialsError,
-	resolvePluggyCredentials,
-} from "../services/connectors/credentials.js";
+import type { RouteRegistrar } from "../hono/registrar.js";
+import { errorBody, sendKnownError } from "../lib/http-errors.js";
+import { resolvePluggyCredentials } from "../services/connectors/credentials.js";
 import {
 	createPluggyService,
 	deleteDerivedExpensesForItem,
@@ -24,28 +21,6 @@ import {
 } from "../services/pluggy.js";
 import { getPluggyWebhookUrl } from "../services/pluggy-webhook-config.js";
 import { requireSession } from "../session.js";
-
-function sendKnownError(
-	reply: { status: (code: number) => { send: (body: unknown) => unknown } },
-	error: unknown,
-) {
-	if ((error as { statusCode?: number }).statusCode === 401) {
-		return reply.status(401).send({ error: "Authentication required" });
-	}
-	if (error instanceof MissingPluggyCredentialsError) {
-		return reply.status(error.statusCode).send({ error: error.message });
-	}
-	if (error instanceof PluggyAuthError) {
-		return reply.status(error.statusCode).send({ error: error.message });
-	}
-	if (error instanceof PluggyApiError) {
-		return reply.status(error.statusCode).send({ error: error.message });
-	}
-	if (error instanceof z.ZodError) {
-		return reply.status(400).send({ error: error.message });
-	}
-	throw error;
-}
 
 export function registerPluggyRoutes(server: RouteRegistrar) {
 	// POST /api/pluggy/connect - create a connect token and return the Pluggy Connect URL
@@ -134,7 +109,10 @@ export function registerPluggyRoutes(server: RouteRegistrar) {
 						),
 					)
 					.limit(1);
-				if (!item) return reply.code(404).send({ error: "Item not found" });
+				if (!item)
+					return reply
+						.code(404)
+						.send(errorBody("NOT_FOUND", "Conexão bancária não encontrada."));
 
 				const creds = await resolvePluggyCredentials(session.user.id);
 				const service = createPluggyService(creds);
@@ -228,7 +206,9 @@ export function registerPluggyRoutes(server: RouteRegistrar) {
 					.then((r) => r[0]);
 
 				if (!item) {
-					return reply.status(404).send({ error: "Item not found" });
+					return reply
+						.status(404)
+						.send(errorBody("NOT_FOUND", "Conexão bancária não encontrada."));
 				}
 
 				const creds = await resolvePluggyCredentials(session.user.id);
@@ -275,7 +255,10 @@ export function registerPluggyRoutes(server: RouteRegistrar) {
 					)
 					.limit(1)
 					.then((r) => r[0]);
-				if (!item) return reply.status(404).send({ error: "Item not found" });
+				if (!item)
+					return reply
+						.status(404)
+						.send(errorBody("NOT_FOUND", "Conexão bancária não encontrada."));
 
 				const creds = await resolvePluggyCredentials(session.user.id);
 				const pluggy = createPluggyService(creds);

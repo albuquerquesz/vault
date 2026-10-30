@@ -1,4 +1,6 @@
 import type { Context, Hono } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { describeError, toErrorResponse } from "../lib/http-errors.js";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -50,7 +52,9 @@ export type RouteRegistrar = {
 	) => void;
 };
 
-function headersRecord(c: Context): Record<string, string | string[] | undefined> {
+function headersRecord(
+	c: Context,
+): Record<string, string | string[] | undefined> {
 	const out: Record<string, string | string[] | undefined> = {};
 	c.req.raw.headers.forEach((value, key) => {
 		const existing = out[key];
@@ -126,13 +130,19 @@ function createReply(c: Context): RouteReply {
 		},
 		send(body?: unknown) {
 			if (statusCode === 204 || body === undefined || body === null) {
-				return new Response(null, { status: statusCode, headers: responseHeaders });
+				return new Response(null, {
+					status: statusCode,
+					headers: responseHeaders,
+				});
 			}
 			if (typeof body === "string") {
 				for (const [k, v] of responseHeaders.entries()) {
 					c.header(k, v);
 				}
-				return new Response(body, { status: statusCode, headers: responseHeaders });
+				return new Response(body, {
+					status: statusCode,
+					headers: responseHeaders,
+				});
 			}
 			responseHeaders.set("content-type", "application/json");
 			return new Response(JSON.stringify(body), {
@@ -161,8 +171,13 @@ async function runHandler(
 		}
 		return c.text("", 500);
 	} catch (error) {
-		console.error("route handler error", error);
-		return c.json({ error: "Internal server error" }, 500);
+		const { status, body } = toErrorResponse(error);
+		const route = `${c.req.method} ${new URL(c.req.url).pathname}`;
+		// Log as a string: Workers observability drops the message of Error objects.
+		console.error(
+			`route handler error [${body.code}] ${route}: ${describeError(error)}`,
+		);
+		return c.json(body, status as ContentfulStatusCode);
 	}
 }
 

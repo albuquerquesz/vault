@@ -1,5 +1,10 @@
-import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
+import type { RouteRegistrar } from "../hono/registrar.js";
+import {
+	describeError,
+	errorBody,
+	toErrorResponse,
+} from "../lib/http-errors.js";
 import { isPluggyWebhookSecretValid } from "../services/pluggy-webhook-config.js";
 import {
 	handlePluggyWebhookEvent,
@@ -16,7 +21,9 @@ export function registerWebhookRoutes(server: RouteRegistrar) {
 		url: "/pluggy",
 		async handler(req, reply) {
 			if (!isPluggyWebhookSecretValid(req.headers as Record<string, unknown>)) {
-				return reply.status(401).send({ error: "Invalid webhook secret" });
+				return reply
+					.status(401)
+					.send(errorBody("UNAUTHORIZED", "Segredo do webhook inválido."));
 			}
 
 			try {
@@ -41,16 +48,18 @@ export function registerWebhookRoutes(server: RouteRegistrar) {
 				if (error instanceof z.ZodError) {
 					req.log.warn({ err: error }, "pluggy webhook invalid payload");
 					return reply.status(400).send({
-						error: "Invalid webhook payload",
+						...errorBody("VALIDATION_ERROR", "Payload de webhook inválido."),
 						details: error.flatten(),
 					});
 				}
 
-				req.log.error({ err: error }, "pluggy webhook handler failure");
+				const { status, body } = toErrorResponse(error);
+				req.log.error(
+					{ code: body.code, detail: describeError(error) },
+					`pluggy webhook handler failure: ${describeError(error)}`,
+				);
 				// 5xx triggers Pluggy retry — appropriate for unexpected failures.
-				return reply.status(500).send({
-					error: "Webhook processing failed",
-				});
+				return reply.status(status >= 500 ? status : 500).send(body);
 			}
 		},
 	});

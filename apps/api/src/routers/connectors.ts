@@ -1,34 +1,14 @@
-import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
-import { PluggyAuthError } from "../clients/pluggy/index.js";
+import type { RouteRegistrar } from "../hono/registrar.js";
+import { sendKnownError } from "../lib/http-errors.js";
 import {
 	deletePluggyCredentials,
 	getPluggyCredentialsStatus,
-	MissingPluggyCredentialsError,
 	resolvePluggyCredentials,
 	savePluggyCredentials,
 } from "../services/connectors/credentials.js";
 import { pluggyConnectorProvider } from "../services/connectors/index.js";
 import { requireSession } from "../session.js";
-
-function sendKnownError(
-	reply: { status: (code: number) => { send: (body: unknown) => unknown } },
-	error: unknown,
-) {
-	if ((error as { statusCode?: number }).statusCode === 401) {
-		return reply.status(401).send({ error: "Authentication required" });
-	}
-	if (error instanceof MissingPluggyCredentialsError) {
-		return reply.status(error.statusCode).send({ error: error.message });
-	}
-	if (error instanceof PluggyAuthError) {
-		return reply.status(error.statusCode).send({ error: error.message });
-	}
-	if (error instanceof z.ZodError) {
-		return reply.status(400).send({ error: error.message });
-	}
-	throw error;
-}
 
 export function registerConnectorRoutes(server: RouteRegistrar) {
 	server.route({

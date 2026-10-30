@@ -2,20 +2,45 @@ import { QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isDevAuthBypassEnabled } from "@/lib/dev-auth";
 
-const SANITIZED_ERROR = "Something went wrong. Please try again.";
+const SANITIZED_ERROR = "Algo deu errado. Tente novamente.";
 
 export class ApiError extends Error {
 	status: number;
+	/** Stable server error code (e.g. `PLUGGY_INVALID_CREDENTIALS`), when provided. */
+	code?: string;
 
-	constructor(message: string, status: number) {
+	constructor(message: string, status: number, code?: string) {
 		super(message);
 		this.name = "ApiError";
 		this.status = status;
+		this.code = code;
 	}
 
 	get isAuthError() {
 		return this.status === 401 || this.status === 403;
 	}
+}
+
+/** Parses an error response body (`{ error, code }`) into an ApiError. */
+export function parseApiError(status: number, text: string): ApiError {
+	try {
+		const body = JSON.parse(text) as {
+			error?: string;
+			message?: string;
+			code?: string;
+		};
+		return new ApiError(body.error ?? body.message ?? text, status, body.code);
+	} catch {
+		return new ApiError(text || SANITIZED_ERROR, status);
+	}
+}
+
+/** User-facing text for any error: server message plus its code when known. */
+export function formatApiError(error: unknown): string {
+	if (error instanceof ApiError && error.code) {
+		return `${error.message} (código: ${error.code})`;
+	}
+	return sanitizeError(error instanceof Error ? error.message : String(error));
 }
 
 function sanitizeError(message: string): string {
@@ -82,12 +107,19 @@ export const queryClient = new QueryClient({
 		mutations: {
 			onSettled: () => {},
 			onError: (error) => {
-				const message = sanitizeError(error.message);
+				// Coded server errors are already safe, user-facing text.
+				const message =
+					error instanceof ApiError && error.code
+						? error.message
+						: sanitizeError(error.message);
 				toast.error(message, {
-					description: "An error occurred",
+					description:
+						error instanceof ApiError && error.code
+							? `Código: ${error.code}`
+							: "Ocorreu um erro",
 					duration: 5000,
 					action: {
-						label: "Retry",
+						label: "Tentar novamente",
 						onClick: () => {
 							window.location.reload();
 						},
@@ -122,15 +154,7 @@ export async function apiFetch<T>(
 	});
 
 	if (!response.ok) {
-		const errorText = await response.text();
-		let message = errorText;
-		try {
-			const error = JSON.parse(errorText);
-			message = error.error ?? error.message ?? errorText;
-		} catch {
-			// Not JSON, use raw text
-		}
-		throw new ApiError(message, response.status);
+		throw parseApiError(response.status, await response.text());
 	}
 
 	if (

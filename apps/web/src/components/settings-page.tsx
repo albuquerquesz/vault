@@ -60,6 +60,7 @@ import {
 } from "@/features/settings/sdk";
 import { authClient } from "@/lib/auth-client";
 import { signOut } from "@/lib/push";
+import { formatApiError } from "@/utils/api";
 
 export type SettingsSection = "general" | "account" | "about" | "mcp";
 
@@ -110,10 +111,7 @@ function SettingsSectionCard({
 }) {
 	return (
 		<Card
-			className={cn(
-				"rounded-2xl border-0 bg-background/60 ring-0",
-				className,
-			)}
+			className={cn("rounded-2xl border-0 bg-background/60 ring-0", className)}
 		>
 			<CardContent className="space-y-4">{children}</CardContent>
 		</Card>
@@ -661,7 +659,7 @@ function GeneralSettings() {
 								setPluggyConnectError(null);
 								registerItem.mutate(item.id, {
 									onError: (error: Error) => {
-										setPluggyConnectError(error.message);
+										setPluggyConnectError(formatApiError(error));
 									},
 									onSuccess: (result: {
 										item: { id: string };
@@ -689,7 +687,7 @@ function GeneralSettings() {
 								});
 							}}
 							onError={(error) => {
-								setPluggyConnectError(error.message);
+								setPluggyConnectError(formatApiError(error));
 							}}
 						/>
 						{pluggyConnectError ? (
