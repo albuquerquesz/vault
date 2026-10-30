@@ -5,11 +5,8 @@ import {
 	eq,
 	gte,
 	inArray,
-	isNull,
 	lte,
 	not,
-	notInArray,
-	or,
 	sql,
 	sum,
 } from "drizzle-orm";
@@ -29,10 +26,15 @@ import {
 	pluggyTransactions,
 	savingsTarget,
 } from "../db/schema/index.js";
+import { rebuildExpensesFromStoredTransactions } from "../services/pluggy.js";
 import {
-	PLUGGY_IGNORED_EXPENSE_CATEGORIES,
-	rebuildExpensesFromStoredTransactions,
-} from "../services/pluggy.js";
+	classifyPluggyTransactions,
+	signedAmount,
+} from "../services/pluggy-classification.js";
+import {
+	getPluggyTotals,
+	loadClassifiedPluggyTransactions,
+} from "../services/pluggy-ledger.js";
 import { calculateMonthlySpendingGoal } from "../services/monthly-spending-goal.js";
 import { requireSession } from "../session.js";
 
@@ -85,10 +87,6 @@ function buildVisibleExpensesWhere(params: {
 		gte(expense.expenseDate, start),
 		lte(expense.expenseDate, end),
 		eq(expense.kind, "expense"),
-		or(
-			not(eq(expense.source, "pluggy")),
-			notInArray(expense.category, [...PLUGGY_IGNORED_EXPENSE_CATEGORIES]),
-		),
 	);
 }
 
@@ -104,28 +102,6 @@ function buildManualExpensesWhere(params: {
 		gte(expense.expenseDate, start),
 		lte(expense.expenseDate, end),
 		not(eq(expense.source, "pluggy")),
-	);
-}
-
-function buildVisiblePluggyTransactionsWhere(params: {
-	userId: string;
-	start: string;
-	end: string;
-}) {
-	const { userId, start, end } = params;
-
-	return and(
-		eq(pluggyItems.userId, userId),
-		gte(pluggyTransactions.date, start),
-		lte(pluggyTransactions.date, end),
-		isNull(pluggyTransactions.hiddenAt),
-		or(
-			sql`${pluggyTransactions.category} is null`,
-			notInArray(
-				pluggyTransactions.category,
-				[...PLUGGY_IGNORED_EXPENSE_CATEGORIES],
-			),
-		),
 	);
 }
 
@@ -163,54 +139,34 @@ async function listFinanceTransactions(params: {
 			.from(expense)
 			.where(buildManualExpensesWhere({ userId, start, end }))
 			.orderBy(desc(expense.expenseDate), desc(expense.createdAt)),
-		db
-			.select({
-				id: pluggyTransactions.id,
-				date: pluggyTransactions.date,
-				amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number),
-				description: pluggyTransactions.description,
-				category: pluggyTransactions.category,
-				sourceItemId: pluggyTransactions.pluggyItemId,
-				sourceProvider: pluggyItems.provider,
-				sourceAccountName: pluggyAccounts.name,
-				sourceAccountType: pluggyAccounts.type,
-				sourceAccountSubtype: pluggyAccounts.subtype,
-				sourceAccountBrand: pluggyAccounts.brand,
-				createdAt: sql<Date>`coalesce(${pluggyTransactions.createdAt}, now())`.mapWith(
-					Date,
-				),
-			})
-			.from(pluggyTransactions)
-			.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
-			.leftJoin(
-				pluggyAccounts,
-				eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
-			)
-			.where(buildVisiblePluggyTransactionsWhere({ userId, start, end }))
-			.orderBy(desc(pluggyTransactions.date), desc(pluggyTransactions.createdAt)),
+		loadClassifiedPluggyTransactions({ userId, start, end }),
 	]);
 
 	const transactions = [
-		...pluggyRows.map<FinanceTransactionRecord>((row) => ({
-			id: row.id,
-			date: row.date,
-			amount: row.amount,
-			category: row.category?.trim() || "Outros",
-			description: row.description ?? null,
-			source: "pluggy",
-			sourceExternalId: null,
-			sourceItemId: row.sourceItemId,
-			sourceProvider: row.sourceProvider,
-			sourceAccountName: row.sourceAccountName,
-			sourceAccountType: row.sourceAccountType,
-			sourceAccountSubtype: row.sourceAccountSubtype,
-			sourceAccountBrand: row.sourceAccountBrand,
-				createdAt: new Date(row.createdAt),
-			updatedAt: null,
-			kind: row.amount < 0 ? "expense" : "income",
-			isDeletable: false,
-			isHideable: row.amount < 0,
-		})),
+		// Own-money movements (transfers, savings, card bill payments) are left out.
+		...pluggyRows
+			.filter((row) => row.classification.kind !== "ignored")
+			.map<FinanceTransactionRecord>((row) => ({
+				id: row.id,
+				date: row.date,
+				amount: signedAmount(row.classification),
+				category: row.category?.trim() || "Outros",
+				description: row.description ?? null,
+				source: "pluggy",
+				sourceExternalId: null,
+				sourceItemId: row.pluggyItemId,
+				sourceProvider: row.provider,
+				sourceAccountName: row.accountName,
+				sourceAccountType: row.accountType,
+				sourceAccountSubtype: row.accountSubtype,
+				sourceAccountBrand: row.accountBrand,
+				createdAt: row.createdAt,
+				updatedAt: null,
+				// Refunds show as money in; the summary nets them out of spending.
+				kind: row.classification.kind === "expense" ? "expense" : "income",
+				isDeletable: false,
+				isHideable: row.classification.kind === "expense",
+			})),
 		...manualExpenses.map<FinanceTransactionRecord>((row) => ({
 			id: row.id,
 			date: row.expenseDate,
@@ -257,7 +213,7 @@ async function getPartialResultMetrics(params: {
 	const { userId, month } = params;
 	const { start, end } = getMonthBounds(month);
 
-	const [manualExpensesResult, manualIncomeResult, pluggyTransactionsResult] = await Promise.all([
+	const [manualExpensesResult, manualIncomeResult, pluggy] = await Promise.all([
 		db
 			.select({ totalSpent: sum(expense.amount).mapWith(Number) })
 			.from(expense)
@@ -270,32 +226,11 @@ async function getPartialResultMetrics(params: {
 			.where(and(buildManualExpensesWhere({ userId, start, end }), eq(expense.kind, "income")))
 			.limit(1)
 			.then((rows) => rows[0]),
-		db
-			.select({
-				amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number),
-			})
-			.from(pluggyTransactions)
-			.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
-			.where(buildVisiblePluggyTransactionsWhere({ userId, start, end })),
+		getPluggyTotals({ userId, start, end }),
 	]);
 
-	let income = 0;
-	let pluggySpent = 0;
-
-	for (const transaction of pluggyTransactionsResult) {
-		const amount = transaction.amount;
-		if (amount > 0) {
-			income += amount;
-			continue;
-		}
-
-		if (amount < 0) {
-			pluggySpent += Math.abs(amount);
-		}
-	}
-
-	const spent = pluggySpent + (manualExpensesResult?.totalSpent ?? 0);
-	const totalIncome = income + (manualIncomeResult?.totalIncome ?? 0);
+	const spent = pluggy.spent + (manualExpensesResult?.totalSpent ?? 0);
+	const totalIncome = pluggy.income + (manualIncomeResult?.totalIncome ?? 0);
 	const result = totalIncome - spent;
 
 	return {
@@ -311,26 +246,17 @@ async function getMonthlySpent(params: {
 	end: string;
 }) {
 	const { userId, start, end } = params;
-	const [manualExpensesResult, pluggyTransactionsResult] = await Promise.all([
+	const [manualExpensesResult, pluggy] = await Promise.all([
 		db
 			.select({ totalSpent: sum(expense.amount).mapWith(Number) })
 			.from(expense)
 			.where(and(buildManualExpensesWhere({ userId, start, end }), eq(expense.kind, "expense")))
 			.limit(1)
 			.then((rows) => rows[0]),
-		db
-			.select({ amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number) })
-			.from(pluggyTransactions)
-			.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
-			.where(buildVisiblePluggyTransactionsWhere({ userId, start, end })),
+		getPluggyTotals({ userId, start, end }),
 	]);
 
-	const pluggySpent = pluggyTransactionsResult.reduce(
-		(total, transaction) => total + (transaction.amount < 0 ? Math.abs(transaction.amount) : 0),
-		0,
-	);
-
-	return (manualExpensesResult?.totalSpent ?? 0) + pluggySpent;
+	return (manualExpensesResult?.totalSpent ?? 0) + pluggy.spent;
 }
 
 function getRemainingDaysInMonth(month: string, today: string) {
@@ -546,12 +472,21 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					.select({
 						id: pluggyTransactions.id,
 						pluggyItemId: pluggyTransactions.pluggyItemId,
+						date: pluggyTransactions.date,
 						amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number),
+						category: pluggyTransactions.category,
+						description: pluggyTransactions.description,
+						accountId: pluggyTransactions.pluggyAccountId,
+						accountType: pluggyAccounts.type,
 					})
 					.from(pluggyTransactions)
 					.innerJoin(
 						pluggyItems,
 						eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
+					)
+					.leftJoin(
+						pluggyAccounts,
+						eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
 					)
 					.where(
 						and(
@@ -560,16 +495,13 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						),
 					);
 
-				const hideableIds = ownedTransactions
-					.filter((row) => row.amount < 0)
-					.map((row) => row.id);
-				const itemIds = Array.from(
-					new Set(
-						ownedTransactions
-							.filter((row) => row.amount < 0)
-							.map((row) => row.pluggyItemId),
-					),
+				// Only spending can be hidden (card purchases are positive on Pluggy).
+				const classified = classifyPluggyTransactions(ownedTransactions);
+				const hideable = ownedTransactions.filter(
+					(row) => classified.get(row.id)?.kind === "expense",
 				);
+				const hideableIds = hideable.map((row) => row.id);
+				const itemIds = Array.from(new Set(hideable.map((row) => row.pluggyItemId)));
 
 				if (hideableIds.length === 0) {
 					return reply.send({ hidden: 0 });

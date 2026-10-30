@@ -84,8 +84,19 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
 - `pluggy_bills` deve permanecer idempotente por `pluggyAccountId + pluggyBillId`.
 - O sync inicial deve sincronizar contas antes de faturas/transações, porque ambos dependem do mapeamento `pluggy_account_id`.
 - Após upsert de `pluggy_bills`, materializar `monthly_bill` + `monthly_bill_item` (source=`pluggy`) por mês de `dueDate` (YYYY-MM). Não apagar itens manuais (`source=manual`).
-- A reconstrução de despesas derivadas da Pluggy deve ignorar transações ocultadas localmente.
+- A reconstrução de despesas derivadas da Pluggy deve ignorar transações ocultadas localmente e seguir a classificação (seção abaixo).
 - Se a persistência do item funcionar e o sync falhar, o item não deve ser desfeito. A API deve retornar sucesso parcial com `sync.status = "failed"`.
+
+## Classificação (receita × gasto)
+
+Fonte única: `apps/api/src/services/pluggy-classification.ts` (função pura, com testes). Resumo do mês, gasto do mês (meta), lista de transações, despesas derivadas (`expense` source=`pluggy`) e resumo diário push usam essa classificação via `services/pluggy-ledger.ts`. Não reintroduza regra por sinal bruto (`amount < 0`) nem lista de categorias ignoradas em queries.
+
+- **Sinal por tipo de conta:** BANK negativo = saída; CREDIT positivo = compra, negativo = pagamento/estorno.
+- **Ignorado (dinheiro do próprio usuário mudando de lugar):** categorias `Same person transfer`, `Transfer - Internal`, `Investments`, `Credit card payment`; pagamento de fatura (descrição "Pagamento de fatura"/"Pagamento cartão"/"Pagamento recebido" ou saída da conta com mesmo valor de um pagamento recebido por cartão conectado em até 2 dias); saída e entrada de mesmo valor entre duas contas BANK do usuário em até 2 dias.
+- **Gasto:** demais saídas BANK (inclui PIX/QR Pix a terceiros) e compras no cartão.
+- **Estorno:** crédito no cartão ou entrada com "estorno/reembolso/devolução"; reduz o gasto e vira linha negativa em `expense` na mesma categoria.
+- **Receita:** demais entradas BANK.
+- `rebuildExpensesFromStoredTransactions` recalcula **todos** os itens do usuário (pares de transferência cruzam itens).
 
 ## Regras de UX
 

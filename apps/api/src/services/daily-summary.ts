@@ -2,12 +2,6 @@ import dayjs from "dayjs";
 import {
 	and,
 	eq,
-	gte,
-	isNull,
-	lte,
-	notInArray,
-	or,
-	sql,
 	sum,
 } from "drizzle-orm";
 import webPush from "web-push";
@@ -15,27 +9,18 @@ import { env } from "../db/env.js";
 import { db } from "../db/index.js";
 import {
 	expense,
-	pluggyItems,
-	pluggyTransactions,
 	pushSubscription,
 	type UserSettings,
 	user,
 } from "../db/schema/index.js";
 import { decryptSecret } from "../lib/secret-crypto.js";
 import { getDueDailySummaryDate } from "./daily-summary-time.js";
+import { getPluggyTotals } from "./pluggy-ledger.js";
 import {
 	type BrowserSubscription,
 	isExpiredPushError,
 	pushAvailable,
 } from "./push.js";
-
-const ignoredCategories = [
-	"Transfer - Internal",
-	"Transfers",
-	"Transfer - PIX",
-	"Credit card payment",
-	"Same person transfer",
-];
 
 export async function sendDueDailySummaries(now = dayjs()) {
 	const vapidSubject = env.VAPID_SUBJECT;
@@ -55,7 +40,7 @@ export async function sendDueDailySummaries(now = dayjs()) {
 		const today = getDueDailySummaryDate(now);
 		if (!today) continue;
 		const start = today;
-		const [manualOut, manualIn, bankRows, subscriptions] = await Promise.all([
+		const [manualOut, manualIn, bank, subscriptions] = await Promise.all([
 			db
 				.select({ amount: sum(expense.amount).mapWith(Number) })
 				.from(expense)
@@ -78,27 +63,7 @@ export async function sendDueDailySummaries(now = dayjs()) {
 						eq(expense.expenseDate, today),
 					),
 				),
-			db
-				.select({
-					amount: sql<number>`${pluggyTransactions.amount}`.mapWith(Number),
-				})
-				.from(pluggyTransactions)
-				.innerJoin(
-					pluggyItems,
-					eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
-				)
-				.where(
-					and(
-						eq(pluggyItems.userId, row.id),
-						gte(pluggyTransactions.date, start),
-						lte(pluggyTransactions.date, today),
-						isNull(pluggyTransactions.hiddenAt),
-						or(
-							sql`${pluggyTransactions.category} is null`,
-							notInArray(pluggyTransactions.category, ignoredCategories),
-						),
-					),
-				),
+			getPluggyTotals({ userId: row.id, start, end: today }),
 			db
 				.select({
 					hash: pushSubscription.endpointHash,
@@ -108,16 +73,8 @@ export async function sendDueDailySummaries(now = dayjs()) {
 				.from(pushSubscription)
 				.where(eq(pushSubscription.userId, row.id)),
 		]);
-		const bankIncome = bankRows.reduce(
-			(total, item) => total + (item.amount > 0 ? item.amount : 0),
-			0,
-		);
-		const bankSpend = bankRows.reduce(
-			(total, item) => total + (item.amount < 0 ? Math.abs(item.amount) : 0),
-			0,
-		);
-		const income = (manualIn[0]?.amount ?? 0) + bankIncome;
-		const spent = (manualOut[0]?.amount ?? 0) + bankSpend;
+		const income = (manualIn[0]?.amount ?? 0) + bank.income;
+		const spent = (manualOut[0]?.amount ?? 0) + bank.spent;
 		const money = (amount: number) =>
 			new Intl.NumberFormat("pt-BR", {
 				style: "currency",

@@ -13,6 +13,7 @@ import type {
 	PluggyItem as RemotePluggyItem,
 } from "../clients/pluggy/types.js";
 import { db } from "../db/index.js";
+import { classifyPluggyTransactions } from "./pluggy-classification.js";
 import {
 	expense,
 	monthlyBill,
@@ -33,14 +34,6 @@ export type {
 
 const INITIAL_SYNC_WINDOW_MONTHS = 6;
 export const PLUGGY_ORPHANED_STATUS = "ITEM_NOT_FOUND";
-export const PLUGGY_IGNORED_EXPENSE_CATEGORIES = [
-	"Transfer - Internal",
-	"Transfers",
-	"Transfer - PIX",
-	"Credit card payment",
-	"Same person transfer",
-] as const;
-
 export type PluggySyncStatus = "success" | "partial_failure" | "failed";
 export type PluggySyncPhaseStatus = "success" | "failed" | "skipped";
 
@@ -77,16 +70,6 @@ export type PluggyAccountSyncResult = PluggySyncPhaseResult & {
 };
 
 const PLUGGY_EXPENSE_SOURCE = "pluggy";
-
-function isIgnoredPluggyExpenseCategory(category?: string | null) {
-	if (!category) {
-		return false;
-	}
-
-	return PLUGGY_IGNORED_EXPENSE_CATEGORIES.includes(
-		category.trim() as (typeof PLUGGY_IGNORED_EXPENSE_CATEGORIES)[number],
-	);
-}
 
 function isPluggyItemNotFoundError(error: unknown) {
 	if (!(error instanceof PluggyApiError)) {
@@ -718,52 +701,82 @@ async function syncTransactionsForAccount(params: {
 }
 
 export type StoredTransactionForExpense = {
+	/** Local row id; used as classification key when present. */
+	id?: string;
 	pluggyTransactionId: string;
+	/** Local item of this transaction; defaults to the `localItemId` param. */
+	localItemId?: string;
 	date: string;
 	amount: string | number;
 	description: string | null;
 	category: string | null;
 	provider: string | null;
+	accountId?: string | null;
 	accountName: string | null;
 	accountType: string | null;
 	accountSubtype: string | null;
 	accountBrand: string | null;
 };
 
-/** Maps stored Pluggy transactions into expense rows with origin metadata. */
+/**
+ * Maps stored Pluggy transactions into expense rows with origin metadata.
+ * Spending becomes a positive row and refunds a negative one in the same
+ * category; income and own-money movements are skipped (see
+ * pluggy-classification.ts).
+ */
 export function mapPluggyTransactionsToExpenses(params: {
 	userId: string;
 	localItemId: string;
 	transactions: StoredTransactionForExpense[];
 }) {
 	const { userId, localItemId, transactions } = params;
-	return transactions
-		.filter((tx) => {
-			const amount = Number(tx.amount);
-			return (
-				Boolean(tx.date) &&
-				Number.isFinite(amount) &&
-				amount < 0 &&
-				!isIgnoredPluggyExpenseCategory(tx.category)
-			);
-		})
-		.map((tx) => ({
-			userId,
-			expenseDate: tx.date,
-			amount: Math.abs(Number(tx.amount)).toFixed(2),
-			category: tx.category?.trim() || "Outros",
-			note: tx.description ?? null,
-			source: PLUGGY_EXPENSE_SOURCE,
-			sourceExternalId: tx.pluggyTransactionId,
-			sourceItemId: localItemId,
-			sourceProvider: tx.provider,
-			sourceAccountName: tx.accountName,
-			sourceAccountType: tx.accountType,
-			sourceAccountSubtype: tx.accountSubtype,
-			sourceAccountBrand: tx.accountBrand,
-		}));
+	const keyOf = (tx: StoredTransactionForExpense) =>
+		tx.id ?? tx.pluggyTransactionId;
+	const classified = classifyPluggyTransactions(
+		transactions
+			.filter((tx) => Boolean(tx.date))
+			.map((tx) => ({
+				id: keyOf(tx),
+				date: tx.date,
+				amount: Number(tx.amount),
+				category: tx.category,
+				description: tx.description,
+				accountType: tx.accountType,
+				accountId: tx.accountId ?? null,
+			})),
+	);
+
+	return transactions.flatMap((tx) => {
+		const result = classified.get(keyOf(tx));
+		if (!result || (result.kind !== "expense" && result.kind !== "refund")) {
+			return [];
+		}
+		const amount = result.kind === "refund" ? -result.amount : result.amount;
+		return [
+			{
+				userId,
+				expenseDate: tx.date,
+				amount: amount.toFixed(2),
+				category: tx.category?.trim() || "Outros",
+				note: tx.description ?? null,
+				source: PLUGGY_EXPENSE_SOURCE,
+				sourceExternalId: tx.pluggyTransactionId,
+				sourceItemId: tx.localItemId ?? localItemId,
+				sourceProvider: tx.provider,
+				sourceAccountName: tx.accountName,
+				sourceAccountType: tx.accountType,
+				sourceAccountSubtype: tx.accountSubtype,
+				sourceAccountBrand: tx.accountBrand,
+			},
+		];
+	});
 }
 
+/**
+ * Rebuilds every Pluggy-derived expense of the user (all items), because a
+ * transfer between two connected banks spans items and changes both sides.
+ * `localItemId` is the item that triggered the rebuild.
+ */
 export async function rebuildExpensesFromStoredTransactions(params: {
 	userId: string;
 	localItemId: string;
@@ -771,12 +784,15 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 	const { userId, localItemId } = params;
 	const storedTransactions = await db
 		.select({
+			id: pluggyTransactions.id,
 			pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
+			localItemId: pluggyTransactions.pluggyItemId,
 			date: pluggyTransactions.date,
 			amount: pluggyTransactions.amount,
 			description: pluggyTransactions.description,
 			category: pluggyTransactions.category,
 			provider: pluggyItems.provider,
+			accountId: pluggyTransactions.pluggyAccountId,
 			accountName: pluggyAccounts.name,
 			accountType: pluggyAccounts.type,
 			accountSubtype: pluggyAccounts.subtype,
@@ -789,13 +805,10 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 			eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
 		)
 		.where(
-			and(
-				eq(pluggyTransactions.pluggyItemId, localItemId),
-				isNull(pluggyTransactions.hiddenAt),
-			),
+			and(eq(pluggyItems.userId, userId), isNull(pluggyTransactions.hiddenAt)),
 		);
 
-	const outgoing = mapPluggyTransactionsToExpenses({
+	const rows = mapPluggyTransactionsToExpenses({
 		userId,
 		localItemId,
 		transactions: storedTransactions,
@@ -808,20 +821,18 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 				and(
 					eq(expense.userId, userId),
 					eq(expense.source, PLUGGY_EXPENSE_SOURCE),
-					eq(expense.sourceItemId, localItemId),
 				),
 			);
 
-		if (outgoing.length === 0) {
-			return;
+		// Insert in chunks to stay under Postgres' bind-parameter limit.
+		for (let i = 0; i < rows.length; i += 500) {
+			await tx.insert(expense).values(rows.slice(i, i + 500));
 		}
-
-		await tx.insert(expense).values(outgoing);
 	});
 
 	return {
 		total: storedTransactions.length,
-		inserted: outgoing.length,
+		inserted: rows.length,
 	};
 }
 

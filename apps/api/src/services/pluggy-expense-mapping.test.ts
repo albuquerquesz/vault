@@ -10,7 +10,7 @@ function tx(
 	return {
 		pluggyTransactionId: "remote-tx-1",
 		date: "2026-07-01",
-		amount: "-42.50",
+		amount: "42.50",
 		description: "Mercado",
 		category: "Alimentação",
 		provider: "Nubank",
@@ -51,6 +51,7 @@ describe("mapPluggyTransactionsToExpenses", () => {
 			localItemId: "item-1",
 			transactions: [
 				tx({
+					amount: "-42.50",
 					accountName: null,
 					accountType: null,
 					accountSubtype: null,
@@ -67,22 +68,61 @@ describe("mapPluggyTransactionsToExpenses", () => {
 		expect(result[0]?.sourceAccountBrand).toBeNull();
 	});
 
-	test("ignores income and ignored transfer categories", () => {
+	test("keeps bank spending and PIX to others, skips income and own transfers", () => {
+		const bank = { accountType: "BANK", accountName: "Conta" };
 		const result = mapPluggyTransactionsToExpenses({
 			userId: "user-1",
 			localItemId: "item-1",
 			transactions: [
-				tx({ pluggyTransactionId: "income", amount: "100" }),
+				tx({ ...bank, pluggyTransactionId: "income", amount: "100" }),
 				tx({
+					...bank,
 					pluggyTransactionId: "pix",
 					amount: "-10",
 					category: "Transfer - PIX",
 				}),
-				tx({ pluggyTransactionId: "expense", amount: "-15" }),
+				tx({
+					...bank,
+					pluggyTransactionId: "own",
+					amount: "-20",
+					category: "Same person transfer",
+				}),
+				tx({
+					...bank,
+					pluggyTransactionId: "bill",
+					amount: "-300",
+					category: "Transfers",
+					description: "Pagamento de fatura",
+				}),
+				tx({ ...bank, pluggyTransactionId: "expense", amount: "-15" }),
 			],
 		});
 
-		expect(result).toHaveLength(1);
-		expect(result[0]?.sourceExternalId).toBe("expense");
+		expect(result.map((row) => row.sourceExternalId)).toEqual([
+			"pix",
+			"expense",
+		]);
+	});
+
+	test("card credits become negative rows in their category", () => {
+		const result = mapPluggyTransactionsToExpenses({
+			userId: "user-1",
+			localItemId: "item-1",
+			transactions: [
+				tx({ pluggyTransactionId: "purchase", amount: "216.26" }),
+				tx({ pluggyTransactionId: "refund", amount: "-67.42" }),
+				tx({
+					pluggyTransactionId: "payment",
+					amount: "-500",
+					category: "Credit card payment",
+					description: "Pagamento recebido",
+				}),
+			],
+		});
+
+		expect(result.map((row) => [row.sourceExternalId, row.amount])).toEqual([
+			["purchase", "216.26"],
+			["refund", "-67.42"],
+		]);
 	});
 });
