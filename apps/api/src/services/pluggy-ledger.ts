@@ -5,6 +5,7 @@ import {
 	pluggyAccounts,
 	pluggyItems,
 	pluggyTransactions,
+	user,
 } from "../db/schema/index.js";
 import {
 	type ClassifiedTransaction,
@@ -29,6 +30,16 @@ export type ClassifiedPluggyRow = {
 	createdAt: Date;
 	classification: ClassifiedTransaction;
 };
+
+/** The user's display name, used to spot transfers to/from their own company. */
+export async function getOwnerName(userId: string) {
+	const [row] = await db
+		.select({ name: user.name })
+		.from(user)
+		.where(eq(user.id, userId))
+		.limit(1);
+	return row?.name ?? null;
+}
 
 /** Days loaded beyond the period so transfer legs just outside it still pair. */
 const PAIRING_PADDING_DAYS = 3;
@@ -95,6 +106,7 @@ export async function loadClassifiedPluggyTransactions(params: {
 			accountType: row.accountType,
 			accountId: row.accountId,
 		})),
+		{ ownerName: await getOwnerName(userId) },
 	);
 
 	return rows

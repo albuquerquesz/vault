@@ -128,10 +128,31 @@ function findCardBillPayments(txs: ClassifiableTransaction[]) {
 	return billPayments;
 }
 
+function normalizeName(text: string) {
+	return text
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.toLowerCase()
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
+/**
+ * True when the counterpart carries the user's full name, e.g. a PIX from the
+ * user's own company ("66.390.189 VICTOR ALBUQUERQUE ARRUDA") or own account
+ * at an unconnected bank. Single-word names are skipped (too broad).
+ */
+function mentionsOwner(description: string, ownerNames: string[]) {
+	if (ownerNames.length === 0 || !description) return false;
+	const text = normalizeName(description);
+	return ownerNames.some((name) => text.includes(name));
+}
+
 function classifyOne(
 	tx: ClassifiableTransaction,
 	pairedTransfers: Set<string>,
 	cardBillPayments: Set<string>,
+	ownerNames: string[],
 ): ClassifiedTransaction {
 	const amount = Math.abs(tx.amount);
 	const category = tx.category?.trim() ?? "";
@@ -156,6 +177,9 @@ function classifyOne(
 	if (pairedTransfers.has(tx.id)) {
 		return { kind: "ignored", amount, reason: "own_account_transfer" };
 	}
+	if (mentionsOwner(description, ownerNames)) {
+		return { kind: "ignored", amount, reason: "owner_name_transfer" };
+	}
 	if (tx.amount < 0) {
 		// The card's purchases are counted on the card; paying the bill is not spending.
 		if (CARD_BILL_PAYMENT.test(description) || cardBillPayments.has(tx.id)) {
@@ -172,10 +196,15 @@ function classifyOne(
 /**
  * Classifies a batch. Pass every visible transaction around the period of
  * interest (all of the user's accounts) so transfer pairs can be matched.
+ * `ownerName` (the user's full name) marks transfers to/from the user's own
+ * company or other accounts as internal.
  */
 export function classifyPluggyTransactions(
 	txs: ClassifiableTransaction[],
+	options: { ownerName?: string | null } = {},
 ): Map<string, ClassifiedTransaction> {
+	const owner = normalizeName(options.ownerName ?? "");
+	const ownerNames = owner.split(" ").length >= 2 ? [owner] : [];
 	// Card bill payments first, so they are not mistaken for transfer legs.
 	const cardBillPayments = findCardBillPayments(txs);
 	const pairedTransfers = findInternalTransferPairs(
@@ -184,7 +213,7 @@ export function classifyPluggyTransactions(
 	return new Map(
 		txs.map((tx) => [
 			tx.id,
-			classifyOne(tx, pairedTransfers, cardBillPayments),
+			classifyOne(tx, pairedTransfers, cardBillPayments, ownerNames),
 		]),
 	);
 }

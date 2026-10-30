@@ -158,6 +158,39 @@ describe("classifyPluggyTransactions", () => {
 		);
 	});
 
+	test("transfers with the owner's full name are internal (own company/PF)", () => {
+		const fromCompany = tx({
+			amount: 1640,
+			category: "Transfer - PIX",
+			description: "Pix recebido 66.390.189 VICTOR ALBUQUERQUE ARRUDA",
+		});
+		const toCompany = tx({
+			amount: -1640,
+			category: "Electronics",
+			description: "Pagamento com Pix 66.390.189 VICTOR ALBUQUERQUE ARRUDA",
+		});
+		const relative = tx({
+			amount: -300,
+			category: "Transfers",
+			description: "Pix enviado Nathalia Souza de Albuquerque",
+		});
+		const result = classifyPluggyTransactions(
+			[fromCompany, toCompany, relative],
+			{
+				ownerName: "Victor Albuquerque",
+			},
+		);
+		expect(result.get(fromCompany.id)?.reason).toBe("owner_name_transfer");
+		expect(result.get(toCompany.id)?.reason).toBe("owner_name_transfer");
+		expect(result.get(relative.id)?.kind).toBe("expense");
+		// Without a full name nothing is treated as the owner.
+		expect(
+			classifyPluggyTransactions([fromCompany], { ownerName: "Victor" }).get(
+				fromCompany.id,
+			)?.kind,
+		).toBe("income");
+	});
+
 	test("bank refunds reduce spending", () => {
 		const refund = tx({
 			amount: 186.4,

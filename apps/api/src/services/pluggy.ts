@@ -14,6 +14,7 @@ import type {
 } from "../clients/pluggy/types.js";
 import { db } from "../db/index.js";
 import { classifyPluggyTransactions } from "./pluggy-classification.js";
+import { getOwnerName } from "./pluggy-ledger.js";
 import {
 	expense,
 	monthlyBill,
@@ -728,8 +729,10 @@ export function mapPluggyTransactionsToExpenses(params: {
 	userId: string;
 	localItemId: string;
 	transactions: StoredTransactionForExpense[];
+	/** User's full name; transfers to/from it are internal. */
+	ownerName?: string | null;
 }) {
-	const { userId, localItemId, transactions } = params;
+	const { userId, localItemId, transactions, ownerName } = params;
 	const keyOf = (tx: StoredTransactionForExpense) =>
 		tx.id ?? tx.pluggyTransactionId;
 	const classified = classifyPluggyTransactions(
@@ -744,6 +747,7 @@ export function mapPluggyTransactionsToExpenses(params: {
 				accountType: tx.accountType,
 				accountId: tx.accountId ?? null,
 			})),
+		{ ownerName },
 	);
 
 	return transactions.flatMap((tx) => {
@@ -812,6 +816,7 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 		userId,
 		localItemId,
 		transactions: storedTransactions,
+		ownerName: await getOwnerName(userId),
 	});
 
 	await db.transaction(async (tx) => {
