@@ -32,6 +32,8 @@ export const pluggyTransactions = pgTable(
 		category: varchar("category", { length: 100 }),
 		/** User/agent-chosen category; display only, never used to classify. */
 		categoryOverride: varchar("category_override", { length: 100 }),
+		/** Pluggy bill id (credit cards), set once the transaction is billed. */
+		pluggyBillId: varchar("pluggy_bill_id", { length: 255 }),
 		hiddenAt: timestamp("hidden_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 	},
@@ -39,6 +41,7 @@ export const pluggyTransactions = pgTable(
 		index("pluggy_tx_item_id_idx").on(table.pluggyItemId),
 		index("pluggy_tx_account_id_idx").on(table.pluggyAccountId),
 		index("pluggy_tx_pluggy_id_idx").on(table.pluggyTransactionId),
+		index("pluggy_tx_bill_id_idx").on(table.pluggyBillId),
 		unique("pluggy_transactions_item_transaction_unique").on(
 			table.pluggyItemId,
 			table.pluggyTransactionId,
