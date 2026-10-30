@@ -111,6 +111,7 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
   - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
   - Deploy só de código: secrets do Worker não são alterados (use `bun run cf:deploy -- --sync-secrets` para isso)
   - Domínio estável: `https://vault-api.albuquerquesz.com`
+- **Banco no Worker:** o Worker acessa o Neon via **Hyperdrive** (binding `HYPERDRIVE` em `apps/api/wrangler.toml`), com uma conexão `pg` por requisição (`withRequestDb` em `apps/api/src/db/index.ts`). Não volte a usar `neon-http` no Worker: cada query vira um subrequest e o sync estoura o limite de 50 do Workers Free (`Too many subrequests`).
 - **Web production:** `.github/workflows/deploy-web.yml` em **push para `main`** (e `workflow_dispatch`) quando mudam `apps/web/**`, `packages/ui/**`, `packages/config/**`, `package.json` ou `bun.lock`: build Vite + `wrangler pages deploy` no projeto Pages `vault-web` (inclui `functions/`, o proxy `/api`). Smoke valida `/`, `/api/auth/ok` e o início do OAuth Google.
 - Smoke pós-deploy do workflow valida `POST /api/webhooks/pluggy` e o início do OAuth Google (`invalid_client` falha o job).
 
