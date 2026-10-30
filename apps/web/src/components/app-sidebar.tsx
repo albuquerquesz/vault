@@ -25,7 +25,7 @@ export function AppSidebar() {
 	return (
 		<Sidebar
 			className={cn(
-				"border-0! md:p-4 *:data-[slot=sidebar-inner]:bg-sidebar",
+				"border-0! md:p-4 md:group-data-[collapsible=icon]:p-2 *:data-[slot=sidebar-inner]:bg-sidebar",
 				"**:data-[slot=sidebar-menu-button]:[&>span]:text-foreground/75",
 			)}
 			collapsible="icon"
@@ -49,8 +49,8 @@ export function AppSidebar() {
 					</div>
 				</div>
 			</SidebarHeader>
-			<SidebarContent className="px-3 pt-4">
-				<SidebarMenu className="gap-1">
+			<SidebarContent className="px-3 pt-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+				<SidebarMenu className="gap-1 group-data-[collapsible=icon]:items-center">
 					{navLinks.map((item) => (
 						<AnimatedNavItem key={item.title} item={item} onNavigate={() => setOpenMobile(false)} />
 					))}

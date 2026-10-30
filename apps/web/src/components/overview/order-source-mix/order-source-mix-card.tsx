@@ -35,6 +35,7 @@ export function OrderSourceMixCard({
 
 	return (
 		<OverviewCardShell
+			hideHeader
 			title={title}
 			icon={<PieChartIcon className="size-4 text-muted-foreground" />}
 			tooltip="Resumo da distribuição dos gastos por categoria"

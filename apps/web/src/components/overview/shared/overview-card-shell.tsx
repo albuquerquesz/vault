@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import { FinancialPanel } from "@/components/shared/financial-panel";
 
 type OverviewCardShellProps = {
+	/** Render the card without its title row. */
+	hideHeader?: boolean;
 	title: string;
 	icon: ReactNode;
 	tooltip: string;
@@ -27,21 +29,30 @@ export function OverviewCardShell({
 	className,
 	contentClassName,
 	headerClassName,
+	hideHeader = false,
 }: OverviewCardShellProps) {
 	return (
 		<FinancialPanel
-			className={cn("@container h-full min-h-0 sm:min-h-[18rem] xl:min-h-[24rem]", className)}
+			className={cn(
+				"@container h-full min-h-0 sm:min-h-[18rem] xl:min-h-[24rem]",
+				className,
+			)}
 			headerClassName={headerClassName}
 			contentClassName={contentClassName}
 			footer={footer}
 			footerClassName={footerClassName}
 			header={
-				<div className="flex items-center justify-between gap-2">
-					<CardDescription aria-description={tooltip} className="flex items-center gap-2 text-base">
-						{icon}
-						<span>{title}</span>
-					</CardDescription>
-				</div>
+				hideHeader ? undefined : (
+					<div className="flex items-center justify-between gap-2">
+						<CardDescription
+							aria-description={tooltip}
+							className="flex items-center gap-2 text-base"
+						>
+							{icon}
+							<span>{title}</span>
+						</CardDescription>
+					</div>
+				)
 			}
 		>
 			{children}
