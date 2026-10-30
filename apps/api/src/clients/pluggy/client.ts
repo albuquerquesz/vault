@@ -58,8 +58,12 @@ export async function authenticatePluggy(
 
 	if (!res.ok) {
 		const text = await res.text();
+		let detail = text;
+		try {
+			detail = (JSON.parse(text) as { message?: string }).message ?? text;
+		} catch {}
 		throw new PluggyAuthError(
-			`Credenciais Pluggy inválidas (${res.status}): ${text}`,
+			`Credenciais Pluggy inválidas (${res.status}): ${detail}`,
 			res.status === 401 || res.status === 403 ? 400 : 502,
 		);
 	}

@@ -1,9 +1,10 @@
 import { eq } from "drizzle-orm";
-import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
+import { PluggyApiError, PluggyAuthError } from "../clients/pluggy/client.js";
 import type { PluggyCredentials } from "../clients/pluggy/types.js";
 import { db } from "../db/index.js";
 import { type UserSettings, user } from "../db/schema/user.js";
+import type { RouteRegistrar } from "../hono/registrar.js";
 import {
 	deletePluggyCredentials,
 	getPluggyCredentialsStatus,
@@ -43,8 +44,9 @@ const avatarSchema = z.object({
 });
 
 const pluggyCredentialsSchema = z.object({
-	clientId: z.string().min(1),
-	clientSecret: z.string().min(1),
+	// Pasted keys often carry stray whitespace, which Pluggy rejects as invalid.
+	clientId: z.string().trim().min(1),
+	clientSecret: z.string().trim().min(1),
 });
 
 const mcpTokenNameSchema = z.object({
@@ -74,6 +76,11 @@ function sendKnownError(
 		return reply.status(400).send({ error: error.message });
 	}
 	if (error instanceof MissingPluggyCredentialsError) {
+		return reply.status(error.statusCode).send({ error: error.message });
+	}
+	// Surface the real Pluggy error instead of a generic 500.
+	if (error instanceof PluggyAuthError || error instanceof PluggyApiError) {
+		console.warn("[pluggy] request failed:", error.message);
 		return reply.status(error.statusCode).send({ error: error.message });
 	}
 	throw error;
