@@ -8,7 +8,14 @@ import {
 	CardTitle,
 } from "@vault/ui/components/card";
 import { Input } from "@vault/ui/components/input";
-import { KeyRoundIcon, Loader2, PlusIcon, Trash2Icon } from "lucide-react";
+import {
+	CopyIcon,
+	GlobeIcon,
+	KeyRoundIcon,
+	Loader2,
+	PlusIcon,
+	Trash2Icon,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -25,6 +32,62 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
 
 function formatDate(value: string | null) {
 	return value ? dateFormatter.format(new Date(value)) : "Nunca usado";
+}
+
+const REMOTE_CLIENT_STEPS = [
+	[
+		"Claude (web/desktop)",
+		"Configurações → Conectores → Adicionar conector personalizado → cole a URL",
+	],
+	["ChatGPT", "Configurações → Conectores → criar conector com a URL"],
+	["Claude Code", "claude mcp add --transport http vault <URL>"],
+	["Cursor / VS Code", "Adicione um servidor MCP HTTP com a URL"],
+] as const;
+
+/** Remote MCP over OAuth: paste the URL in the client and sign in to Vault. */
+function RemoteMcpCard() {
+	const url = `${window.location.origin}/api/mcp`;
+	return (
+		<Card className="rounded-2xl border border-border/70 bg-background/60 ring-0">
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2 text-lg font-medium">
+					<GlobeIcon className="size-4 text-muted-foreground" />
+					MCP remoto
+				</CardTitle>
+				<p className="text-sm text-muted-foreground">
+					Conecte o Vault ao Claude, ChatGPT, Cursor ou VS Code. Cole a URL no
+					app e faça login no Vault quando ele pedir. O agente pode consultar
+					seus dados e registrar transações e metas.
+				</p>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				<div className="flex gap-2">
+					<Input readOnly value={url} className="font-mono text-sm" />
+					<Button
+						type="button"
+						variant="outline"
+						onClick={async () => {
+							await navigator.clipboard.writeText(url);
+							toast.success("URL copiada");
+						}}
+					>
+						<CopyIcon className="size-4" />
+						Copiar
+					</Button>
+				</div>
+				<ul className="space-y-2 text-sm">
+					{REMOTE_CLIENT_STEPS.map(([client, step]) => (
+						<li key={client}>
+							<span className="font-medium">{client}:</span>{" "}
+							<span className="text-muted-foreground">
+								{step.replace("<URL>", url)}
+							</span>
+						</li>
+					))}
+				</ul>
+			</CardContent>
+		</Card>
+	);
 }
 
 export function McpSettings() {
@@ -62,6 +125,7 @@ export function McpSettings() {
 
 	return (
 		<div className="space-y-4">
+			<RemoteMcpCard />
 			<Card className="rounded-2xl border border-border/70 bg-background/60 ring-0">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2 text-lg font-medium">

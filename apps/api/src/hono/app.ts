@@ -4,6 +4,7 @@ import { getAuth } from "../auth.js";
 import { env } from "../db/env.js";
 import { buildFrontAuthErrorUrl } from "../lib/auth-redirect.js";
 import { toAuthResponse } from "../lib/auth-response.js";
+import { registerMcpRoute } from "../mcp/route.js";
 import { registerRoutes } from "../routers/index.js";
 
 export function createApp() {
@@ -44,6 +45,7 @@ export function createApp() {
 	});
 
 	registerRoutes(app);
+	registerMcpRoute(app);
 
 	app.get("/", (c) => {
 		const query = c.req.query();
