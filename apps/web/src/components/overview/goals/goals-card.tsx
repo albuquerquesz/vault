@@ -52,6 +52,7 @@ export function GoalsCard({ className }: GoalsCardProps) {
 	return (
 		<>
 			<OverviewCardShell
+			hideHeader
 				className={className}
 				title="Metas"
 				icon={<Target className="size-4 text-muted-foreground" />}

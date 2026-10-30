@@ -40,7 +40,7 @@ export function NavUser({ compact = false }: { compact?: boolean }) {
 			</Avatar>
 			{!compact ? (
 				<span className="flex min-w-0 flex-col items-start">
-					<span className="max-w-full truncate text-sm font-medium text-foreground">{name || "Usuário"}</span>
+					<span className="max-w-full truncate text-base font-medium text-foreground">{name || "Usuário"}</span>
 					<span className="max-w-full truncate text-xs text-muted-foreground">{email}</span>
 				</span>
 			) : null}

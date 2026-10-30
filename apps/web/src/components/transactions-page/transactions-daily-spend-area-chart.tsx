@@ -101,7 +101,7 @@ export function TransactionsDailySpendAreaChart({
 			{hasExpenses ? (
 				<AreaChart
 					aspectRatio="auto"
-					className="h-72 sm:h-80"
+					className="h-96 sm:h-[28rem]"
 					data={chartData}
 					margin={{ top: 12, right: 16, bottom: 40, left: 12 }}
 					xDataKey="date"

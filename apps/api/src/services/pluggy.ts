@@ -990,6 +990,9 @@ export async function syncTransactionsForItem(params: {
 			userId,
 			localItemId,
 		});
+		// Bill totals sum the card transactions linked to each bill, so rebuild
+		// them after transactions (and their billId) are stored.
+		await materializeMonthlyBillsFromPluggy({ userId });
 
 		const failedAccounts = accountResults.filter(
 			(account) => account.status === "failed",
