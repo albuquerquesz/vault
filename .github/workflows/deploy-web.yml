@@ -1,0 +1,98 @@
+name: Deploy Web
+
+on:
+  # Production deploy of vault-web (Cloudflare Pages) on every push to main.
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/web/**"
+      - "packages/ui/**"
+      - "packages/config/**"
+      - ".github/workflows/deploy-web.yml"
+      - "package.json"
+      - "bun.lock"
+  # Manual production deploy when needed.
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Cloudflare secrets
+        run: |
+          missing=0
+          for key in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [ -z "${!key}" ]; then
+              echo "::error::$key secret is empty or not configured."
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "Set secrets under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.12
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build web
+        working-directory: apps/web
+        run: bun run build
+
+      - name: Deploy to Cloudflare Pages
+        # Run from apps/web so wrangler bundles functions/ (the /api proxy) too.
+        working-directory: apps/web
+        run: |
+          bunx wrangler@4.156.0 pages deploy dist \
+            --project-name vault-web \
+            --branch main \
+            --commit-hash "$GITHUB_SHA" \
+            --commit-message "$(git log -1 --pretty=%s)"
+
+      - name: Smoke-test site and API proxy
+        run: |
+          set -euo pipefail
+          web="https://vault.albuquerquesz.com"
+          code=$(curl -sS -o /dev/null -w "%{http_code}" "$web/")
+          echo "GET / -> $code"
+          test "$code" = "200"
+          code=$(curl -sS -o /dev/null -w "%{http_code}" "$web/api/auth/ok")
+          echo "GET /api/auth/ok -> $code"
+          test "$code" = "200"
+
+      - name: Smoke-test Google OAuth
+        # Google answers invalid_client when GOOGLE_CLIENT_ID is wrong on the Worker.
+        run: |
+          set -euo pipefail
+          web="https://vault.albuquerquesz.com"
+          url=$(curl -sS -X POST "$web/api/auth/sign-in/social" \
+            -H 'content-type: application/json' \
+            -H "origin: $web" \
+            -d '{"provider":"google"}' | jq -r '.url')
+          echo "$url" | grep -qE 'client_id=[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com'
+          echo "$url" | grep -q 'redirect_uri=https%3A%2F%2Fvault.albuquerquesz.com%2F'
+          final=$(curl -sS -L -o /tmp/google.html -w "%{url_effective}" -A 'Mozilla/5.0' "$url")
+          echo "Google landed on: ${final%%\?*}"
+          if grep -qiE 'invalid_client|redirect_uri_mismatch' /tmp/google.html; then
+            echo "::error::Google rejected the OAuth client or redirect URI."
+            exit 1
+          fi
