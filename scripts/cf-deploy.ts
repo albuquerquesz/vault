@@ -1,10 +1,30 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { parse } from "dotenv";
 
 const root = path.resolve(import.meta.dir, "..");
 const apiDir = path.join(root, "apps/api");
 const webDir = path.join(root, "apps/web");
+const prodEnvPath = path.join(apiDir, ".env.production");
+
+const DEFAULT_WEB_ORIGIN = "https://vault.albuquerquesz.com";
+const DEFAULT_API_ORIGIN = "https://vault-api.albuquerquesz.com";
+
+const REQUIRED_SECRETS = [
+	"DATABASE_URL",
+	"BETTER_AUTH_SECRET",
+	"GOOGLE_CLIENT_ID",
+	"GOOGLE_CLIENT_SECRET",
+];
+const LOCAL_MARKERS = ["local-dev", "localhost", "127.0.0.1"];
+const GOOGLE_CLIENT_ID_PATTERN =
+	/^\d+-[a-z0-9]+\.apps\.googleusercontent\.com$/;
 
 function run(
 	cmd: string[],
@@ -27,38 +47,28 @@ function parseEnvFile(filePath: string) {
 	return parse(readFileSync(filePath, "utf8")) as Record<string, string>;
 }
 
+// Prod secrets come only from apps/api/.env.production — never the local dev .env.
 function loadApiSecrets(webOrigin: string) {
-	const fromEnv = parseEnvFile(path.join(apiDir, ".env"));
-	const databaseUrl =
-		process.env.DATABASE_URL?.trim() || fromEnv.DATABASE_URL?.trim();
-	if (!databaseUrl) {
+	if (!existsSync(prodEnvPath)) {
 		console.error(
-			"DATABASE_URL missing. Export NEON URL or set apps/api/.env before deploy.",
+			`--sync-secrets needs ${path.relative(root, prodEnvPath)} with prod values.`,
 		);
 		process.exit(1);
 	}
+	const fromEnv = parseEnvFile(prodEnvPath);
 
 	const secrets: Record<string, string> = {
-		DATABASE_URL: databaseUrl,
-		POSTGRES_DB: fromEnv.POSTGRES_DB ?? "vault",
-		POSTGRES_HOST: fromEnv.POSTGRES_HOST ?? "localhost",
-		POSTGRES_PASSWORD: fromEnv.POSTGRES_PASSWORD ?? "password",
-		POSTGRES_PORT: fromEnv.POSTGRES_PORT ?? "5433",
-		POSTGRES_USER: fromEnv.POSTGRES_USER ?? "postgres",
-		BETTER_AUTH_SECRET: fromEnv.BETTER_AUTH_SECRET ?? "",
 		BETTER_AUTH_URL: webOrigin,
 		CORS_ORIGIN: webOrigin,
-		GOOGLE_CLIENT_ID: fromEnv.GOOGLE_CLIENT_ID ?? "",
-		GOOGLE_CLIENT_SECRET: fromEnv.GOOGLE_CLIENT_SECRET ?? "",
 		NODE_ENV: "production",
 		CF_WORKER: "1",
 	};
 
 	for (const [key, value] of Object.entries(fromEnv)) {
+		const trimmed = value?.trim();
 		if (
-			value &&
+			trimmed &&
 			![
-				"DATABASE_URL",
 				"BETTER_AUTH_URL",
 				"CORS_ORIGIN",
 				"NODE_ENV",
@@ -66,96 +76,85 @@ function loadApiSecrets(webOrigin: string) {
 			].includes(key) &&
 			!(key in secrets)
 		) {
-			secrets[key] = value;
+			secrets[key] = trimmed;
 		}
 	}
 
 	return secrets;
 }
 
-function writeSecretsFile(secrets: Record<string, string>) {
-	const secretsPath = path.join(apiDir, ".cf-secrets.json");
-	writeFileSync(secretsPath, `${JSON.stringify(secrets, null, 2)}\n`);
-	return secretsPath;
+export function validateSecrets(secrets: Record<string, string>) {
+	const errors: string[] = [];
+	for (const key of REQUIRED_SECRETS) {
+		if (!secrets[key]) errors.push(`${key} is missing`);
+	}
+	const clientId = secrets.GOOGLE_CLIENT_ID;
+	if (clientId && !GOOGLE_CLIENT_ID_PATTERN.test(clientId)) {
+		errors.push("GOOGLE_CLIENT_ID is not a valid Google OAuth client id");
+	}
+	for (const [key, value] of Object.entries(secrets)) {
+		const marker = LOCAL_MARKERS.find((m) => value.includes(m));
+		if (marker) errors.push(`${key} looks like a local value (${marker})`);
+	}
+	return errors;
 }
 
 function writeSpaRedirects() {
 	const publicDir = path.join(webDir, "public");
 	mkdirSync(publicDir, { recursive: true });
 	// External API proxy is handled by functions/api/[[path]].ts — Pages _redirects
-	// only supports relative 200 rewrites, not workers.dev origins.
-	writeFileSync(
-		path.join(publicDir, "_redirects"),
-		"/* /index.html 200\n",
+	// only supports relative 200 rewrites, not external origins.
+	writeFileSync(path.join(publicDir, "_redirects"), "/* /index.html 200\n");
+}
+
+function deployApi(webOrigin: string, syncSecrets: boolean) {
+	const cmd = ["bunx", "wrangler", "deploy", "--var", "CF_WORKER:1"];
+	let secretsPath: string | undefined;
+
+	if (syncSecrets) {
+		const secrets = loadApiSecrets(webOrigin);
+		const errors = validateSecrets(secrets);
+		if (errors.length > 0) {
+			console.error("Refusing to sync secrets:");
+			for (const error of errors) console.error(`  - ${error}`);
+			process.exit(1);
+		}
+		secretsPath = path.join(apiDir, ".cf-secrets.json");
+		writeFileSync(secretsPath, `${JSON.stringify(secrets, null, 2)}\n`);
+		cmd.push("--secrets-file", secretsPath);
+	}
+
+	console.log(
+		syncSecrets
+			? "Deploying vault-api worker (syncing secrets)…"
+			: "Deploying vault-api worker (keeping existing secrets)…",
 	);
-}
-
-function writeApiProxyDefault(apiOrigin: string) {
-	const fnPath = path.join(webDir, "functions/api/[[path]].ts");
-	const base = apiOrigin.replace(/\/$/, "");
-	const source = `/// <reference types="@cloudflare/workers-types" />
-
-const DEFAULT_VAULT_API_ORIGIN = "${base}";
-
-export const onRequest: PagesFunction<{ VAULT_API_ORIGIN?: string }> = async (
-\tcontext,
-) => {
-\tconst origin = (
-\t\tcontext.env.VAULT_API_ORIGIN ?? DEFAULT_VAULT_API_ORIGIN
-\t).replace(/\\/$/, "");
-\tconst url = new URL(context.request.url);
-\tconst target = \`\${origin}\${url.pathname}\${url.search}\`;
-\treturn fetch(new Request(target, context.request));
-};
-`;
-	writeFileSync(fnPath, source);
-}
-
-function extractWorkerUrl(output: string) {
-	const match =
-		output.match(/https:\/\/[\w-]+\.[\w.-]+\.workers\.dev/i) ??
-		output.match(/https:\/\/vault-api\.[\w.-]+\.workers\.dev/i);
-	return match?.[0] ?? "https://vault-api.albqvictor.workers.dev";
+	const proc = Bun.spawnSync(cmd, {
+		cwd: apiDir,
+		env: process.env,
+		stdout: "inherit",
+		stderr: "inherit",
+	});
+	// Never leave plaintext secrets on disk.
+	if (secretsPath) rmSync(secretsPath, { force: true });
+	if (proc.exitCode !== 0) {
+		process.exit(proc.exitCode ?? 1);
+	}
 }
 
 async function main() {
-	const webOrigin =
-		process.env.VAULT_WEB_ORIGIN?.replace(/\/$/, "") ??
-		"https://vault-web-1ze.pages.dev";
+	const webOrigin = (
+		process.env.VAULT_WEB_ORIGIN ?? DEFAULT_WEB_ORIGIN
+	).replace(/\/$/, "");
+	const apiOrigin = (
+		process.env.VAULT_API_ORIGIN ?? DEFAULT_API_ORIGIN
+	).replace(/\/$/, "");
+	const syncSecrets = process.argv.includes("--sync-secrets");
 
-	const secrets = loadApiSecrets(webOrigin);
-	const secretsPath = writeSecretsFile(secrets);
-
-	console.log("Deploying vault-api worker…");
-	const deployLog = Bun.spawnSync(
-		[
-			"bunx",
-			"wrangler",
-			"deploy",
-			"--secrets-file",
-			secretsPath,
-			"--var",
-			"CF_WORKER:1",
-		],
-		{
-			cwd: apiDir,
-			stdout: "pipe",
-			stderr: "pipe",
-			env: process.env,
-		},
-	);
-	if (deployLog.exitCode !== 0) {
-		process.stderr.write(deployLog.stderr);
-		process.stdout.write(deployLog.stdout);
-		process.exit(deployLog.exitCode ?? 1);
-	}
-	const deployOutput = `${deployLog.stdout.toString()}\n${deployLog.stderr.toString()}`;
-	process.stdout.write(deployOutput);
-	const apiOrigin = extractWorkerUrl(deployOutput);
+	deployApi(webOrigin, syncSecrets);
 
 	writeSpaRedirects();
-	writeApiProxyDefault(apiOrigin);
-	console.log(`Building web (API proxy → ${apiOrigin})…`);
+	console.log("Building web…");
 	run(["bun", "run", "build"], webDir);
 
 	console.log("Deploying vault-web to Cloudflare Pages…");
@@ -177,7 +176,9 @@ async function main() {
 	console.log(`API worker: ${apiOrigin}`);
 }
 
-main().catch((error) => {
-	console.error(error);
-	process.exit(1);
-});
+if (import.meta.main) {
+	main().catch((error) => {
+		console.error(error);
+		process.exit(1);
+	});
+}
