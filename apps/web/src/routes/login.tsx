@@ -6,11 +6,20 @@ import { Waves } from "@/components/waves";
 import { authClient } from "@/lib/auth-client";
 import { isDevAuthBypassEnabled } from "@/lib/dev-auth";
 
+/** True when an MCP/OAuth client sent the user here to sign in (signed query). */
+function isOAuthAuthorizeFlow() {
+	const search = new URLSearchParams(window.location.search);
+	return search.has("client_id") && search.has("sig");
+}
+
 export const Route = createFileRoute("/login")({
 	beforeLoad: async () => {
 		if (isDevAuthBypassEnabled()) {
 			throw redirect({ to: "/", replace: true });
 		}
+
+		// Keep the page during an OAuth authorize flow: signing in here resumes it.
+		if (isOAuthAuthorizeFlow()) return;
 
 		const session = await authClient.getSession();
 		if (session?.data) {

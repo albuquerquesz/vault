@@ -1,9 +1,9 @@
 name: API Migrations
 
 on:
+  # main runs migrations inside deploy-api.yml, right before the Worker deploy.
   push:
     branches:
-      - main
       - dev
     paths:
       - "apps/api/**"
