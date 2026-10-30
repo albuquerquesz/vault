@@ -17,7 +17,7 @@ export function DashboardOverview() {
 				monthOptions={monthOptions}
 				onMonthChange={setSelectedMonth}
 			/>
-			<div className="dashboard-analyses grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 [&_[data-slot=card]]:md:min-h-[480px]">
+			<div className="dashboard-analyses grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
 				<div className="min-h-0 min-w-0">
 					<OrderSourceMixCard month={selectedMonth} />
 				</div>
