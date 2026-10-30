@@ -36,6 +36,13 @@ export function createApp() {
 		}
 	});
 
+	// OAuth discovery for MCP clients, served by the better-auth OAuth provider:
+	// RFC 8414 authorization-server metadata (issuer path inserted) and RFC 9728
+	// protected-resource metadata for /api/mcp.
+	app.on(["GET", "HEAD"], "/.well-known/*", async (c) => {
+		return toAuthResponse(await getAuth().handler(c.req.raw));
+	});
+
 	registerRoutes(app);
 
 	app.get("/", (c) => {

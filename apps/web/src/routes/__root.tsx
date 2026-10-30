@@ -41,9 +41,11 @@ function RootComponent() {
 		select: (state) => state.location.pathname,
 	});
 	const isStandaloneAuthPage =
-		pathname === "/login" || pathname === "/auth/error";
+		pathname === "/login" ||
+		pathname === "/auth/error" ||
+		pathname === "/oauth/consent";
 	const forcedTheme =
-		pathname === "/login"
+		pathname === "/login" || pathname === "/oauth/consent"
 			? "light"
 			: pathname === "/auth/error"
 				? "dark"

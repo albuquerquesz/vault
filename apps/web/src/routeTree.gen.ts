@@ -18,6 +18,7 @@ import { Route as CardsRouteImport } from './routes/cards'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TransactionsIndexRouteImport } from './routes/transactions.index'
 import { Route as TransactionsTransactionIdRouteImport } from './routes/transactions.$transactionId'
+import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as DashboardDailyExpensesRouteImport } from './routes/dashboard.daily-expenses'
 import { Route as AuthErrorRouteImport } from './routes/auth.error'
 
@@ -67,6 +68,11 @@ const TransactionsTransactionIdRoute =
     path: '/$transactionId',
     getParentRoute: () => TransactionsRoute,
   } as any)
+const OauthConsentRoute = OauthConsentRouteImport.update({
+  id: '/oauth/consent',
+  path: '/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardDailyExpensesRoute = DashboardDailyExpensesRouteImport.update({
   id: '/dashboard/daily-expenses',
   path: '/dashboard/daily-expenses',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof TransactionsRouteWithChildren
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/transactions/$transactionId': typeof TransactionsTransactionIdRoute
   '/transactions/': typeof TransactionsIndexRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/spending-goal': typeof SpendingGoalRoute
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/transactions/$transactionId': typeof TransactionsTransactionIdRoute
   '/transactions': typeof TransactionsIndexRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/transactions': typeof TransactionsRouteWithChildren
   '/auth/error': typeof AuthErrorRoute
   '/dashboard/daily-expenses': typeof DashboardDailyExpensesRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/transactions/$transactionId': typeof TransactionsTransactionIdRoute
   '/transactions/': typeof TransactionsIndexRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/auth/error'
     | '/dashboard/daily-expenses'
+    | '/oauth/consent'
     | '/transactions/$transactionId'
     | '/transactions/'
   fileRoutesByTo: FileRoutesByTo
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/spending-goal'
     | '/auth/error'
     | '/dashboard/daily-expenses'
+    | '/oauth/consent'
     | '/transactions/$transactionId'
     | '/transactions'
   id:
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/auth/error'
     | '/dashboard/daily-expenses'
+    | '/oauth/consent'
     | '/transactions/$transactionId'
     | '/transactions/'
   fileRoutesById: FileRoutesById
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   TransactionsRoute: typeof TransactionsRouteWithChildren
   AuthErrorRoute: typeof AuthErrorRoute
   DashboardDailyExpensesRoute: typeof DashboardDailyExpensesRoute
+  OauthConsentRoute: typeof OauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -235,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransactionsTransactionIdRouteImport
       parentRoute: typeof TransactionsRoute
     }
+    '/oauth/consent': {
+      id: '/oauth/consent'
+      path: '/oauth/consent'
+      fullPath: '/oauth/consent'
+      preLoaderRoute: typeof OauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/daily-expenses': {
       id: '/dashboard/daily-expenses'
       path: '/dashboard/daily-expenses'
@@ -276,6 +296,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransactionsRoute: TransactionsRouteWithChildren,
   AuthErrorRoute: AuthErrorRoute,
   DashboardDailyExpensesRoute: DashboardDailyExpensesRoute,
+  OauthConsentRoute: OauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
