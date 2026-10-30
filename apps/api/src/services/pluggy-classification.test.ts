@@ -158,37 +158,72 @@ describe("classifyPluggyTransactions", () => {
 		);
 	});
 
-	test("transfers with the owner's full name are internal (own company/PF)", () => {
-		const fromCompany = tx({
+	test("PJ payouts are income; a return to the PJ cancels one; own PF accounts are internal", () => {
+		const pj = "66.390.189 VICTOR ALBUQUERQUE ARRUDA";
+		const payoutA = tx({
+			date: "2026-10-20",
 			amount: 1640,
 			category: "Transfer - PIX",
-			description: "Pix recebido 66.390.189 VICTOR ALBUQUERQUE ARRUDA",
+			description: `Pix recebido ${pj}`,
 		});
-		const toCompany = tx({
+		const payoutB = tx({
+			date: "2026-10-20",
+			amount: 1640,
+			category: "Transfer - PIX",
+			description: `Pix recebido ${pj}`,
+		});
+		const returned = tx({
+			date: "2026-10-20",
 			amount: -1640,
 			category: "Electronics",
-			description: "Pagamento com Pix 66.390.189 VICTOR ALBUQUERQUE ARRUDA",
+			description: `Pagamento com Pix ${pj}`,
+		});
+		const earlier = tx({
+			date: "2026-10-12",
+			amount: 300,
+			category: "Transfer - PIX",
+			description: `Pix recebido ${pj}`,
+		});
+		const toOwnPf = tx({
+			amount: -80,
+			category: "Transfers",
+			description: "Pix enviado Victor Albuquerque Arruda",
 		});
 		const relative = tx({
 			amount: -300,
 			category: "Transfers",
 			description: "Pix enviado Nathalia Souza de Albuquerque",
 		});
-		const result = classifyPluggyTransactions(
-			[fromCompany, toCompany, relative],
-			{
-				ownerName: "Victor Albuquerque",
-			},
-		);
-		expect(result.get(fromCompany.id)?.reason).toBe("owner_name_transfer");
-		expect(result.get(toCompany.id)?.reason).toBe("owner_name_transfer");
-		expect(result.get(relative.id)?.kind).toBe("expense");
-		// Without a full name nothing is treated as the owner.
+		const all = [payoutA, payoutB, returned, earlier, toOwnPf, relative];
+		const result = classifyPluggyTransactions(all, {
+			ownerName: "Victor Albuquerque",
+		});
+
+		const reasons = all.map((t) => result.get(t.id)?.reason);
+		expect(reasons).toEqual([
+			"owner_company_round_trip",
+			"owner_company_payout",
+			"owner_company_round_trip",
+			"owner_company_payout",
+			"owner_name_transfer",
+			"bank_outflow",
+		]);
+		expect(summarizeClassified(result.values())).toEqual({
+			income: 1940,
+			spent: 300,
+		});
+	});
+
+	test("without a full owner name, PJ payouts are plain income", () => {
+		const payout = tx({
+			amount: 1640,
+			description: "Pix recebido 66.390.189 VICTOR ALBUQUERQUE ARRUDA",
+		});
 		expect(
-			classifyPluggyTransactions([fromCompany], { ownerName: "Victor" }).get(
-				fromCompany.id,
-			)?.kind,
-		).toBe("income");
+			classifyPluggyTransactions([payout], { ownerName: "Victor" }).get(
+				payout.id,
+			)?.reason,
+		).toBe("bank_inflow");
 	});
 
 	test("bank refunds reduce spending", () => {

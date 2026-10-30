@@ -93,6 +93,7 @@ Fonte única: `apps/api/src/services/pluggy-classification.ts` (função pura, c
 
 - **Sinal por tipo de conta:** BANK negativo = saída; CREDIT positivo = compra, negativo = pagamento/estorno.
 - **Ignorado (dinheiro do próprio usuário mudando de lugar):** categorias `Same person transfer`, `Transfer - Internal`, `Investments`, `Credit card payment`; pagamento de fatura (descrição "Pagamento de fatura"/"Pagamento cartão"/"Pagamento recebido" ou saída da conta com mesmo valor de um pagamento recebido por cartão conectado em até 2 dias); saída e entrada de mesmo valor entre duas contas BANK do usuário em até 2 dias.
+- **PJ do usuário** (nome completo do perfil + CNPJ na descrição): entrada PJ → PF é **receita**; devolução do mesmo valor à PJ em até 2 dias anula uma entrada; envio sem par à PJ é ignorado. Nome completo sem CNPJ (contas próprias em bancos não conectados) é ignorado.
 - **Gasto:** demais saídas BANK (inclui PIX/QR Pix a terceiros) e compras no cartão.
 - **Estorno:** crédito no cartão ou entrada com "estorno/reembolso/devolução"; reduz o gasto e vira linha negativa em `expense` na mesma categoria.
 - **Receita:** demais entradas BANK.

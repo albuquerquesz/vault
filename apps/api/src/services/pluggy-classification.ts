@@ -138,9 +138,9 @@ function normalizeName(text: string) {
 }
 
 /**
- * True when the counterpart carries the user's full name, e.g. a PIX from the
- * user's own company ("66.390.189 VICTOR ALBUQUERQUE ARRUDA") or own account
- * at an unconnected bank. Single-word names are skipped (too broad).
+ * True when the counterpart carries the user's full name, e.g. the user's own
+ * account at an unconnected bank or their company. Single-word names are
+ * skipped (too broad).
  */
 function mentionsOwner(description: string, ownerNames: string[]) {
 	if (ownerNames.length === 0 || !description) return false;
@@ -148,11 +148,49 @@ function mentionsOwner(description: string, ownerNames: string[]) {
 	return ownerNames.some((name) => text.includes(name));
 }
 
+/** CNPJ root ("66.390.189") or full CNPJ, which marks a company counterpart. */
+const CNPJ = /\b\d{2}\.\d{3}\.\d{3}\b|\b\d{14}\b/;
+
+/** The user's own company (MEI/PJ): their full name next to a CNPJ. */
+function isOwnerCompany(tx: ClassifiableTransaction, ownerNames: string[]) {
+	const description = tx.description ?? "";
+	return (
+		!isCard(tx) &&
+		CNPJ.test(description) &&
+		mentionsOwner(description, ownerNames)
+	);
+}
+
+/**
+ * Money sent back to the company that matches a payout (same amount, within a
+ * couple of days) cancels it out, e.g. PJ pays 1.640 twice and PF returns one.
+ */
+function findOwnerCompanyRoundTrips(companyTxs: ClassifiableTransaction[]) {
+	const roundTrips = new Set<string>();
+	const payouts = companyTxs.filter((tx) => tx.amount > 0);
+	for (const back of companyTxs) {
+		if (back.amount >= 0) continue;
+		const payout = payouts.find(
+			(tx) =>
+				!roundTrips.has(tx.id) &&
+				cents(tx.amount) === cents(back.amount) &&
+				Math.abs(dayNumber(tx.date) - dayNumber(back.date)) <=
+					TRANSFER_PAIR_WINDOW_DAYS,
+		);
+		if (payout) {
+			roundTrips.add(payout.id);
+			roundTrips.add(back.id);
+		}
+	}
+	return roundTrips;
+}
+
 function classifyOne(
 	tx: ClassifiableTransaction,
 	pairedTransfers: Set<string>,
 	cardBillPayments: Set<string>,
 	ownerNames: string[],
+	ownerCompany: { ids: Set<string>; roundTrips: Set<string> },
 ): ClassifiedTransaction {
 	const amount = Math.abs(tx.amount);
 	const category = tx.category?.trim() ?? "";
@@ -160,6 +198,16 @@ function classifyOne(
 
 	if (!Number.isFinite(tx.amount) || tx.amount === 0) {
 		return { kind: "ignored", amount, reason: "zero_amount" };
+	}
+	// What the user's company pays them (PJ -> PF) is personal income; sending
+	// money to the company is not personal spending.
+	if (ownerCompany.ids.has(tx.id)) {
+		if (ownerCompany.roundTrips.has(tx.id)) {
+			return { kind: "ignored", amount, reason: "owner_company_round_trip" };
+		}
+		return tx.amount > 0
+			? { kind: "income", amount, reason: "owner_company_payout" }
+			: { kind: "ignored", amount, reason: "owner_company_transfer" };
 	}
 	if (INTERNAL_CATEGORIES.has(category)) {
 		return { kind: "ignored", amount, reason: "internal_category" };
@@ -196,8 +244,8 @@ function classifyOne(
 /**
  * Classifies a batch. Pass every visible transaction around the period of
  * interest (all of the user's accounts) so transfer pairs can be matched.
- * `ownerName` (the user's full name) marks transfers to/from the user's own
- * company or other accounts as internal.
+ * `ownerName` (the user's full name) marks transfers with the user's own
+ * accounts as internal and payouts from their company (name + CNPJ) as income.
  */
 export function classifyPluggyTransactions(
 	txs: ClassifiableTransaction[],
@@ -205,15 +253,28 @@ export function classifyPluggyTransactions(
 ): Map<string, ClassifiedTransaction> {
 	const owner = normalizeName(options.ownerName ?? "");
 	const ownerNames = owner.split(" ").length >= 2 ? [owner] : [];
+	const companyTxs = txs.filter((tx) => isOwnerCompany(tx, ownerNames));
+	const ownerCompany = {
+		ids: new Set(companyTxs.map((tx) => tx.id)),
+		roundTrips: findOwnerCompanyRoundTrips(companyTxs),
+	};
 	// Card bill payments first, so they are not mistaken for transfer legs.
 	const cardBillPayments = findCardBillPayments(txs);
 	const pairedTransfers = findInternalTransferPairs(
-		txs.filter((tx) => !cardBillPayments.has(tx.id)),
+		txs.filter(
+			(tx) => !cardBillPayments.has(tx.id) && !ownerCompany.ids.has(tx.id),
+		),
 	);
 	return new Map(
 		txs.map((tx) => [
 			tx.id,
-			classifyOne(tx, pairedTransfers, cardBillPayments, ownerNames),
+			classifyOne(
+				tx,
+				pairedTransfers,
+				cardBillPayments,
+				ownerNames,
+				ownerCompany,
+			),
 		]),
 	);
 }
