@@ -26,7 +26,7 @@ export function MonthlyBillCard({ month }: { month?: string }) {
 			title="Cartões"
 			icon={<CreditCardIcon className="size-4 text-muted-foreground" />}
 			tooltip="Faturas de cartão de crédito do mês selecionado (Open Finance)"
-			className="h-[22rem] min-h-0 max-h-[22rem] bg-muted dark:bg-card xl:h-[24rem] xl:max-h-[24rem]"
+			className="h-[26rem] min-h-0 max-h-[26rem] bg-muted dark:bg-card xl:h-[28rem] xl:max-h-[28rem]"
 			contentClassName="flex min-h-0 flex-1 flex-col p-4 sm:px-(--card-spacing) sm:pb-(--card-spacing) sm:pt-0"
 		>
 			{isError ? (
