@@ -155,6 +155,13 @@
       "when": 1793375987507,
       "tag": "0021_mcp_oauth_provider",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793376384722,
+      "tag": "0022_pluggy_category_override",
+      "breakpoints": true
     }
   ]
 }

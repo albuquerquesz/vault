@@ -711,6 +711,8 @@ export type StoredTransactionForExpense = {
 	amount: string | number;
 	description: string | null;
 	category: string | null;
+	/** Display category set by the user; classification keeps `category`. */
+	categoryOverride?: string | null;
 	provider: string | null;
 	accountId?: string | null;
 	accountName: string | null;
@@ -761,7 +763,8 @@ export function mapPluggyTransactionsToExpenses(params: {
 				userId,
 				expenseDate: tx.date,
 				amount: amount.toFixed(2),
-				category: tx.category?.trim() || "Outros",
+				category:
+					tx.categoryOverride?.trim() || tx.category?.trim() || "Outros",
 				note: tx.description ?? null,
 				source: PLUGGY_EXPENSE_SOURCE,
 				sourceExternalId: tx.pluggyTransactionId,
@@ -795,6 +798,7 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 			amount: pluggyTransactions.amount,
 			description: pluggyTransactions.description,
 			category: pluggyTransactions.category,
+			categoryOverride: pluggyTransactions.categoryOverride,
 			provider: pluggyItems.provider,
 			accountId: pluggyTransactions.pluggyAccountId,
 			accountName: pluggyAccounts.name,

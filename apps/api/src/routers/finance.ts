@@ -13,7 +13,7 @@ import {
 import type { RouteRegistrar } from "../hono/registrar.js";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { errorBody } from "../lib/http-errors.js";
+import { errorBody, sendKnownError } from "../lib/http-errors.js";
 import {
 	expense,
 	goal,
@@ -49,6 +49,11 @@ const expenseInput = z.object({
 
 const manualTransactionInput = expenseInput.extend({
 	kind: z.enum(["expense", "income"]),
+});
+
+const recategorizeInput = z.object({
+	ids: z.array(z.string().uuid()).min(1).max(100),
+	category: z.string().trim().min(1).max(64),
 });
 
 const transactionIdsInput = z.object({
@@ -150,7 +155,8 @@ async function listFinanceTransactions(params: {
 				id: row.id,
 				date: row.date,
 				amount: signedAmount(row.classification),
-				category: row.category?.trim() || "Outros",
+				category:
+					row.categoryOverride?.trim() || row.category?.trim() || "Outros",
 				description: row.description ?? null,
 				source: "pluggy",
 				sourceExternalId: null,
@@ -529,6 +535,92 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
 				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/transactions/recategorize",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { ids, category } = recategorizeInput.parse(req.body);
+				const userId = session.user.id;
+
+				// Bank transactions keep Pluggy's category for classification; the
+				// override only changes how they are shown and grouped.
+				const ownedPluggyIds = await db
+					.select({
+						id: pluggyTransactions.id,
+						pluggyItemId: pluggyTransactions.pluggyItemId,
+					})
+					.from(pluggyTransactions)
+					.innerJoin(
+						pluggyItems,
+						eq(pluggyTransactions.pluggyItemId, pluggyItems.id),
+					)
+					.where(
+						and(
+							eq(pluggyItems.userId, userId),
+							inArray(pluggyTransactions.id, ids),
+						),
+					);
+
+				if (ownedPluggyIds.length > 0) {
+					await db
+						.update(pluggyTransactions)
+						.set({ categoryOverride: category })
+						.where(
+							inArray(
+								pluggyTransactions.id,
+								ownedPluggyIds.map((row) => row.id),
+							),
+						);
+					await rebuildExpensesFromStoredTransactions({
+						userId,
+						localItemId: ownedPluggyIds[0]!.pluggyItemId,
+					});
+				}
+
+				const manual = await db
+					.update(expense)
+					.set({ category, updatedAt: new Date() })
+					.where(
+						and(
+							eq(expense.userId, userId),
+							not(eq(expense.source, "pluggy")),
+							inArray(expense.id, ids),
+						),
+					)
+					.returning({ id: expense.id });
+
+				return reply.send({ updated: ownedPluggyIds.length + manual.length });
+			} catch (error) {
+				return sendKnownError(reply, error);
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/categories",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const rows = await db
+					.select({
+						category: expense.category,
+						kind: expense.kind,
+						count: sql<number>`count(*)`.mapWith(Number),
+					})
+					.from(expense)
+					.where(eq(expense.userId, session.user.id))
+					.groupBy(expense.category, expense.kind)
+					.orderBy(desc(sql`count(*)`));
+				return reply.send(rows);
+			} catch (error) {
+				return sendKnownError(reply, error);
 			}
 		},
 	});

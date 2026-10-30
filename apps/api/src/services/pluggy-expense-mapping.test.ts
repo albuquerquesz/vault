@@ -104,6 +104,33 @@ describe("mapPluggyTransactionsToExpenses", () => {
 		]);
 	});
 
+	test("uses the category override for display but classifies by Pluggy's category", () => {
+		const result = mapPluggyTransactionsToExpenses({
+			userId: "user-1",
+			localItemId: "item-1",
+			transactions: [
+				tx({
+					pluggyTransactionId: "recategorized",
+					accountType: "BANK",
+					amount: "-45",
+					category: "Transfer - PIX",
+					categoryOverride: "Alimentação",
+				}),
+				tx({
+					pluggyTransactionId: "still-internal",
+					accountType: "BANK",
+					amount: "-100",
+					category: "Same person transfer",
+					categoryOverride: "Alimentação",
+				}),
+			],
+		});
+
+		expect(result.map((row) => [row.sourceExternalId, row.category])).toEqual([
+			["recategorized", "Alimentação"],
+		]);
+	});
+
 	test("card credits become negative rows in their category", () => {
 		const result = mapPluggyTransactionsToExpenses({
 			userId: "user-1",
