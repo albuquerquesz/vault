@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { getAuth } from "./auth.js";
 import type { Context } from "./context.js";
 import { env } from "./db/env.js";
@@ -5,6 +6,15 @@ import {
 	hasBearerToken,
 	resolveMcpAccessToken,
 } from "./services/mcp-tokens.js";
+
+type SessionUser = { id: string; name: string; email: string };
+
+/**
+ * User authenticated by the remote MCP route (OAuth access token). Set only by
+ * `mcp/route.ts` after verifying the token, around in-process calls to the
+ * finance routes, so tools reuse the same handlers and validation as the web.
+ */
+export const mcpRequestUser = new AsyncLocalStorage<SessionUser>();
 
 type RequireSessionOptions = {
 	allowMcpToken?: boolean;
@@ -14,6 +24,11 @@ export async function requireSession(
 	req: { headers: Headers },
 	options: RequireSessionOptions = {},
 ): Promise<NonNullable<Context["session"]>> {
+	const mcpUser = mcpRequestUser.getStore();
+	if (mcpUser) {
+		return { user: mcpUser };
+	}
+
 	const apiHost = new URL(env.BETTER_AUTH_URL).hostname;
 	const webHost = new URL(env.CORS_ORIGIN).hostname;
 	const isLocalDevelopment =

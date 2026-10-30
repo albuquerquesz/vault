@@ -82,6 +82,16 @@ jobs:
           test "$code" = "200"
           echo "$body" | grep -q '"handled"'
 
+      - name: Smoke-test remote MCP auth challenge
+        run: |
+          set -euo pipefail
+          headers=$(curl -sS -o /dev/null -D - -X POST https://vault.albuquerquesz.com/api/mcp \
+            -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}')
+          echo "$headers" | grep -iE '^HTTP|www-authenticate'
+          echo "$headers" | grep -q ' 401'
+          echo "$headers" | grep -qi 'resource_metadata="https://vault.albuquerquesz.com/.well-known/oauth-protected-resource/api/mcp"'
+          curl -sS https://vault.albuquerquesz.com/.well-known/oauth-protected-resource/api/mcp | grep -q '"resource":"https://vault.albuquerquesz.com/api/mcp"'
+
       - name: Smoke-test Google OAuth
         # Google answers invalid_client when GOOGLE_CLIENT_ID is wrong on the Worker.
         run: |
