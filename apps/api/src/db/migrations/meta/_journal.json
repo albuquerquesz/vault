@@ -162,6 +162,13 @@
       "when": 1793376384722,
       "tag": "0022_pluggy_category_override",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793380913790,
+      "tag": "0023_pluggy_transaction_bill_id",
+      "breakpoints": true
     }
   ]
 }

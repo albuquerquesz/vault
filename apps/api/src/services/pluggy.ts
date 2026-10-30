@@ -499,6 +499,29 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 		.where(eq(pluggyItems.userId, userId))
 		.orderBy(asc(pluggyBills.dueDate));
 
+	// Pluggy's bill totalAmount is what was still due at closing (net of
+	// payments made during the cycle). The full bill is the sum of the card
+	// transactions linked to it, without the payments themselves.
+	const linkedTotals = await db
+		.select({
+			billId: pluggyTransactions.pluggyBillId,
+			total: sql<number>`sum(${pluggyTransactions.amount})`.mapWith(Number),
+		})
+		.from(pluggyTransactions)
+		.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
+		.where(
+			and(
+				eq(pluggyItems.userId, userId),
+				sql`${pluggyTransactions.pluggyBillId} is not null`,
+				sql`coalesce(${pluggyTransactions.category}, '') <> 'Credit card payment'`,
+				sql`coalesce(${pluggyTransactions.description}, '') not ilike 'pagamento recebido%'`,
+			),
+		)
+		.groupBy(pluggyTransactions.pluggyBillId);
+	const billTotals = new Map(
+		linkedTotals.map((row) => [row.billId ?? "", row.total]),
+	);
+
 	const existingMonthsWithPluggyItems = await db
 		.select({ month: monthlyBill.month })
 		.from(monthlyBill)
@@ -540,7 +563,10 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 			month,
 			name,
 			paidAmount: Number(row.paidAmount) || 0,
-			totalAmount: Number(row.totalAmount) || 0,
+			totalAmount:
+				(billTotals.get(row.pluggyBillId) ?? 0) > 0
+					? (billTotals.get(row.pluggyBillId) as number)
+					: Number(row.totalAmount) || 0,
 			pluggyBillId: row.pluggyBillId,
 			dueDateMs,
 		});
@@ -660,6 +686,7 @@ async function syncTransactionsForAccount(params: {
 			amount: tx.amount.toString(),
 			description: tx.description ?? null,
 			category: tx.category ?? null,
+			pluggyBillId: tx.creditCardMetadata?.billId ?? null,
 		}));
 
 	if (insertable.length === 0) {
@@ -687,6 +714,10 @@ async function syncTransactionsForAccount(params: {
 				amount: sql.raw(`EXCLUDED.amount`),
 				description: sql.raw(`EXCLUDED.description`),
 				category: sql.raw(`EXCLUDED.category`),
+				// Keep a known bill link if a later page omits it.
+				pluggyBillId: sql.raw(
+					`coalesce(EXCLUDED.pluggy_bill_id, pluggy_transactions.pluggy_bill_id)`,
+				),
 			},
 		})
 		.returning({ id: pluggyTransactions.id });
