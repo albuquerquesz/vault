@@ -8,3 +8,13 @@ crons = ["0 1 * * *"]
 
 [observability]
 enabled = true
+
+# Run near the database (Neon us-east-1) instead of near the visitor.
+[placement]
+mode = "smart"
+
+# One pooled Postgres connection per invocation (see src/db/index.ts).
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "c1ad7d5112e14fbba5d78f3b3cc1ba50"
+localConnectionString = "postgresql://postgres:password@localhost:5433/vault"
