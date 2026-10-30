@@ -15,6 +15,10 @@ O MCP local (`apps/mcp`, stdio + token `vlt_mcp_…`) continua funcionando, mas 
 - `apps/api/src/mcp/route.ts` valida o JWT em processo (`auth.api.getJwks()` + `jose`, issuer + audience). Sem token válido: 401 com `WWW-Authenticate: Bearer resource_metadata=…`.
 - Tabelas OAuth em `apps/api/src/db/schema/oauth.ts` (geradas com `bunx auth@<versão> generate`). better-auth checa o schema ao iniciar: ao atualizar, regenere e crie a migration. O `deploy-api.yml` roda migrations antes do deploy.
 
+## API key (somente leitura)
+
+Para clientes que só aceitam header fixo (sem OAuth), `/api/mcp` também aceita `Authorization: Bearer vlt_mcp_…` (tokens criados em `/settings` → MCP). Validado por `resolveMcpAccessToken`; nesse caso só as tools de leitura são registradas (`createVaultMcpServer(..., { readOnly: true })`).
+
 ## Tools
 
 Cada tool chama uma rota existente da API **em processo** (`app.fetch`), com o usuário do token em `mcpRequestUser` (`apps/api/src/session.ts`). `requireSession` devolve esse usuário, então validação, erros `{ error, code }` e respostas são os mesmos da web.

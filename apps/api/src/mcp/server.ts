@@ -50,7 +50,10 @@ async function toToolResult(response: Response) {
 }
 
 /** One MCP server per request (stateless); tools map 1:1 to API routes. */
-export function createVaultMcpServer(dispatch: ApiDispatch) {
+export function createVaultMcpServer(
+	dispatch: ApiDispatch,
+	options: { readOnly: boolean },
+) {
 	const server = new McpServer({ name: "vault", version: "1.0.0" });
 	const call = async (...args: Parameters<ApiDispatch>) =>
 		toToolResult(await dispatch(...args));
@@ -122,6 +125,9 @@ export function createVaultMcpServer(dispatch: ApiDispatch) {
 		},
 		() => call("GET", "/api/finance/categories"),
 	);
+
+	// API keys (vlt_mcp_…) are read-only; writes need an OAuth login.
+	if (options.readOnly) return server;
 
 	server.registerTool(
 		"create_manual_transaction",
