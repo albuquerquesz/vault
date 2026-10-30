@@ -130,11 +130,12 @@ export function McpSettings() {
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2 text-lg font-medium">
 						<KeyRoundIcon className="size-4 text-muted-foreground" />
-						MCP local
+						Tokens de acesso (somente leitura)
 					</CardTitle>
 					<p className="text-sm text-muted-foreground">
-						Crie um token para conectar o Vault a um agente local via MCP. O
-						token permite apenas consultas financeiras.
+						Para apps que só aceitam header (sem login OAuth): use a URL acima
+						com o header <code>Authorization: Bearer &lt;token&gt;</code>.
+						Também funciona no MCP local. O token permite apenas consultas.
 					</p>
 				</CardHeader>
 				<CardContent className="space-y-4">
