@@ -49,7 +49,7 @@ describe("OAuth callback failure", () => {
 		expect(response.status).toBe(302);
 		const errorBase = `${env.CORS_ORIGIN.replace(/\/$/, "")}/auth/error`;
 		expect(response.headers.get("location")).toBe(
-			`${errorBase}?error=please_restart_the_process`,
+			`${errorBase}?error=state_mismatch`,
 		);
 	});
 });

@@ -25,7 +25,7 @@
 		"@neondatabase/serverless": "^1.1.0",
 		"@notifique/sdk-node": "0.2.1",
 		"@t3-oss/env-core": "^0.13.1",
-		"better-auth": "1.6.11",
+		"better-auth": "catalog:",
 		"dayjs": "^1.11.21",
 		"dotenv": "^17.2.2",
 		"drizzle-orm": "^0.45.1",
