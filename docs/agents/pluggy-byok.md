@@ -111,6 +111,7 @@ Event names usam `/` (`item/updated`), nunca `item.synced`.
   - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
   - Deploy só de código: secrets do Worker não são alterados (use `bun run cf:deploy -- --sync-secrets` para isso)
   - Domínio estável: `https://vault-api.albuquerquesz.com`
+- **Web production:** `.github/workflows/deploy-web.yml` em **push para `main`** (e `workflow_dispatch`) quando mudam `apps/web/**`, `packages/ui/**`, `packages/config/**`, `package.json` ou `bun.lock`: build Vite + `wrangler pages deploy` no projeto Pages `vault-web` (inclui `functions/`, o proxy `/api`). Smoke valida `/`, `/api/auth/ok` e o início do OAuth Google.
 - Smoke pós-deploy do workflow valida `POST /api/webhooks/pluggy` e o início do OAuth Google (`invalid_client` falha o job).
 
 ## Checklist mínimo antes de encerrar uma mudança
