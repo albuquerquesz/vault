@@ -104,7 +104,7 @@ export function DashboardSummary({
 	return (
 		<section
 			aria-label="Resumo do mês"
-			className="dashboard-summary-dark grid min-w-0 gap-6 rounded-[18px] bg-background p-2 text-foreground sm:p-6 xl:min-h-[360px] xl:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]"
+			className="dashboard-summary-dark grid min-w-0 gap-6 rounded-[18px] bg-background p-4 text-foreground sm:p-6 xl:min-h-[360px] xl:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]"
 		>
 			<div className="flex min-w-0 flex-col gap-6 rounded-[22px] border border-border/60 bg-secondary p-5 ring-4 ring-muted sm:p-6">
 				<div className="flex flex-wrap items-center justify-between gap-2">
