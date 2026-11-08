@@ -36,6 +36,7 @@ import {
 	loadClassifiedPluggyTransactions,
 } from "../services/pluggy-ledger.js";
 import { calculateMonthlySpendingGoal } from "../services/monthly-spending-goal.js";
+import { listCurrentSubscriptions } from "../services/subscriptions.js";
 import { requireSession } from "../session.js";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -1026,6 +1027,23 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/subscriptions",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				return reply.send(
+					await listCurrentSubscriptions({ userId: session.user.id }),
+				);
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},

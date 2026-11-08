@@ -91,6 +91,10 @@ export function listGoals() {
 	return get("/api/finance/goals");
 }
 
+export function listSubscriptions() {
+	return get("/api/finance/subscriptions");
+}
+
 export function getSpendingInsights({ month }: MonthInput) {
 	validateMonth(month);
 	return get(`/api/finance/partial-result?month=${encodeURIComponent(month)}`);

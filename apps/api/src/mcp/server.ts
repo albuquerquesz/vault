@@ -116,6 +116,17 @@ export function createVaultMcpServer(
 	);
 
 	server.registerTool(
+		"list_subscriptions",
+		{
+			title: "Assinaturas atuais",
+			description:
+				"Assinaturas e cobranças mensais recorrentes ainda ativas, com valor, última cobrança e próxima data esperada. Não há cadastro de assinaturas: são detectadas no histórico de gastos (mesmo estabelecimento, cobrança a cada ~30 dias, valor estável, última cobrança nos últimos 45 dias). Parcelas ficam de fora.",
+			annotations: readOnly,
+		},
+		() => call("GET", "/api/finance/subscriptions"),
+	);
+
+	server.registerTool(
 		"list_categories",
 		{
 			title: "Listar categorias",

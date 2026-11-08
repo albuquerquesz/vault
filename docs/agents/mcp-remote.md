@@ -31,6 +31,7 @@ Cada tool chama uma rota existente da API **em processo** (`app.fetch`), com o u
 | `get_monthly_bills` | GET `/api/finance/monthly-bills` |
 | `list_goals` | GET `/api/finance/goals` |
 | `list_categories` | GET `/api/finance/categories` |
+| `list_subscriptions` | GET `/api/finance/subscriptions` |
 | `create_manual_transaction` | POST `/api/finance/transactions/manual` |
 | `recategorize_transactions` | POST `/api/finance/transactions/recategorize` |
 | `hide_transactions` | POST `/api/finance/transactions/hide` |
