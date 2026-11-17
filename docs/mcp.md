@@ -52,6 +52,7 @@ bun run apps/mcp/src/index.ts
 - `list_transactions({ month })`: transações do mês.
 - `get_monthly_bills({ month })`: contas e cobranças do mês.
 - `list_goals()`: metas financeiras.
+- `list_subscriptions()`: assinaturas e cobranças mensais recorrentes ainda ativas (detectadas no histórico de gastos).
 - `get_spending_insights({ month })`: gastos, renda, resultado e comparação com o mês anterior.
 
 As ferramentas de mês usam o formato `YYYY-MM`. Todas são somente leitura;

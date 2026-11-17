@@ -6,6 +6,7 @@ import {
 	getMonthlyBills,
 	getSpendingInsights,
 	listGoals,
+	listSubscriptions,
 	listTransactions,
 } from "./api-client.js";
 
@@ -95,6 +96,17 @@ server.registerTool(
 		annotations: readOnlyAnnotations,
 	},
 	() => safeCall(listGoals),
+);
+
+server.registerTool(
+	"list_subscriptions",
+	{
+		title: "Assinaturas atuais",
+		description:
+			"Lista as assinaturas e cobranças mensais recorrentes ainda ativas, detectadas no histórico de gastos, com valor, última cobrança e próxima data esperada.",
+		annotations: readOnlyAnnotations,
+	},
+	() => safeCall(listSubscriptions),
 );
 
 server.registerTool(

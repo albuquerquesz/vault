@@ -3,7 +3,7 @@ import { z } from "zod";
 
 /** Sends a request to the Vault API in-process, as the current MCP user. */
 export type ApiDispatch = (
-	method: "GET" | "POST" | "PATCH",
+	method: "GET" | "POST" | "PATCH" | "DELETE",
 	path: string,
 	body?: unknown,
 ) => Promise<Response>;
@@ -116,6 +116,17 @@ export function createVaultMcpServer(
 	);
 
 	server.registerTool(
+		"list_subscriptions",
+		{
+			title: "Assinaturas atuais",
+			description:
+				"Assinaturas e cobranças mensais recorrentes ainda ativas, com valor, última cobrança e próxima data esperada. Não há cadastro de assinaturas: são detectadas no histórico de gastos (mesmo estabelecimento, cobrança a cada ~30 dias, valor estável, última cobrança nos últimos 45 dias). Parcelas ficam de fora.",
+			annotations: readOnly,
+		},
+		() => call("GET", "/api/finance/subscriptions"),
+	);
+
+	server.registerTool(
 		"list_categories",
 		{
 			title: "Listar categorias",
@@ -124,6 +135,40 @@ export function createVaultMcpServer(
 			annotations: readOnly,
 		},
 		() => call("GET", "/api/finance/categories"),
+	);
+
+	server.registerTool(
+		"get_spending_goal",
+		{
+			title: "Teto de gasto do mês",
+			description:
+				"Teto de gasto do mês, quanto já foi e o ritmo diário (mesma conta do dashboard). Dia opcional para o ritmo.",
+			inputSchema: z.object({
+				month,
+				today: z.iso
+					.date()
+					.optional()
+					.describe("Dia AAAA-MM-DD usado no ritmo diário"),
+			}),
+			annotations: readOnly,
+		},
+		({ month, today }) =>
+			call(
+				"GET",
+				`/api/finance/spending-goal?month=${q(month)}${today ? `&today=${q(today)}` : ""}`,
+			),
+	);
+
+	server.registerTool(
+		"get_savings_target",
+		{
+			title: "Percentual de poupança do mês",
+			description:
+				"Percentual de poupança do mês. savingsPercentage nulo = não definido (não é zero).",
+			inputSchema: z.object({ month }),
+			annotations: readOnly,
+		},
+		({ month }) => call("GET", `/api/finance/savings-target?month=${q(month)}`),
 	);
 
 	// API keys (vlt_mcp_…) are read-only; writes need an OAuth login.
@@ -168,7 +213,7 @@ export function createVaultMcpServer(
 		{
 			title: "Ocultar transações",
 			description:
-				"Oculta gastos bancários do dashboard (por exemplo duplicados). Só gastos podem ser ocultados.",
+				"Oculta gastos bancários do dashboard (por exemplo duplicados). Só gastos podem ser ocultados. Destrutivo: confirme com a pessoa antes de chamar.",
 			inputSchema: z.object({ ids }),
 			annotations: { ...write, destructiveHint: true },
 		},
@@ -205,6 +250,77 @@ export function createVaultMcpServer(
 			annotations: write,
 		},
 		({ id, ...patch }) => call("PATCH", `/api/finance/goals/${q(id)}`, patch),
+	);
+
+	server.registerTool(
+		"set_budget_income",
+		{
+			title: "Gravar renda orçada",
+			description:
+				"Grava a renda orçada do mês. Se o mês já tem renda, substitui o valor.",
+			inputSchema: z.object({
+				month,
+				income: z.number().positive().describe("Valor positivo em reais"),
+			}),
+			annotations: write,
+		},
+		(input) => call("POST", "/api/finance/budget", input),
+	);
+
+	server.registerTool(
+		"set_spending_goal",
+		{
+			title: "Gravar teto de gasto",
+			description:
+				"Grava o teto de gasto do mês. Se o mês já tem teto, substitui o valor.",
+			inputSchema: z.object({
+				month,
+				targetAmount: z.number().positive().describe("Valor positivo em reais"),
+			}),
+			annotations: write,
+		},
+		(input) => call("POST", "/api/finance/spending-goal", input),
+	);
+
+	server.registerTool(
+		"set_savings_target",
+		{
+			title: "Gravar percentual de poupança",
+			description:
+				"Grava o percentual de poupança do mês (0 a 100). Se o mês já tem, substitui.",
+			inputSchema: z.object({
+				month,
+				savingsPercentage: z.number().min(0).max(100),
+			}),
+			annotations: write,
+		},
+		(input) => call("POST", "/api/finance/savings-target", input),
+	);
+
+	server.registerTool(
+		"delete_goal",
+		{
+			title: "Apagar meta",
+			description:
+				"Apaga uma meta financeira. Destrutivo: confirme com a pessoa antes de chamar.",
+			inputSchema: z.object({
+				id: z.string().describe("ID da meta, como retornado por list_goals"),
+			}),
+			annotations: { ...write, destructiveHint: true },
+		},
+		({ id }) => call("DELETE", `/api/finance/goals/${q(id)}`),
+	);
+
+	server.registerTool(
+		"delete_manual_transactions",
+		{
+			title: "Apagar transações manuais",
+			description:
+				"Apaga transações criadas à mão (até 100). Lançamentos do banco são ignorados; a resposta traz a contagem apagada. Destrutivo: confirme com a pessoa antes de chamar.",
+			inputSchema: z.object({ ids }),
+			annotations: { ...write, destructiveHint: true },
+		},
+		(input) => call("DELETE", "/api/finance/expenses", input),
 	);
 
 	return server;
