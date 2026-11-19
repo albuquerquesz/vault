@@ -30,6 +30,19 @@ describe("parsePluggyWebhookBody", () => {
 		expect(payload.accountId).toBe("acc-1");
 	});
 
+	test("accepts the nulls Pluggy sends for items without a clientUserId", () => {
+		const payload = parsePluggyWebhookBody({
+			event: "item/updated",
+			eventId: "evt-3",
+			itemId: "item-1",
+			clientUserId: null,
+			triggeredBy: null,
+		});
+
+		expect(payload.itemId).toBe("item-1");
+		expect(payload.clientUserId).toBeNull();
+	});
+
 	test("rejects missing event", () => {
 		expect(() =>
 			parsePluggyWebhookBody({

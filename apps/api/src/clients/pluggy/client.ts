@@ -338,6 +338,15 @@ export function createPluggyClient(creds: PluggyCredentials) {
 			return response as PluggyItem;
 		},
 
+		/** Asks Pluggy to re-collect the item; it fires `item/updated` when done. */
+		async updateItem(itemId: string): Promise<PluggyItem> {
+			const response = await pluggyFetch(creds, `/items/${itemId}`, {
+				method: "PATCH",
+				body: JSON.stringify({}),
+			});
+			return response as PluggyItem;
+		},
+
 		async deleteItem(itemId: string) {
 			await pluggyFetch(creds, `/items/${itemId}`, { method: "DELETE" });
 		},

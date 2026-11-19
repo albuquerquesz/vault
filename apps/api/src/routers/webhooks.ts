@@ -1,5 +1,6 @@
 import { z } from "zod";
-import type { RouteRegistrar } from "../hono/registrar.js";
+import { runInBackground } from "../db/index.js";
+import type { RouteRegistrar, RouteRequest } from "../hono/registrar.js";
 import {
 	describeError,
 	errorBody,
@@ -8,8 +9,43 @@ import {
 import { isPluggyWebhookSecretValid } from "../services/pluggy-webhook-config.js";
 import {
 	handlePluggyWebhookEvent,
+	type PluggyWebhookPayload,
 	parsePluggyWebhookBody,
 } from "../services/pluggy-webhooks.js";
+
+/**
+ * Runs the event after the response. Pluggy gives up after 10 s and retries,
+ * and a sync (accounts, bills, transactions) can take longer than that.
+ */
+function processInBackground(
+	req: RouteRequest,
+	payload: PluggyWebhookPayload,
+	waitUntil: (task: Promise<unknown>) => void,
+) {
+	const startedAt = Date.now();
+	const task = handlePluggyWebhookEvent(payload).then(
+		(result) => {
+			req.log.info(
+				{
+					event: result.event,
+					eventId: result.eventId,
+					handled: result.handled,
+					results: result.results,
+					ms: Date.now() - startedAt,
+				},
+				"pluggy webhook processed",
+			);
+		},
+		(error: unknown) => {
+			req.log.error(
+				{ event: payload.event, detail: describeError(error) },
+				`pluggy webhook handler failure: ${describeError(error)}`,
+			);
+		},
+	);
+	runInBackground(task);
+	waitUntil(task);
+}
 
 /**
  * Public (unauthenticated) webhook receivers.
@@ -28,6 +64,17 @@ export function registerWebhookRoutes(server: RouteRegistrar) {
 
 			try {
 				const payload = parsePluggyWebhookBody(req.body);
+
+				if (req.waitUntil) {
+					processInBackground(req, payload, req.waitUntil);
+					return reply.status(200).send({
+						received: true,
+						event: payload.event,
+						eventId: payload.eventId ?? undefined,
+						accepted: true,
+					});
+				}
+
 				const result = await handlePluggyWebhookEvent(payload);
 
 				req.log.info(

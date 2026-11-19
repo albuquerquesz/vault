@@ -5,6 +5,7 @@ process.env.CF_WORKER = "1";
 import { withRequestDb } from "./db/index.js";
 import { app } from "./hono/app.js";
 import { sendDueDailySummaries } from "./services/daily-summary.js";
+import { requestPluggyItemRefreshes } from "./services/pluggy-refresh.js";
 
 type WorkerEnv = {
 	/** Hyperdrive binding to Neon; absent in environments without it. */
@@ -27,9 +28,19 @@ export default {
 		env: WorkerEnv,
 		ctx: ExecutionContext,
 	) {
-		const job = env.HYPERDRIVE
-			? withRequestDb(env.HYPERDRIVE.connectionString, sendDueDailySummaries)
-			: sendDueDailySummaries();
-		ctx.waitUntil(job);
+		// Each job gets its own connection and one failing never stops the other.
+		const run = <T>(fn: () => Promise<T>) =>
+			env.HYPERDRIVE ? withRequestDb(env.HYPERDRIVE.connectionString, fn) : fn();
+		const guarded = <T>(name: string, fn: () => Promise<T>) =>
+			run(fn).catch((error) => {
+				console.error(`[cron] ${name} failed`, error);
+			});
+
+		ctx.waitUntil(
+			Promise.all([
+				guarded("daily summaries", sendDueDailySummaries),
+				guarded("pluggy item refresh", requestPluggyItemRefreshes),
+			]),
+		);
 	},
 };

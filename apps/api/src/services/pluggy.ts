@@ -195,6 +195,10 @@ export function createPluggyService(creds: PluggyCredentials) {
 			return client.getItem(itemId);
 		},
 
+		updateItem(itemId: string): Promise<RemotePluggyItem> {
+			return client.updateItem(itemId);
+		},
+
 		listConnectors() {
 			return client.listConnectors();
 		},
@@ -335,14 +339,20 @@ export async function syncBillsForCreditAccounts(params: {
 	userId: string;
 	accounts: PluggyAccount[];
 	accountIdsByRemoteId: Map<string, string>;
+	/**
+	 * Rebuild the monthly bills after storing them. A full item sync turns this
+	 * off and rebuilds once at the end, after the card transactions are stored.
+	 */
+	materialize?: boolean;
 }): Promise<PluggySyncPhaseResult> {
 	const { service, userId, accounts, accountIdsByRemoteId } = params;
+	const materialize = params.materialize ?? true;
 	const creditAccounts = accounts.filter(
 		(account) => account.type === "CREDIT",
 	);
 
 	if (creditAccounts.length === 0) {
-		await materializeMonthlyBillsFromPluggy({ userId });
+		if (materialize) await materializeMonthlyBillsFromPluggy({ userId });
 		return {
 			total: 0,
 			synced: 0,
@@ -451,7 +461,7 @@ export async function syncBillsForCreditAccounts(params: {
 		}
 	}
 
-	await materializeMonthlyBillsFromPluggy({ userId });
+	if (materialize) await materializeMonthlyBillsFromPluggy({ userId });
 
 	const failedAccounts = accountResults.filter(
 		(account) => account.status === "failed",
@@ -480,6 +490,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 	userId: string;
 }): Promise<void> {
 	const { userId } = params;
+	const startedAt = Date.now();
 
 	const rows = await db
 		.select({
@@ -651,6 +662,11 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 			})
 			.where(eq(monthlyBill.id, bill.id));
 	}
+
+	console.info("[pluggy-sync] monthly bills rebuilt", {
+		months: months.length,
+		ms: Date.now() - startedAt,
+	});
 }
 
 /** Sync transactions for a single account. */
@@ -885,8 +901,14 @@ export async function syncTransactionsForItem(params: {
 }): Promise<PluggySyncResult> {
 	const { service, userId, localItemId, pluggyItemId } = params;
 	const { startDate, endDate } = buildInitialSyncWindow();
+	const syncStartedAt = Date.now();
+	const phaseMs: Record<string, number> = {};
+	const lap = (phase: string, since: number) => {
+		phaseMs[phase] = Date.now() - since;
+	};
 
 	let accountsPhase: PluggyAccountSyncResult;
+	const accountsStartedAt = Date.now();
 
 	try {
 		accountsPhase = await syncAccountsForItem({
@@ -912,6 +934,7 @@ export async function syncTransactionsForItem(params: {
 		});
 	}
 
+	lap("accounts", accountsStartedAt);
 	const accounts = accountsPhase.accounts;
 	if (accounts.length === 0) {
 		return summarizeSyncResult({
@@ -926,12 +949,14 @@ export async function syncTransactionsForItem(params: {
 	}
 
 	let billsPhase: PluggySyncPhaseResult;
+	const billsStartedAt = Date.now();
 	try {
 		billsPhase = await syncBillsForCreditAccounts({
 			service,
 			userId,
 			accounts,
 			accountIdsByRemoteId: accountsPhase.accountIdsByRemoteId,
+			materialize: false,
 		});
 	} catch (error) {
 		if (isPluggyItemNotFoundError(error)) {
@@ -942,8 +967,10 @@ export async function syncTransactionsForItem(params: {
 			toPhaseErrorMessage(error, "Falha ao sincronizar faturas da Pluggy."),
 		);
 	}
+	lap("bills", billsStartedAt);
 
 	let transactionsPhase: PluggySyncPhaseResult;
+	const transactionsStartedAt = Date.now();
 	try {
 		let totalTransactions = 0;
 		let syncedTransactions = 0;
@@ -1018,7 +1045,24 @@ export async function syncTransactionsForItem(params: {
 		transactionsPhase = failedPhase(
 			toPhaseErrorMessage(error, "Falha ao sincronizar transacoes da Pluggy."),
 		);
+		// The bills were stored without a rebuild above; do not leave them out.
+		try {
+			await materializeMonthlyBillsFromPluggy({ userId });
+		} catch (rebuildError) {
+			console.warn("[pluggy] monthly bills rebuild failed", {
+				userId,
+				error: toPhaseErrorMessage(rebuildError, "rebuild failed"),
+			});
+		}
 	}
+	lap("transactions", transactionsStartedAt);
+
+	console.info("[pluggy-sync] item synced", {
+		localItemId,
+		totalMs: Date.now() - syncStartedAt,
+		phaseMs,
+		accounts: accounts.length,
+	});
 
 	return summarizeSyncResult({
 		accounts: accountsPhase,
