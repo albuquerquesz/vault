@@ -39,11 +39,12 @@ const STATUS_EVENTS = new Set([
 const pluggyWebhookSchema = z
 	.object({
 		event: z.string().min(1),
-		eventId: z.string().optional(),
-		itemId: z.string().optional(),
-		clientUserId: z.string().optional(),
-		triggeredBy: z.string().optional(),
-		accountId: z.string().optional(),
+		// Pluggy sends null for items created without a clientUserId.
+		eventId: z.string().nullish(),
+		itemId: z.string().nullish(),
+		clientUserId: z.string().nullish(),
+		triggeredBy: z.string().nullish(),
+		accountId: z.string().nullish(),
 		transactionIds: z.array(z.string()).optional(),
 		createdTransactionsLink: z.string().optional(),
 		error: z
@@ -328,7 +329,7 @@ export async function handlePluggyWebhookEvent(
 	const base = {
 		received: true as const,
 		event,
-		eventId: payload.eventId,
+		eventId: payload.eventId ?? undefined,
 	};
 
 	// Events without item context (connector health, payments, etc.)
@@ -342,7 +343,7 @@ export async function handlePluggyWebhookEvent(
 
 	const localItems = await resolveLocalItemsForWebhook({
 		itemId: payload.itemId,
-		clientUserId: payload.clientUserId,
+		clientUserId: payload.clientUserId ?? undefined,
 	});
 
 	if (localItems.length === 0) {

@@ -10,6 +10,8 @@ export type RouteRequest = {
 	body: unknown;
 	query: Record<string, string | undefined>;
 	params: Record<string, string>;
+	/** Keeps the Worker alive after the response; absent outside Workers. */
+	waitUntil?: (task: Promise<unknown>) => void;
 	log: {
 		info: (obj: unknown, msg?: string) => void;
 		warn: (obj: unknown, msg?: string) => void;
@@ -69,6 +71,16 @@ function headersRecord(
 	return out;
 }
 
+function executionWaitUntil(c: Context): RouteRequest["waitUntil"] {
+	try {
+		const ctx = c.executionCtx;
+		return (task) => ctx.waitUntil(task);
+	} catch {
+		// No ExecutionContext (Node server, tests).
+		return undefined;
+	}
+}
+
 async function buildRequest(c: Context): Promise<RouteRequest> {
 	let body: unknown;
 	const method = c.req.method;
@@ -97,6 +109,7 @@ async function buildRequest(c: Context): Promise<RouteRequest> {
 		body,
 		query,
 		params: c.req.param() as Record<string, string>,
+		waitUntil: executionWaitUntil(c),
 		log: {
 			info: (obj, msg) => console.info(msg ?? "info", obj),
 			warn: (obj, msg) => console.warn(msg ?? "warn", obj),

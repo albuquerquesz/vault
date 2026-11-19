@@ -24,7 +24,21 @@ const fallbackDb: Database = usesLocalPostgres
 			schema,
 		}) as unknown as Database);
 
-const requestDb = new AsyncLocalStorage<Database>();
+type RequestScope = {
+	db: Database;
+	/** Work that outlives the response (webhook syncs); the connection waits for it. */
+	background: Promise<unknown>[];
+};
+
+const requestDb = new AsyncLocalStorage<RequestScope>();
+
+/**
+ * Keeps the request connection open until `task` settles, so work started with
+ * `waitUntil` after the response can still query. No-op outside a request scope.
+ */
+export function runInBackground(task: Promise<unknown>) {
+	requestDb.getStore()?.background.push(task);
+}
 
 /**
  * Runs `fn` with a single Postgres connection shared by every query in it.
@@ -38,10 +52,18 @@ export async function withRequestDb<T>(
 ): Promise<T> {
 	const client = new Client({ connectionString });
 	await client.connect();
+	const scope: RequestScope = {
+		db: drizzleNodePg(client, { schema }),
+		background: [],
+	};
 	try {
-		return await requestDb.run(drizzleNodePg(client, { schema }), fn);
+		return await requestDb.run(scope, fn);
 	} finally {
-		const ending = client.end().catch(() => {});
+		// Close only after background work finishes; the runtime is kept alive by
+		// `waitUntil(ending)`.
+		const ending = Promise.allSettled(scope.background)
+			.then(() => client.end())
+			.catch(() => {});
 		if (waitUntil) waitUntil(ending);
 		else await ending;
 	}
@@ -50,7 +72,7 @@ export async function withRequestDb<T>(
 /** Request-scoped connection when inside `withRequestDb`, otherwise the fallback. */
 export const db: Database = new Proxy(fallbackDb, {
 	get(_target, prop) {
-		const target = requestDb.getStore() ?? fallbackDb;
+		const target = requestDb.getStore()?.db ?? fallbackDb;
 		const value = Reflect.get(target, prop, target);
 		return typeof value === "function" ? value.bind(target) : value;
 	},
