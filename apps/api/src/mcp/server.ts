@@ -100,7 +100,8 @@ export function createVaultMcpServer(
 		"get_monthly_bills",
 		{
 			title: "Faturas do mês",
-			description: "Faturas de cartão e contas do mês informado.",
+			description:
+				"Faturas de cartão e contas do mês informado. Cada item traz name, totalAmount, paidAmount e paidSource (bank ou manual), pluggyBillId, dueDate (AAAA-MM-DD, o vencimento) e minimumPaymentAmount (pagamento mínimo, nulo quando o banco não informa). A Pluggy só devolve faturas já fechadas, então um mês cuja fatura ainda não fechou vem vazio.",
 			inputSchema: z.object({ month }),
 			annotations: readOnly,
 		},

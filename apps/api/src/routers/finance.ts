@@ -1514,6 +1514,8 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 									.select({
 										pluggyBillId: pluggyBills.pluggyBillId,
 										paidAmount: pluggyBills.paidAmount,
+										dueDate: pluggyBills.dueDate,
+										minimumPaymentAmount: pluggyBills.minimumPaymentAmount,
 									})
 									.from(pluggyBills)
 									.where(inArray(pluggyBills.pluggyBillId, billIds)),
@@ -1530,11 +1532,27 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				const bankPaidByBill = new Map(
 					bankRows.map((row) => [row.pluggyBillId, Number(row.paidAmount) || 0]),
 				);
+				const billInfo = new Map(
+					bankRows.map((row) => [
+						row.pluggyBillId,
+						{
+							// Pluggy sends midnight UTC; the date part is the due day as the bank states it.
+							dueDate: row.dueDate.toISOString().slice(0, 10),
+							minimumPaymentAmount:
+								row.minimumPaymentAmount === null
+									? null
+									: Number(row.minimumPaymentAmount),
+						},
+					]),
+				);
 				const manualBills = new Set(manualRows.map((row) => row.pluggyBillId));
 				return reply.send({
 					bills: bills.map(serializeMonthlyBill),
 					items: flatItems.map((item) => ({
 						...item,
+						dueDate: billInfo.get(item.pluggyBillId ?? "")?.dueDate ?? null,
+						minimumPaymentAmount:
+							billInfo.get(item.pluggyBillId ?? "")?.minimumPaymentAmount ?? null,
 						paidSource: item.pluggyBillId
 							? paidSource({
 									bankPaid: bankPaidByBill.get(item.pluggyBillId) ?? 0,

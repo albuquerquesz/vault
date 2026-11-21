@@ -179,7 +179,7 @@ describe("busca e edição de transações", () => {
 });
 
 describe("fatura paga à mão", () => {
-	async function seedBill() {
+	async function seedBill(options: { minimumPaymentAmount?: string | null } = {}) {
 		const [item] = await db.insert(pluggyItems).values({ userId: TEST_USER_ID, pluggyItemId: "pi-1", provider: "Teste" }).returning();
 		const [account] = await db.insert(pluggyAccounts).values({ pluggyItemId: item!.id, pluggyAccountId: "pa-1", type: "CREDIT", name: "Cartão Teste" }).returning();
 		await db.insert(pluggyTransactions).values({
@@ -199,6 +199,7 @@ describe("fatura paga à mão", () => {
 			dueDate: new Date("2026-12-20T12:00:00Z"),
 			totalAmount: "500.00",
 			paidAmount: "30.00",
+			minimumPaymentAmount: options.minimumPaymentAmount ?? null,
 			currency: "BRL",
 		});
 		await materializeMonthlyBillsFromPluggy({ userId: TEST_USER_ID });
@@ -223,6 +224,24 @@ describe("fatura paga à mão", () => {
 
 		await api("POST", "/bills/bill-1/paid", { paidAmount: 250 });
 		expect(await billItem()).toMatchObject({ paidAmount: 250, paidSource: "manual" });
+	});
+
+	test("a fatura traz o vencimento e o pagamento mínimo que a Pluggy informou", async () => {
+		await seedBill({ minimumPaymentAmount: "120.50" });
+
+		expect(await billItem()).toMatchObject({
+			dueDate: "2026-12-20",
+			minimumPaymentAmount: 120.5,
+		});
+	});
+
+	test("sem pagamento mínimo do banco o campo vem nulo, e o vencimento continua", async () => {
+		await seedBill();
+
+		expect(await billItem()).toMatchObject({
+			dueDate: "2026-12-20",
+			minimumPaymentAmount: null,
+		});
 	});
 
 	test("desmarcar volta ao valor do banco e fatura inexistente é 404", async () => {

@@ -16,6 +16,12 @@ import type {
 	PluggyWebhookRegistration,
 	RegisterPluggyWebhookInput,
 } from "./types.js";
+import {
+	describeBills,
+	describeCardTransactions,
+	describeCreditAccounts,
+	logShape,
+} from "./shape.js";
 
 const PLUGGY_API = "https://api.pluggy.ai";
 
@@ -279,6 +285,7 @@ export function createPluggyClient(creds: PluggyCredentials) {
 				creds,
 				`/accounts?itemId=${encodeURIComponent(itemId)}`,
 			)) as PluggyAccountsPage;
+			logShape("accounts", () => describeCreditAccounts(response.results));
 			return response.results.map(normalizeAccount);
 		},
 
@@ -288,6 +295,7 @@ export function createPluggyClient(creds: PluggyCredentials) {
 				creds,
 				`/bills?accountId=${encodeURIComponent(accountId)}`,
 			)) as PluggyBillsPage;
+			logShape("bills", () => describeBills(response.results ?? []));
 			return (response.results ?? []).map(normalizeBill);
 		},
 
@@ -330,6 +338,7 @@ export function createPluggyClient(creds: PluggyCredentials) {
 				}
 			} while (next);
 
+			logShape("card transactions", () => describeCardTransactions(transactions));
 			return { transactions };
 		},
 
