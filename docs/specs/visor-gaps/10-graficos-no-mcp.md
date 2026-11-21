@@ -29,7 +29,7 @@ Uma tool de leitura que devolve, para um conjunto fixo de métricas, os dados j�
 
 ## Implementation Decisions
 
-- Uma tool `get_chart` de leitura: `{ metric, month?, months?, type? }`. Métricas iniciais: `spending_by_category`, `monthly_result`, `spending_by_day`, `balance_projection` (esta só depois da spec 01).
+- Uma tool `get_chart` de leitura: `{ metric, month?, months?, type? }`. Métricas iniciais: `spending_by_category`, `monthly_result`, `spending_by_day`, `balance_projection` (linha com o saldo projetado dia a dia do mês, sobre a projeção da spec 01; implementada em 21/11).
 - A agregação reaproveita as funções que alimentam `/partial-result` e o ranking de categorias da web; nenhuma conta nova de classificação.
 - Resposta: `{ title, type, data: [{ label, value }...], vegaLite: {...} }`, com `data` também embutida no `vegaLite.data.values`. Vega-Lite 5, esquema público e estável.
 - Tipos aceitos por métrica: `spending_by_category` em rosca ou barras; `monthly_result` em barras; `spending_by_day` e `balance_projection` em linha. Combinação inválida devolve erro de validação.

@@ -35,7 +35,14 @@ import {
 	tag,
 	transactionTag,
 } from "../db/schema/index.js";
-import { paidSource } from "../services/bill-payment.js";
+import { effectivePaidAmount, paidSource } from "../services/bill-payment.js";
+import {
+	averageVariable,
+	buildAssumptions,
+	currentMonthVariableRemaining,
+	projectBalance,
+} from "../services/balance-projection.js";
+import { paceClock } from "../services/pace-alert.js";
 import { buildChart, groupSmall, monthLabel } from "../services/charts.js";
 import { calculateCategoryLimits } from "../services/category-limits.js";
 import {
@@ -48,6 +55,7 @@ import {
 import {
 	activePlans,
 	buildInstallmentPlans,
+	installmentOf,
 	projectUpcoming,
 } from "../services/installments.js";
 import { applyContribution, planGoal } from "../services/goal-plan.js";
@@ -80,6 +88,7 @@ import {
 	listCurrentSubscriptions,
 	todayInSaoPaulo,
 } from "../services/subscriptions.js";
+import dayjs from "dayjs";
 import { requireSession } from "../session.js";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -405,6 +414,290 @@ async function loadActiveInstallmentPlans(userId: string, today: string) {
 		),
 		today,
 	);
+}
+
+/** Every credit card with its limit, last bill and the estimated open bill. */
+async function loadCreditCards(userId: string) {
+	const accounts = await db
+		.select({
+			id: pluggyAccounts.id,
+			name: pluggyAccounts.name,
+			brand: pluggyAccounts.brand,
+			status: pluggyAccounts.status,
+			creditLimit: pluggyAccounts.creditLimit,
+			availableCreditLimit: pluggyAccounts.availableCreditLimit,
+			balanceDueDate: pluggyAccounts.balanceDueDate,
+			balanceCloseDate: pluggyAccounts.balanceCloseDate,
+			minimumPayment: pluggyAccounts.minimumPayment,
+			provider: pluggyItems.provider,
+		})
+		.from(pluggyAccounts)
+		.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
+		.where(and(eq(pluggyItems.userId, userId), eq(pluggyAccounts.type, "CREDIT")))
+		.orderBy(asc(pluggyAccounts.name));
+	if (accounts.length === 0) return [];
+
+	const ids = accounts.map((account) => account.id);
+	const [bills, unbilled] = await Promise.all([
+		db
+			.select()
+			.from(pluggyBills)
+			.where(inArray(pluggyBills.pluggyAccountId, ids))
+			.orderBy(desc(pluggyBills.dueDate)),
+		// Purchases no closed bill has claimed yet make up the open bill. Card
+		// payments are left out, as when the monthly bills are rebuilt.
+		db
+			.select({
+				accountId: pluggyTransactions.pluggyAccountId,
+				date: pluggyTransactions.date,
+				amount: pluggyTransactions.amount,
+			})
+			.from(pluggyTransactions)
+			.where(
+				and(
+					inArray(pluggyTransactions.pluggyAccountId, ids),
+					isNull(pluggyTransactions.pluggyBillId),
+					isNull(pluggyTransactions.hiddenAt),
+					sql`coalesce(${pluggyTransactions.category}, '') <> 'Credit card payment'`,
+					sql`coalesce(${pluggyTransactions.description}, '') not ilike 'pagamento recebido%'`,
+				),
+			),
+	]);
+
+	const cards = accounts.map((account) => {
+		const last = bills.find((bill) => bill.pluggyAccountId === account.id);
+		const lastDueDate = dateOnly(last?.dueDate);
+		const lastClosingDate = dateOnly(last?.billClosingDate);
+		// Old rows saved before billId existed are still unbilled in the
+		// table but belong to bills that closed long ago. Purchases made on the
+		// closing date itself go to the next bill (no billId yet), so keep them.
+		const since = openBillSince(lastDueDate, lastClosingDate);
+		const open = unbilled.filter(
+			(row) => row.accountId === account.id && (since === null || row.date >= since),
+		);
+		return {
+			id: account.id,
+			name: account.name,
+			brand: account.brand,
+			status: account.status,
+			provider: account.provider,
+			limit: summarizeLimit(
+				account.creditLimit === null ? null : Number(account.creditLimit),
+				account.availableCreditLimit === null ? null : Number(account.availableCreditLimit),
+			),
+			// What the card itself reports about its last closed bill.
+			reported: {
+				dueDate: dateOnly(account.balanceDueDate),
+				closeDate: dateOnly(account.balanceCloseDate),
+				minimumPayment:
+					account.minimumPayment === null ? null : Number(account.minimumPayment),
+			},
+			lastBill: last
+				? {
+						pluggyBillId: last.pluggyBillId,
+						dueDate: lastDueDate,
+						closingDate: lastClosingDate,
+						totalAmount: Number(last.totalAmount),
+						minimumPaymentAmount:
+							last.minimumPaymentAmount === null ? null : Number(last.minimumPaymentAmount),
+						paidAmount: Number(last.paidAmount),
+					}
+				: null,
+			openBill: estimateOpenBill({
+				lastDueDate,
+				lastClosingDate,
+				unbilledTotal: open.reduce((sum, row) => sum + Number(row.amount), 0),
+				unbilledCount: open.length,
+			}),
+		};
+	});
+	return cards;
+}
+
+/** Spending of a month split by what leaves the bank account and what goes on a card. */
+function splitVariableSpending(params: {
+	transactions: Awaited<ReturnType<typeof listFinanceTransactions>>;
+	excludedIds: ReadonlySet<string>;
+	upTo?: string;
+}) {
+	let bank = 0;
+	let card = 0;
+	let rows = 0;
+	for (const row of params.transactions) {
+		if (row.kind !== "expense") continue;
+		if (params.upTo && row.date > params.upTo) continue;
+		rows += 1;
+		if (params.excludedIds.has(row.id)) continue;
+		if (row.sourceAccountType === "CREDIT") card += Math.abs(row.amount);
+		else bank += Math.abs(row.amount);
+	}
+	return { bank, card, hasData: rows > 0 };
+}
+
+/** Loads what the balance projection needs and runs the pure projection. */
+export async function loadBalanceProjection(params: {
+	userId: string;
+	months: number;
+	today?: string;
+}) {
+	const { userId, months } = params;
+	const today = params.today ?? todayInSaoPaulo();
+	const clock = paceClock(dayjs(today));
+	const current = today.slice(0, 7);
+	const history = [3, 2, 1].map((back) => addMonthsClamped(`${current}-01`, -back).slice(0, 7));
+	const historyStart = getMonthBounds(history[0] as string).start;
+
+	const [bankRows, items, paidRows, cards, bills, overrides, plans, installmentRows, currentTx, ...historyTx] =
+		await Promise.all([
+			db
+				.select({ balance: pluggyAccounts.balance })
+				.from(pluggyAccounts)
+				.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
+				.where(and(eq(pluggyItems.userId, userId), eq(pluggyAccounts.type, "BANK"))),
+			db.select().from(recurringItem).where(eq(recurringItem.userId, userId)),
+			db
+				.select({ itemId: recurringPayment.itemId })
+				.from(recurringPayment)
+				.where(and(eq(recurringPayment.userId, userId), eq(recurringPayment.month, current))),
+			loadCreditCards(userId),
+			db
+				.select({
+					accountId: pluggyBills.pluggyAccountId,
+					pluggyBillId: pluggyBills.pluggyBillId,
+					dueDate: pluggyBills.dueDate,
+					totalAmount: pluggyBills.totalAmount,
+					paidAmount: pluggyBills.paidAmount,
+					cardName: pluggyAccounts.name,
+				})
+				.from(pluggyBills)
+				.innerJoin(pluggyAccounts, eq(pluggyBills.pluggyAccountId, pluggyAccounts.id))
+				.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
+				.where(and(eq(pluggyItems.userId, userId), eq(pluggyAccounts.type, "CREDIT"))),
+			db.select().from(billPaymentOverride).where(eq(billPaymentOverride.userId, userId)),
+			loadActiveInstallmentPlans(userId, today),
+			db
+				.select({
+					id: pluggyTransactions.id,
+					description: pluggyTransactions.description,
+					amount: pluggyTransactions.amount,
+					installmentNumber: pluggyTransactions.installmentNumber,
+					totalInstallments: pluggyTransactions.totalInstallments,
+				})
+				.from(pluggyTransactions)
+				.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
+				.where(
+					and(
+						eq(pluggyItems.userId, userId),
+						isNull(pluggyTransactions.hiddenAt),
+						gte(pluggyTransactions.date, historyStart),
+					),
+				),
+			listFinanceTransactions({ userId, month: current }),
+			...history.map((month) => listFinanceTransactions({ userId, month })),
+		]);
+
+	const balances = bankRows.filter((row) => row.balance !== null).map((row) => Number(row.balance));
+	const startBalance = balances.length === 0 ? null : balances.reduce((total, value) => total + value, 0);
+
+	const recurringItems = items.map(serializeRecurringItem);
+	const currentOccurrences = buildOccurrences({
+		month: current,
+		items: recurringItems,
+		transactions: currentTx,
+		paidByHand: new Set(paidRows.map((row) => row.itemId)),
+	});
+
+	// Installments and fixed bills are projected on their own, so they leave the averages.
+	const installmentIds = new Set(
+		installmentRows
+			.filter((row) => Number(row.amount) > 0 && installmentOf(row) !== null)
+			.map((row) => row.id),
+	);
+	const excluded = (month: string, transactions: typeof currentTx) => {
+		const ids = new Set(installmentIds);
+		for (const occurrence of buildOccurrences({ month, items: recurringItems, transactions, paidByHand: new Set() }))
+			if (occurrence.matchedTransaction) ids.add(occurrence.matchedTransaction.id);
+		return ids;
+	};
+	const average = averageVariable(
+		history.map((month, index) =>
+			splitVariableSpending({
+				transactions: historyTx[index] ?? [],
+				excludedIds: excluded(month, historyTx[index] ?? []),
+			}),
+		),
+	);
+	const spentSoFar = splitVariableSpending({
+		transactions: currentTx,
+		excludedIds: excluded(current, currentTx),
+		upTo: today,
+	});
+	const remaining = currentMonthVariableRemaining({
+		monthlyAverage: average.bank,
+		spentSoFar: spentSoFar.bank,
+		daysElapsed: clock.daysElapsed,
+		daysInMonth: clock.daysInMonth,
+	});
+
+	const manual = new Map(overrides.map((row) => [row.pluggyBillId, row.paidAmount]));
+	const closedBills = bills
+		.map((bill) => {
+			const dueDate = dateOnly(bill.dueDate) as string;
+			const total = Number(bill.totalAmount);
+			const manualPaid = manual.has(bill.pluggyBillId)
+				? manual.get(bill.pluggyBillId) === null
+					? null
+					: Number(manual.get(bill.pluggyBillId))
+				: undefined;
+			const paid = effectivePaidAmount({ bankPaid: Number(bill.paidAmount), billTotal: total, manualPaid });
+			return {
+				dueDate,
+				remaining: Math.max(Math.round((total - paid) * 100) / 100, 0),
+				label: `Fatura ${bill.cardName ?? "do cartão"}`,
+			};
+		})
+		// A bill due before today is already settled in the balance the bank reports.
+		.filter((bill) => bill.dueDate >= today && bill.remaining > 0);
+	const openBills = cards
+		.filter((card) => card.openBill !== null)
+		.map((card) => ({
+			dueDate: card.openBill?.estimatedDueDate ?? null,
+			estimatedTotal: card.openBill?.estimatedTotal ?? 0,
+			label: `Fatura em aberto ${card.name ?? "do cartão"} (estimada)`,
+		}))
+		.filter((bill) => bill.estimatedTotal > 0);
+
+	const installmentsByMonth = new Map(
+		projectUpcoming(plans, today, months).map((entry) => [entry.month, entry.total]),
+	);
+	const input = {
+		startBalance,
+		today,
+		months,
+		recurringItems,
+		currentOccurrences,
+		closedBills,
+		openBills,
+		installmentsByMonth,
+		bankVariableMonthly: average.bank,
+		bankVariableCurrentRemaining: remaining.amount,
+		cardVariableMonthly: average.card,
+	};
+	const result = projectBalance(input);
+	return {
+		today,
+		...result,
+		assumptions: buildAssumptions({
+			hasBankBalance: startBalance !== null,
+			historyMonths: average.monthsUsed,
+			hasRecurringIncome: recurringItems.some((item) => item.kind === "income"),
+			hasRecurringBills: recurringItems.some((item) => item.kind === "bill"),
+			hasCards: cards.length > 0,
+			openBillWithoutDate: openBills.some((bill) => bill.dueDate === null),
+			paceUsed: remaining.basis === "pace",
+			hasInstallments: plans.length > 0,
+		}),
+	};
 }
 
 async function getPartialResultMetrics(params: {
@@ -1841,10 +2134,11 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 		monthly_result: ["bar"],
 		spending_by_day: ["line"],
 		upcoming_installments: ["bar"],
+		balance_projection: ["line"],
 	} as const;
 
 	const chartQuery = z.object({
-		metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments"]),
+		metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments", "balance_projection"]),
 		month: z.string().regex(monthPattern).optional(),
 		months: z.coerce.number().int().min(1).max(12).optional(),
 		type: z.enum(["donut", "bar", "line"]).optional(),
@@ -1860,7 +2154,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!parsed.success)
 					return reply
 						.status(400)
-						.send(errorBody("VALIDATION_ERROR", "Informe metric (spending_by_category, monthly_result, spending_by_day ou upcoming_installments), month AAAA-MM e months de 1 a 12."));
+						.send(errorBody("VALIDATION_ERROR", "Informe metric (spending_by_category, monthly_result, spending_by_day, upcoming_installments ou balance_projection), month AAAA-MM e months de 1 a 12."));
 				const { metric } = parsed.data;
 				const allowed = CHART_TYPES[metric] as readonly string[];
 				const type = parsed.data.type ?? allowed[0];
@@ -1874,6 +2168,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 
 				let title: string;
 				let data: { label: string; value: number; series?: string }[];
+				let projectionExtra: Record<string, unknown> | null = null;
 
 				if (metric === "spending_by_category") {
 					const rows = await listFinanceTransactions({ userId, month });
@@ -1911,6 +2206,28 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						{ label: monthLabel(value), series: "Receita", value: results[index]?.income ?? 0 },
 						{ label: monthLabel(value), series: "Gasto", value: results[index]?.spent ?? 0 },
 					]);
+				} else if (metric === "balance_projection") {
+					const first = today.slice(0, 7);
+					const gap =
+						(Number(month.slice(0, 4)) - Number(first.slice(0, 4))) * 12 +
+						Number(month.slice(5, 7)) - Number(first.slice(5, 7));
+					if (gap < 0 || gap > 11)
+						return reply
+							.status(400)
+							.send(errorBody("VALIDATION_ERROR", "Para balance_projection, month vai do mês atual até 11 meses à frente."));
+					const projection = await loadBalanceProjection({ userId, months: gap + 1, today });
+					title = `Saldo projetado em ${monthLabel(month)} (estimativa)`;
+					data = projection.days
+						.filter((day) => day.date.slice(0, 7) === month)
+						.map((day) => ({ label: String(Number(day.date.slice(8, 10))), value: day.balance }));
+					projectionExtra = {
+						isEstimate: true,
+						startBalance: projection.startBalance,
+						endBalance: data[data.length - 1]?.value ?? null,
+						lowest: projection.lowest,
+						firstNegativeDate: projection.firstNegativeDate,
+						assumptions: projection.assumptions,
+					};
 				} else {
 					const count = parsed.data.months ?? 6;
 					const plans = await loadActiveInstallmentPlans(userId, today);
@@ -1926,7 +2243,9 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				return reply.send({
 					metric,
 					...chart,
-					total: single ? Math.round(data.reduce((sum, point) => sum + point.value, 0) * 100) / 100 : null,
+					// A balance is a level, not an amount to add up.
+					total: single && metric !== "balance_projection" ? Math.round(data.reduce((sum, point) => sum + point.value, 0) * 100) / 100 : null,
+					...(projectionExtra ? { projection: projectionExtra } : {}),
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
@@ -1944,100 +2263,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 		async handler(req, reply) {
 			try {
 				const session = await requireSession(req.raw, { allowMcpToken: true });
-				const accounts = await db
-					.select({
-						id: pluggyAccounts.id,
-						name: pluggyAccounts.name,
-						brand: pluggyAccounts.brand,
-						status: pluggyAccounts.status,
-						creditLimit: pluggyAccounts.creditLimit,
-						availableCreditLimit: pluggyAccounts.availableCreditLimit,
-						balanceDueDate: pluggyAccounts.balanceDueDate,
-						balanceCloseDate: pluggyAccounts.balanceCloseDate,
-						minimumPayment: pluggyAccounts.minimumPayment,
-						provider: pluggyItems.provider,
-					})
-					.from(pluggyAccounts)
-					.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
-					.where(and(eq(pluggyItems.userId, session.user.id), eq(pluggyAccounts.type, "CREDIT")))
-					.orderBy(asc(pluggyAccounts.name));
-				if (accounts.length === 0) return reply.send({ cards: [] });
-
-				const ids = accounts.map((account) => account.id);
-				const [bills, unbilled] = await Promise.all([
-					db
-						.select()
-						.from(pluggyBills)
-						.where(inArray(pluggyBills.pluggyAccountId, ids))
-						.orderBy(desc(pluggyBills.dueDate)),
-					// Purchases no closed bill has claimed yet make up the open bill. Card
-					// payments are left out, as when the monthly bills are rebuilt.
-					db
-						.select({
-							accountId: pluggyTransactions.pluggyAccountId,
-							date: pluggyTransactions.date,
-							amount: pluggyTransactions.amount,
-						})
-						.from(pluggyTransactions)
-						.where(
-							and(
-								inArray(pluggyTransactions.pluggyAccountId, ids),
-								isNull(pluggyTransactions.pluggyBillId),
-								isNull(pluggyTransactions.hiddenAt),
-								sql`coalesce(${pluggyTransactions.category}, '') <> 'Credit card payment'`,
-								sql`coalesce(${pluggyTransactions.description}, '') not ilike 'pagamento recebido%'`,
-							),
-						),
-				]);
-
-				const cards = accounts.map((account) => {
-					const last = bills.find((bill) => bill.pluggyAccountId === account.id);
-					const lastDueDate = dateOnly(last?.dueDate);
-					const lastClosingDate = dateOnly(last?.billClosingDate);
-					// Old rows saved before billId existed are still unbilled in the
-					// table but belong to bills that closed long ago. Purchases made on the
-					// closing date itself go to the next bill (no billId yet), so keep them.
-					const since = openBillSince(lastDueDate, lastClosingDate);
-					const open = unbilled.filter(
-						(row) => row.accountId === account.id && (since === null || row.date >= since),
-					);
-					return {
-						id: account.id,
-						name: account.name,
-						brand: account.brand,
-						status: account.status,
-						provider: account.provider,
-						limit: summarizeLimit(
-							account.creditLimit === null ? null : Number(account.creditLimit),
-							account.availableCreditLimit === null ? null : Number(account.availableCreditLimit),
-						),
-						// What the card itself reports about its last closed bill.
-						reported: {
-							dueDate: dateOnly(account.balanceDueDate),
-							closeDate: dateOnly(account.balanceCloseDate),
-							minimumPayment:
-								account.minimumPayment === null ? null : Number(account.minimumPayment),
-						},
-						lastBill: last
-							? {
-									pluggyBillId: last.pluggyBillId,
-									dueDate: lastDueDate,
-									closingDate: lastClosingDate,
-									totalAmount: Number(last.totalAmount),
-									minimumPaymentAmount:
-										last.minimumPaymentAmount === null ? null : Number(last.minimumPaymentAmount),
-									paidAmount: Number(last.paidAmount),
-								}
-							: null,
-						openBill: estimateOpenBill({
-							lastDueDate,
-							lastClosingDate,
-							unbilledTotal: open.reduce((sum, row) => sum + Number(row.amount), 0),
-							unbilledCount: open.length,
-						}),
-					};
-				});
-				return reply.send({ cards });
+				return reply.send({ cards: await loadCreditCards(session.user.id) });
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));
@@ -2071,6 +2297,45 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						remainingAmount:
 							Math.round(plans.reduce((sum, plan) => sum + plan.remainingAmount, 0) * 100) / 100,
 					},
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	// --- Balance projection ---
+
+	server.route({
+		method: "GET",
+		url: "/projection",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const parsed = z
+					.object({ months: z.coerce.number().int().min(1).max(12).default(6) })
+					.safeParse(req.query);
+				if (!parsed.success)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "months deve ser um número de 1 a 12."));
+				const projection = await loadBalanceProjection({
+					userId: session.user.id,
+					months: parsed.data.months,
+				});
+				return reply.send({
+					isEstimate: true,
+					today: projection.today,
+					startBalance: projection.startBalance,
+					months: projection.months,
+					lowest: projection.lowest,
+					firstNegativeMonth: projection.firstNegativeMonth,
+					firstNegativeDate: projection.firstNegativeDate,
+					// The daily spending is summed in `months`; listing it day by day would only be noise.
+					events: projection.events.filter((event) => event.kind !== "variable"),
+					assumptions: projection.assumptions,
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)

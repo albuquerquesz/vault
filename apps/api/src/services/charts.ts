@@ -200,13 +200,35 @@ function renderBars(title: string, data: ChartPoint[]): string {
 	return frame(title, [grid, ...bars, ...xLabels, legend].join(""));
 }
 
+/** Axis for a line that may go below zero (a balance): the zero line is drawn when it is inside. */
+function signedAxes(minValue: number, maxValue: number, left: number, right: number, top: number, bottom: number) {
+	const lowest = Math.min(minValue, 0);
+	const highest = Math.max(maxValue, 0);
+	const { step } = niceScale(highest - lowest || 1);
+	const lo = Math.floor(lowest / step) * step;
+	const hi = Math.max(Math.ceil(highest / step) * step, lo + step);
+	const plotH = bottom - top;
+	const y = (value: number) => bottom - ((value - lo) / (hi - lo)) * plotH;
+	const grid: string[] = [];
+	for (let value = lo; value <= hi + step / 2; value += step) {
+		const yy = y(value);
+		const isZero = Math.abs(value) < step / 2 && lo < 0;
+		grid.push(
+			`<line x1="${left}" y1="${yy.toFixed(1)}" x2="${right}" y2="${yy.toFixed(1)}" stroke="${isZero ? "#9ca3af" : "#e5e7eb"}"/>`,
+			`<text x="${left - 8}" y="${(yy + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#6b7280">${escapeXml(formatCompactBRL(value))}</text>`,
+		);
+	}
+	return { y, grid: grid.join("") };
+}
+
 function renderLine(title: string, data: ChartPoint[]): string {
 	if (data.length === 0 || data.every((point) => point.value === 0)) return empty(title);
 	const left = 72;
 	const right = W - 24;
 	const top = 56;
 	const bottom = H - 56;
-	const { y, grid } = axes(Math.max(...data.map((point) => point.value)), left, right, top, bottom);
+	const values = data.map((point) => point.value);
+	const { y, grid } = signedAxes(Math.min(...values), Math.max(...values), left, right, top, bottom);
 	const xAt = (index: number) => (data.length === 1 ? (left + right) / 2 : left + (index / (data.length - 1)) * (right - left));
 	const points = data.map((point, index) => `${xAt(index).toFixed(1)},${y(point.value).toFixed(1)}`).join(" ");
 	const dots = data.map((point, index) => `<circle cx="${xAt(index).toFixed(1)}" cy="${y(point.value).toFixed(1)}" r="3" fill="#3b82f6"><title>${escapeXml(`${point.label}: ${formatBRL(point.value)}`)}</title></circle>`);

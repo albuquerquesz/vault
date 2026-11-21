@@ -310,10 +310,10 @@ export function createVaultMcpServer(
 		{
 			title: "Gráfico",
 			description:
-				"Gráfico pronto de uma métrica. metric: spending_by_category (gastos por categoria do mês, rosca ou barras; as menores viram Outras; estornos não são abatidos), monthly_result (receita e gasto dos últimos months meses, barras agrupadas), spending_by_day (gasto por dia do mês, linha) ou upcoming_installments (parcelas de cartão que ainda vão cair, mês a mês, barras). Os números são os mesmos do dashboard. Devolve: data (a tabela de pontos), vegaLite (especificação Vega-Lite 5 para quem renderiza) e svg (o desenho completo, pronto para colar numa página ou numa resposta; texto em português e valores em reais). Se o cliente não desenha gráfico, use data como tabela.",
+				"Gráfico pronto de uma métrica. metric: spending_by_category (gastos por categoria do mês, rosca ou barras; as menores viram Outras; estornos não são abatidos), monthly_result (receita e gasto dos últimos months meses, barras agrupadas), spending_by_day (gasto por dia do mês, linha) ou upcoming_installments (parcelas de cartão que ainda vão cair, mês a mês, barras) ou balance_projection (saldo projetado das contas bancárias dia a dia no month, linha; do mês atual a 11 meses à frente; é ESTIMATIVA, e a resposta traz projection.assumptions com o que é fato, cadastrado ou estimado). Os números são os mesmos do dashboard. Devolve: data (a tabela de pontos), vegaLite (especificação Vega-Lite 5 para quem renderiza) e svg (o desenho completo, pronto para colar numa página ou numa resposta; texto em português e valores em reais). Se o cliente não desenha gráfico, use data como tabela.",
 			inputSchema: z.object({
-				metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments"]),
-				month: month.optional().describe("Mês AAAA-MM; padrão o atual. Em monthly_result é o último mês do período."),
+				metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments", "balance_projection"]),
+				month: month.optional().describe("Mês AAAA-MM; padrão o atual. Em monthly_result é o último mês do período; em balance_projection é o mês desenhado."),
 				months: z.number().int().min(1).max(12).optional().describe("Quantos meses em monthly_result e upcoming_installments; padrão 6"),
 				type: z.enum(["donut", "bar", "line"]).optional().describe("donut ou bar para spending_by_category; os outros têm um tipo só"),
 			}),
@@ -325,6 +325,21 @@ export function createVaultMcpServer(
 				if (value !== undefined) params.set(key, String(value));
 			return call("GET", `/api/finance/chart?${params.toString()}`);
 		},
+	);
+
+	server.registerTool(
+		"get_balance_projection",
+		{
+			title: "Projeção de saldo",
+			description:
+				"Saldo projetado das contas bancárias ao fim de cada um dos próximos months meses (1 a 12, padrão 6; o primeiro é o mês atual). É uma ESTIMATIVA, não uma previsão: parte do saldo atual das contas (cartões não entram) e soma receitas recorrentes cadastradas (só elas; renda avulsa não entra), contas fixas cadastradas, faturas de cartão já fechadas e ainda não pagas (fato do banco), a fatura em aberto (estimada), parcelas que faltam (inferidas) e a média de gasto variável dos 3 últimos meses fechados. Cada mês traz income, fixedBills, closedCardBills, openCardBill, installments, cardSpending, variable, endBalance e lowestBalance; events lista os itens datados com certainty (fact, registered ou estimate); assumptions diz o que foi suposto; firstNegativeMonth e firstNegativeDate avisam quando o saldo fica negativo. Sem conta bancária conectada, startBalance é null e months vem vazio. Para ver o desenho dia a dia use get_chart com metric balance_projection.",
+			inputSchema: z.object({
+				months: z.number().int().min(1).max(12).optional().describe("Quantos meses à frente, de 1 a 12; padrão 6"),
+			}),
+			annotations: readOnly,
+		},
+		({ months }) =>
+			call("GET", months === undefined ? "/api/finance/projection" : `/api/finance/projection?months=${months}`),
 	);
 
 	server.registerTool(
