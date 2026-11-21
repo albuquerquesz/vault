@@ -169,6 +169,27 @@
       "when": 1793380913790,
       "tag": "0023_pluggy_transaction_bill_id",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795229490313,
+      "tag": "0024_bill_payment_override",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1795229664826,
+      "tag": "0025_monthly_category_limit",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1795229754037,
+      "tag": "0026_goal_contributions",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { effectivePaidAmount } from "./bill-payment.js";
 import dayjs from "dayjs";
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { createPluggyClient, PluggyApiError } from "../clients/pluggy/index.js";
@@ -16,6 +17,7 @@ import { db } from "../db/index.js";
 import { classifyPluggyTransactions } from "./pluggy-classification.js";
 import { getOwnerName } from "./pluggy-ledger.js";
 import {
+	billPaymentOverride,
 	expense,
 	monthlyBill,
 	monthlyBillItem,
@@ -533,6 +535,20 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 		linkedTotals.map((row) => [row.billId ?? "", row.total]),
 	);
 
+	const manualPayments = await db
+		.select({
+			pluggyBillId: billPaymentOverride.pluggyBillId,
+			paidAmount: billPaymentOverride.paidAmount,
+		})
+		.from(billPaymentOverride)
+		.where(eq(billPaymentOverride.userId, userId));
+	const manualPaidByBill = new Map(
+		manualPayments.map((row) => [
+			row.pluggyBillId,
+			row.paidAmount === null ? null : Number(row.paidAmount),
+		]),
+	);
+
 	const existingMonthsWithPluggyItems = await db
 		.select({ month: monthlyBill.month })
 		.from(monthlyBill)
@@ -570,14 +586,20 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 			continue;
 		}
 
+		const billTotal =
+			(billTotals.get(row.pluggyBillId) ?? 0) > 0
+				? (billTotals.get(row.pluggyBillId) as number)
+				: Number(row.totalAmount) || 0;
+
 		byMonthAccount.set(key, {
 			month,
 			name,
-			paidAmount: Number(row.paidAmount) || 0,
-			totalAmount:
-				(billTotals.get(row.pluggyBillId) ?? 0) > 0
-					? (billTotals.get(row.pluggyBillId) as number)
-					: Number(row.totalAmount) || 0,
+			paidAmount: effectivePaidAmount({
+				bankPaid: Number(row.paidAmount) || 0,
+				billTotal,
+				manualPaid: manualPaidByBill.get(row.pluggyBillId),
+			}),
+			totalAmount: billTotal,
 			pluggyBillId: row.pluggyBillId,
 			dueDateMs,
 		});

@@ -8,14 +8,19 @@ import { db } from "../db/index.js";
 import { user } from "../db/schema/index.js";
 import { resolveMcpAccessToken } from "../services/mcp-tokens.js";
 import { mcpRequestUser } from "../session.js";
+import {
+	type McpScope,
+	READ_ONLY_SCOPES,
+	resolveMcpScopes,
+} from "./scopes.js";
 import { createVaultMcpServer } from "./server.js";
 
 const RESOURCE_METADATA_URL = `${new URL(MCP_RESOURCE).origin}/.well-known/oauth-protected-resource${new URL(MCP_RESOURCE).pathname}`;
 const JWKS_TTL_MS = 5 * 60_000;
 const API_KEY_PREFIX = "vlt_mcp_";
 
-/** Read-only for API keys (vlt_mcp_…), full access for OAuth tokens. */
-const mcpAccess = new AsyncLocalStorage<{ readOnly: boolean }>();
+/** Read only for API keys (vlt_mcp_…); OAuth tokens get the scopes they carry. */
+const mcpAccess = new AsyncLocalStorage<{ scopes: ReadonlySet<McpScope> }>();
 
 let jwksCache: {
 	set: ReturnType<typeof createLocalJWKSet>;
@@ -57,7 +62,9 @@ async function authenticate(request: Request) {
 	// API keys from /settings, for clients that only support static headers.
 	if (match[1].startsWith(API_KEY_PREFIX)) {
 		const session = await resolveMcpAccessToken(request.headers);
-		return session ? { user: session.user, readOnly: true } : null;
+		return session
+			? { user: session.user, scopes: READ_ONLY_SCOPES }
+			: null;
 	}
 	try {
 		const { payload } = await jwtVerify(match[1], await getKeySet(), {
@@ -70,7 +77,12 @@ async function authenticate(request: Request) {
 			.from(user)
 			.where(eq(user.id, payload.sub))
 			.limit(1);
-		return row ? { user: row, readOnly: false } : null;
+		if (!row) return null;
+		const { scopes, legacy } = resolveMcpScopes(payload.scope);
+		// Tokens issued before scopes existed keep full access; log them so the
+		// transition can be closed once none are left.
+		if (legacy) console.info("[mcp] legacy token without mcp:* scopes", { userId: row.id });
+		return { user: row, scopes };
 	} catch {
 		// Keys may have rotated: refresh once on the next request.
 		jwksCache = null;
@@ -93,7 +105,7 @@ export function registerMcpRoute(app: Hono) {
 							}),
 						),
 					),
-				{ readOnly: mcpAccess.getStore()?.readOnly ?? true },
+				{ scopes: mcpAccess.getStore()?.scopes ?? READ_ONLY_SCOPES },
 			),
 		{ legacy: "stateless" },
 	);
@@ -103,7 +115,7 @@ export function registerMcpRoute(app: Hono) {
 		if (!auth) {
 			return unauthorized("Faça login no Vault para usar o MCP.");
 		}
-		return mcpAccess.run({ readOnly: auth.readOnly }, () =>
+		return mcpAccess.run({ scopes: auth.scopes }, () =>
 			mcpRequestUser.run(auth.user, () => handler.fetch(c.req.raw)),
 		);
 	});

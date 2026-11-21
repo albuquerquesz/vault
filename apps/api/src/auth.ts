@@ -2,6 +2,7 @@ import { mcp } from "@better-auth/mcp";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { jwt } from "better-auth/plugins";
+import { MCP_READ_SCOPE, MCP_SCOPES, MCP_WRITE_SCOPES } from "./mcp/scopes.js";
 import { env } from "./db/env.js";
 import { createDb } from "./db/index.js";
 import * as schema from "./db/schema/auth.js";
@@ -71,7 +72,18 @@ function createAuth() {
 				resource: MCP_RESOURCE,
 				loginPage: "/login",
 				consentPage: "/oauth/consent",
-				scopes: ["openid", "profile", "email", "offline_access"],
+				// Identity scopes plus the MCP ones (see mcp/scopes.ts). A client that
+				// registers without asking for scopes gets read only; writes must be
+				// requested and the user picks which to grant on the consent page.
+				scopes: ["openid", "profile", "email", "offline_access", ...MCP_SCOPES],
+				clientRegistrationDefaultScopes: [
+					"openid",
+					"profile",
+					"email",
+					"offline_access",
+					MCP_READ_SCOPE,
+				],
+				clientRegistrationAllowedScopes: [...MCP_WRITE_SCOPES],
 				allowDynamicClientRegistration: true,
 				allowUnauthenticatedClientRegistration: true,
 			}),

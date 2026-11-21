@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
 	boolean,
+	date,
 	index,
 	numeric,
 	pgTable,
@@ -26,6 +27,8 @@ export const goal = pgTable(
 		currentAmount: numeric("current_amount", { precision: 12, scale: 2 })
 			.default("0")
 			.notNull(),
+		/** Optional deadline; drives the "how much per month" plan. */
+		targetDate: date("target_date", { mode: "string" }),
 		isCompleted: boolean("is_completed").default(false).notNull(),
 		currency: text("currency").default("BRL").notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
