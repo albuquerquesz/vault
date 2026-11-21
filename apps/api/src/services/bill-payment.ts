@@ -3,6 +3,20 @@
  * manual payment, whichever is larger. When the bank catches up with (or passes)
  * the manual payment the bank's number simply wins.
  */
+/**
+ * Payments made during the cycle. The bank's totalAmount is what was still due
+ * at closing, so whatever the full bill (sum of linked purchases) has on top of
+ * it was already paid. Never negative.
+ */
+export function inCyclePaidAmount(params: {
+	bankTotal: number;
+	fullTotal: number;
+}): number {
+	const { bankTotal, fullTotal } = params;
+	if (!(bankTotal >= 0) || !(fullTotal > bankTotal)) return 0;
+	return Math.round((fullTotal - bankTotal) * 100) / 100;
+}
+
 export function effectivePaidAmount(params: {
 	bankPaid: number;
 	billTotal: number;

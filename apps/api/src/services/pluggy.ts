@@ -1,4 +1,4 @@
-import { effectivePaidAmount } from "./bill-payment.js";
+import { effectivePaidAmount, inCyclePaidAmount } from "./bill-payment.js";
 import dayjs from "dayjs";
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { createPluggyClient, PluggyApiError } from "../clients/pluggy/index.js";
@@ -651,7 +651,14 @@ async function materializeWith(
 			month,
 			name,
 			paidAmount: effectivePaidAmount({
-				bankPaid: Number(row.paidAmount) || 0,
+				// Payments inside the cycle are already out of the bank's total.
+				bankPaid: Math.max(
+					Number(row.paidAmount) || 0,
+					inCyclePaidAmount({
+						bankTotal: Number(row.totalAmount) || 0,
+						fullTotal: billTotal,
+					}),
+				),
 				billTotal,
 				manualPaid: manualPaidByBill.get(row.pluggyBillId),
 			}),

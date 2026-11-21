@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { effectivePaidAmount, paidSource } from "./bill-payment.js";
+import { effectivePaidAmount, inCyclePaidAmount, paidSource } from "./bill-payment.js";
 
 describe("effectivePaidAmount", () => {
 	test("keeps the bank amount when there is no manual payment", () => {
@@ -38,5 +38,20 @@ describe("paidSource", () => {
 		expect(
 			paidSource({ bankPaid: 40, effectivePaid: 40, hasManualPayment: false }),
 		).toBe("bank");
+	});
+});
+
+describe("inCyclePaidAmount", () => {
+	test("o que a fatura cheia tem a mais que o total do banco já foi pago no ciclo", () => {
+		expect(inCyclePaidAmount({ bankTotal: 167.7, fullTotal: 367.7 })).toBe(200);
+	});
+
+	test("sem diferença ou com total do banco maior, nada foi pago", () => {
+		expect(inCyclePaidAmount({ bankTotal: 831.47, fullTotal: 831.47 })).toBe(0);
+		expect(inCyclePaidAmount({ bankTotal: 500, fullTotal: 100 })).toBe(0);
+	});
+
+	test("fatura quitada no ciclo (banco deve 0) conta tudo como pago", () => {
+		expect(inCyclePaidAmount({ bankTotal: 0, fullTotal: 80.5 })).toBe(80.5);
 	});
 });
