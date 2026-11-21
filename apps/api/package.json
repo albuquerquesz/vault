@@ -18,7 +18,8 @@
 		"db:down": "docker compose down",
 		"dev": "bun run src/index.ts",
 		"dev:worker": "wrangler dev",
-		"start": "bun run dist/index.mjs"
+		"start": "bun run dist/index.mjs",
+		"test:integration": "bun test --preload ./test-integration/setup.ts ./test-integration"
 	},
 	"dependencies": {
 		"@better-auth/mcp": "^1.7.14",
@@ -40,6 +41,8 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20260930.2",
+		"@electric-sql/pglite": "^0.5.17",
+		"@electric-sql/pglite-socket": "^0.2.20",
 		"@types/bun": "^1.3.4",
 		"@types/node": "^26.1.1",
 		"@types/pg": "^8.16.0",
