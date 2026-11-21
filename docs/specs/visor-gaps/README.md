@@ -19,7 +19,7 @@ Estimativa de esforço (minha, não medida): **S** um PR pequeno; **M** vários 
 | [11](11-busca-de-transacoes.md) | Busca e edição de transação manual | S | decidir `unaccent` | implementada (API, MCP) |
 | [12](12-aporte-de-meta.md) | Aportes de meta e plano de poupança | S-M | nada | implementada (API, MCP) |
 | [13](13-onboarding-pluggy-do-servidor.md) | Conectar banco sem conta própria na Pluggy | L | **decisão de custo da Pluggy em produção** | a rever |
-| [14](14-carteira-de-investimentos.md) | Carteira de investimentos | L | habilitar INVESTMENTS no app Pluggy | aprovada (depende da Pluggy) |
+| [14](14-carteira-de-investimentos.md) | Carteira de investimentos | L | habilitar INVESTMENTS no app Pluggy | backend implementado (API, MCP, gráfico), sem UI; depende da Pluggy |
 | [15](15-espacos-e-convites.md) | Espaços e convite de uma pessoa | L | decidir cedo: muda todas as tabelas | a rever |
 | [16](16-assistente-de-ia-no-app.md) | Assistente de IA dentro do app | L | escolha de modelo e custo | revista: AG-UI com o Claude da VPS |
 | [17](17-api-pessoal.md) | API pessoal de leitura | M | decidir limite de uso | a rever |

@@ -207,3 +207,38 @@ export interface PluggyConnector {
 	type: string;
 	isOpenFinance: boolean;
 }
+
+/** Investment classes returned by `GET /investments` (docs: reference/Investment). */
+export const PLUGGY_INVESTMENT_TYPES = [
+	"COE",
+	"EQUITY",
+	"ETF",
+	"FIXED_INCOME",
+	"MUTUAL_FUND",
+	"SECURITY",
+	"OTHER",
+] as const;
+
+export type PluggyInvestmentType = (typeof PLUGGY_INVESTMENT_TYPES)[number];
+
+/** One investment position, already parsed defensively (see `normalizeInvestment`). */
+export interface PluggyInvestment {
+	id: string;
+	itemId?: string;
+	name: string;
+	/** Unknown classes from Pluggy fall back to OTHER. */
+	type: PluggyInvestmentType;
+	subtype: string | null;
+	institution: string | null;
+	/** Current net balance (after fees and taxes). */
+	balance: number;
+	/** `amountOriginal`: what was originally invested. Null when the provider does not say. */
+	amountInvested: number | null;
+	/** `amountProfit`: only some direct connectors send it; Open Finance sends null. */
+	amountProfit: number | null;
+	currency: string;
+	/** ACTIVE, PENDING or TOTAL_WITHDRAWAL; null when absent. */
+	status: string | null;
+	/** Reference date of the position, ISO string; null when absent. */
+	date: string | null;
+}

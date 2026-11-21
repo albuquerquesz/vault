@@ -1,6 +1,6 @@
 # Spec: carteira de investimentos
 
-Status (20/11/2026): Aprovada pelo Victor (20/11), depende de habilitar INVESTMENTS no app Pluggy. Ainda não implementada.
+Status (21/11/2026): Aprovada pelo Victor (20/11). Backend implementado na branch `feat/investments` (migração 0032): cliente Pluggy, tabelas, fase de sync tolerante, rotas, tool MCP `list_investments` e métrica `portfolio_allocation`. Falta a UI (trocar o `DEFAULT_DATA` do card) e, principalmente, **habilitar INVESTMENTS na Pluggy**; nada foi validado com dado real.
 
 Origem: lacuna #16. Formato `/to-spec`, sem entrevista. O Visor lista "investimentos" em todos os planos e a página `/mcp` fala em "acompanhe seus investimentos".
 
@@ -26,6 +26,28 @@ Sincronizar os investimentos que a Pluggy devolve, guardar o posicionamento atua
 10. Como usuário com o bearer `vlt_mcp_`, quero ler a carteira.
 11. Como usuário, quero ocultar os valores da carteira com o mesmo botão de ocultar valores que já existe.
 12. Como usuário sem investimentos conectados, quero ver um estado vazio explicando como conectar.
+
+## Achados da Pluggy (21/11/2026, só documentação)
+
+Fontes: docs.pluggy.ai `products/investments`, referência `investments-list` (`GET /investments`), `connections/connectors-coverage`, `guides/meu-pluggy-personal-use`, `get-started/contact`, `connections/item`, `open-finance/overview`, página de preços (pluggy.ai/precos) e `list_teams` do MCP da Pluggy.
+
+- **Endpoints:** `GET /investments?itemId=` (paginado: `page`, `pageSize` até 500, `results`, `totalPages`; filtro `type`), `GET /investments/{id}` e `GET /investments/{id}/transactions`.
+- **Tipos (`type`):** COE, EQUITY, ETF, FIXED_INCOME, MUTUAL_FUND, SECURITY (previdência) e OTHER. Subtipos: CDB, LCI, LCA, TREASURY, STOCK, REAL_ESTATE_FUND, RETIREMENT/PGBL/VGBL, fundos etc.
+- **Campos:** `id`, `name`, `type`, `subtype`, `balance` (valor líquido atual), `amount` (bruto), `amountOriginal` (valor originalmente aplicado), `amountProfit`, `amountWithdrawal`, `currencyCode`, `date`, `status` (ACTIVE, PENDING, TOTAL_WITHDRAWAL), `institution`, `issuer`, `annualRate`, `lastMonthRate`, `lastTwelveMonthsRate`, `rate/rateType/fixedAnnualRate`, `dueDate`, `taxes`, `taxes2`.
+- **Open Finance:** `amountProfit`, `annualRate`, `lastMonthRate` e `lastTwelveMonthsRate` vêm `null`. A rentabilidade tem de ser calculada de `balance` e `amountOriginal`, e `amountOriginal` pode faltar. Nubank "Cofrinhos" aparecem como CDB.
+- **MeuPluggy:** a tabela de cobertura marca Investimentos e Transações de investimento como disponíveis. O Mercado Pago como conector próprio de Open Finance **não** tem investimentos, mas o Victor usa o MeuPluggy para os dois, então vale o que o MeuPluggy expõe. Os dados espelham o Meu Pluggy (atualização de 24 h, o item não é atualizado por `PATCH`); a autorização do MeuPluggy dura 1 ano e, vencida, as leituras voltam **vazias** (`consentExpiresAt`, erro `USER_AUTHORIZATION_EXPIRED`).
+- **Plano e custo:** o time "albuquerque" é FREE, não produção, com ACCOUNTS, CREDIT_CARDS e TRANSACTIONS. A página de preços lista investimentos dentro do produto **Dados** (a partir de R$ 2.500 por mês, 500 conexões) e diz que não há plano comercial gratuito permanente. A documentação diz que o plano gratuito "cobre acesso a dados" e que só Sandbox e MeuPluggy criam itens reais no gratuito. **Não encontrei na documentação** um botão ou passo para ligar o produto INVESTMENTS em um time FREE; os itens coletam "todos os produtos habilitados na assinatura do time". Se não for autosserviço, o canal é sales@pluggy.ai (a Pluggy cita esse canal para ligar recursos opcionais) e, para uso pessoal, meu-suporte@pluggy.ai. Custo para o uso pessoal via MeuPluggy: a doc fala em gratuito, mas a habilitação do produto no time é o ponto aberto.
+- **Resposta quando o produto não está habilitado:** não está documentada. O cliente trata 403 (e 400/404 cuja mensagem cite produto/plano) como "produto indisponível" e pula a fase.
+
+## Correções à versão aprovada
+
+- Tipos da Pluggy não são "renda fixa, ações, fundos, previdência": são sete (acima). A divisão usa os rótulos: Renda fixa, Ações e FIIs, ETFs, Fundos, Previdência, COE, Outros.
+- `amount_invested` pode ser nulo (Open Finance). A rentabilidade só existe para posições com valor aplicado e é `null` sem ele; a da carteira usa apenas as posições com base. `amountProfit` é guardado, mas não usado no cálculo (vem nulo no Open Finance).
+- A tabela precisa de `user_id` (as rotas filtram por usuário) e `amount_profit`; `status` e `currency` entram. Posições `TOTAL_WITHDRAWAL` e em moeda diferente de BRL ficam fora dos totais (contadas à parte).
+- Item removido apaga as posições em cascata. Posição que a Pluggy deixa de devolver é apagada, mas **resposta vazia não apaga nada** (consentimento vencido do MeuPluggy também lê vazio; resgate total vem como `TOTAL_WITHDRAWAL`).
+- O instantâneo mensal só é gravado quando existe ao menos uma posição, para não criar histórico de zeros.
+- A fase de investimentos é informativa: não altera o `status` do sync e produto desabilitado é "skipped", não falha.
+- A US 8 (patrimônio na projeção de saldo, opcional) e as US 5 e 6 na UI **não foram feitas**.
 
 ## Implementation Decisions
 
@@ -57,4 +79,4 @@ Recomendação de investimento, cotação em tempo real, importação de nota de
 ## Further Notes
 
 - O rodapé do Visor diz que eles não dão recomendação de investimento; seguir a mesma linha.
-- Sem a habilitação do produto na Pluggy, a spec é só leitura de uma tabela vazia.
+- Sem a habilitação do produto na Pluggy, a spec é só leitura de uma tabela vazia. A migração é a 0032.

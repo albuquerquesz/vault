@@ -44,6 +44,7 @@ import {
 } from "../services/balance-projection.js";
 import { paceClock } from "../services/pace-alert.js";
 import { buildChart, groupSmall, monthLabel } from "../services/charts.js";
+import { getPortfolio, listInvestmentHistory } from "../services/investments.js";
 import { calculateCategoryLimits } from "../services/category-limits.js";
 import {
 	addMonthsClamped,
@@ -2135,10 +2136,11 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 		spending_by_day: ["line"],
 		upcoming_installments: ["bar"],
 		balance_projection: ["line"],
+		portfolio_allocation: ["donut", "bar"],
 	} as const;
 
 	const chartQuery = z.object({
-		metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments", "balance_projection"]),
+		metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments", "balance_projection", "portfolio_allocation"]),
 		month: z.string().regex(monthPattern).optional(),
 		months: z.coerce.number().int().min(1).max(12).optional(),
 		type: z.enum(["donut", "bar", "line"]).optional(),
@@ -2154,7 +2156,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 				if (!parsed.success)
 					return reply
 						.status(400)
-						.send(errorBody("VALIDATION_ERROR", "Informe metric (spending_by_category, monthly_result, spending_by_day, upcoming_installments ou balance_projection), month AAAA-MM e months de 1 a 12."));
+						.send(errorBody("VALIDATION_ERROR", "Informe metric (spending_by_category, monthly_result, spending_by_day, upcoming_installments balance_projection ou portfolio_allocation), month AAAA-MM e months de 1 a 12."));
 				const { metric } = parsed.data;
 				const allowed = CHART_TYPES[metric] as readonly string[];
 				const type = parsed.data.type ?? allowed[0];
@@ -2228,6 +2230,10 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						firstNegativeDate: projection.firstNegativeDate,
 						assumptions: projection.assumptions,
 					};
+				} else if (metric === "portfolio_allocation") {
+					const portfolio = await getPortfolio(userId);
+					title = "Carteira de investimentos por tipo";
+					data = portfolio.byType.map((entry) => ({ label: entry.label, value: entry.balance }));
 				} else {
 					const count = parsed.data.months ?? 6;
 					const plans = await loadActiveInstallmentPlans(userId, today);
@@ -2247,6 +2253,38 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					total: single && metric !== "balance_projection" ? Math.round(data.reduce((sum, point) => sum + point.value, 0) * 100) / 100 : null,
 					...(projectionExtra ? { projection: projectionExtra } : {}),
 				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	// --- Investments ---
+
+	server.route({
+		method: "GET",
+		url: "/investments",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				return reply.send(await getPortfolio(session.user.id));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/investments/history",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				return reply.send({ snapshots: await listInvestmentHistory(session.user.id) });
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));
