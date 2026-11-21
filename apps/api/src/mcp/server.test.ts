@@ -1,10 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import { createMcpHandler } from "@modelcontextprotocol/server";
+import {
+	ALL_MCP_SCOPES,
+	type McpScope,
+	READ_ONLY_SCOPES,
+} from "./scopes.js";
 import { createVaultMcpServer } from "./server.js";
 
 type Call = { method: string; path: string; body?: unknown };
 
-function setup(readOnly: boolean) {
+function setup(readOnlyOrScopes: boolean | ReadonlySet<McpScope>) {
+	const scopes =
+		readOnlyOrScopes === true
+			? READ_ONLY_SCOPES
+			: readOnlyOrScopes === false
+				? ALL_MCP_SCOPES
+				: readOnlyOrScopes;
 	const calls: Call[] = [];
 	const handler = createMcpHandler(
 		() =>
@@ -13,7 +24,7 @@ function setup(readOnly: boolean) {
 					calls.push({ method, path, body });
 					return new Response(JSON.stringify({ ok: true }), { status: 200 });
 				},
-				{ readOnly },
+				{ scopes },
 			),
 		{ legacy: "stateless" },
 	);
@@ -196,6 +207,76 @@ describe("MCP remoto: paridade", () => {
 			const r = await rpc("tools/call", b);
 			expect(r.error ?? r.result?.isError).toBeTruthy();
 		}
+		expect(calls).toHaveLength(0);
+	});
+});
+
+describe("MCP remoto: escopos OAuth", () => {
+	const writeToolsOf = async (scopes: ReadonlySet<McpScope>) => {
+		const { rpc } = setup(scopes);
+		const { result } = await rpc("tools/list");
+		return result.tools
+			.filter((t: { annotations: { readOnlyHint: boolean } }) => !t.annotations.readOnlyHint)
+			.map((t: { name: string }) => t.name)
+			.sort();
+	};
+
+	test("mcp:read lista só leitura", async () => {
+		expect(await writeToolsOf(new Set(["mcp:read"]))).toEqual([]);
+	});
+
+	test("cada escopo de escrita lista só as suas tools", async () => {
+		expect(await writeToolsOf(new Set(["mcp:read", "mcp:goals:write"]))).toEqual([
+			"add_goal_contribution",
+			"create_goal",
+			"delete_goal",
+			"delete_goal_contribution",
+			"update_goal",
+		]);
+		expect(await writeToolsOf(new Set(["mcp:read", "mcp:bills:write"]))).toEqual([
+			"mark_bill_paid",
+			"unmark_bill_paid",
+		]);
+		expect(await writeToolsOf(new Set(["mcp:read", "mcp:categories:write"]))).toEqual([
+			"recategorize_transactions",
+		]);
+		expect(await writeToolsOf(new Set(["mcp:read", "mcp:budgets:write"]))).toEqual([
+			"copy_category_limits",
+			"delete_category_limit",
+			"set_budget_income",
+			"set_category_limit",
+			"set_savings_target",
+			"set_spending_goal",
+		]);
+		expect(await writeToolsOf(new Set(["mcp:read", "mcp:transactions:write"]))).toEqual([
+			"create_manual_transaction",
+			"delete_manual_transactions",
+			"hide_transactions",
+			"update_manual_transaction",
+		]);
+	});
+
+	test("vários escopos listam a união", async () => {
+		const names = await writeToolsOf(
+			new Set(["mcp:read", "mcp:goals:write", "mcp:bills:write"]),
+		);
+		expect(names).toContain("create_goal");
+		expect(names).toContain("mark_bill_paid");
+		expect(names).not.toContain("set_budget_income");
+	});
+
+	test("todos os escopos listam todas as escritas", async () => {
+		const names = await writeToolsOf(ALL_MCP_SCOPES);
+		expect(names).toHaveLength(18);
+	});
+
+	test("tool fora do escopo não existe para o cliente", async () => {
+		const { rpc, calls } = setup(new Set(["mcp:read", "mcp:goals:write"]));
+		const call = await rpc("tools/call", {
+			name: "set_budget_income",
+			arguments: { month: "2026-10", income: 100 },
+		});
+		expect(call.error ?? call.result?.isError).toBeTruthy();
 		expect(calls).toHaveLength(0);
 	});
 });

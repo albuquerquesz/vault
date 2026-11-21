@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
+import type { McpScope } from "./scopes.js";
 
 /** Sends a request to the Vault API in-process, as the current MCP user. */
 export type ApiDispatch = (
@@ -52,8 +53,9 @@ async function toToolResult(response: Response) {
 /** One MCP server per request (stateless); tools map 1:1 to API routes. */
 export function createVaultMcpServer(
 	dispatch: ApiDispatch,
-	options: { readOnly: boolean },
+	options: { scopes: ReadonlySet<McpScope> },
 ) {
+	const { scopes } = options;
 	const server = new McpServer({ name: "vault", version: "1.0.0" });
 	const call = async (...args: Parameters<ApiDispatch>) =>
 		toToolResult(await dispatch(...args));
@@ -237,308 +239,324 @@ export function createVaultMcpServer(
 		({ id }) => call("GET", `/api/finance/goals/${q(id)}/contributions`),
 	);
 
-	// API keys (vlt_mcp_…) are read-only; writes need an OAuth login.
-	if (options.readOnly) return server;
+	// Write tools are registered only for the scopes the token carries. The
+	// static vlt_mcp_ key carries `mcp:read` alone, so it never sees them.
 
-	server.registerTool(
-		"create_manual_transaction",
-		{
-			title: "Registrar transação manual",
-			description: "Registra um gasto ou uma receita em dinheiro/manual.",
-			inputSchema: z.object({
-				kind: z
-					.enum(["expense", "income"])
-					.describe("expense = gasto, income = receita"),
-				date: z.iso.date().describe("Data AAAA-MM-DD"),
-				amount: z.number().positive().describe("Valor positivo em reais"),
-				category: z.string().trim().min(1).max(64),
-				note: z.string().trim().max(280).optional(),
-			}),
-			annotations: write,
-		},
-		(input) => call("POST", "/api/finance/transactions/manual", input),
-	);
+	if (scopes.has("mcp:transactions:write")) {
+		server.registerTool(
+			"create_manual_transaction",
+			{
+				title: "Registrar transação manual",
+				description: "Registra um gasto ou uma receita em dinheiro/manual.",
+				inputSchema: z.object({
+					kind: z
+						.enum(["expense", "income"])
+						.describe("expense = gasto, income = receita"),
+					date: z.iso.date().describe("Data AAAA-MM-DD"),
+					amount: z.number().positive().describe("Valor positivo em reais"),
+					category: z.string().trim().min(1).max(64),
+					note: z.string().trim().max(280).optional(),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/transactions/manual", input),
+		);
 
-	server.registerTool(
-		"update_manual_transaction",
-		{
-			title: "Editar transação manual",
-			description:
-				"Edita valor, data, categoria ou nota de uma transação criada à mão. Lançamentos vindos do banco não podem ter valor nem data editados (o banco é a fonte); para eles use recategorize_transactions.",
-			inputSchema: z
-				.object({
-					id: z.string().uuid().describe("ID da transação, como retornado por list_transactions"),
+		server.registerTool(
+			"update_manual_transaction",
+			{
+				title: "Editar transação manual",
+				description:
+					"Edita valor, data, categoria ou nota de uma transação criada à mão. Lançamentos vindos do banco não podem ter valor nem data editados (o banco é a fonte); para eles use recategorize_transactions.",
+				inputSchema: z
+					.object({
+						id: z.string().uuid().describe("ID da transação, como retornado por list_transactions"),
+						date: z.iso.date().optional().describe("Data AAAA-MM-DD"),
+						amount: z.number().positive().optional().describe("Valor positivo em reais"),
+						category: z.string().trim().min(1).max(64).optional(),
+						note: z.string().trim().max(280).nullable().optional(),
+					})
+					.refine(
+						({ id: _id, ...rest }) => Object.values(rest).some((v) => v !== undefined),
+						{ message: "Informe ao menos um campo para editar." },
+					),
+				annotations: write,
+			},
+			({ id, ...patch }) =>
+				call("PATCH", `/api/finance/transactions/manual/${q(id)}`, patch),
+		);
+
+		server.registerTool(
+			"hide_transactions",
+			{
+				title: "Ocultar transações",
+				description:
+					"Oculta gastos bancários do dashboard (por exemplo duplicados). Só gastos podem ser ocultados. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({ ids }),
+				annotations: { ...write, destructiveHint: true },
+			},
+			(input) => call("POST", "/api/finance/transactions/hide", input),
+		);
+
+		server.registerTool(
+			"delete_manual_transactions",
+			{
+				title: "Apagar transações manuais",
+				description:
+					"Apaga transações criadas à mão (até 100). Lançamentos do banco são ignorados; a resposta traz a contagem apagada. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({ ids }),
+				annotations: { ...write, destructiveHint: true },
+			},
+			(input) => call("DELETE", "/api/finance/expenses", input),
+		);
+
+	}
+
+	if (scopes.has("mcp:categories:write")) {
+		server.registerTool(
+			"recategorize_transactions",
+			{
+				title: "Recategorizar transações",
+				description:
+					"Muda a categoria exibida de transações. Não altera se elas contam como gasto ou receita.",
+				inputSchema: z.object({
+					ids,
+					category: z.string().trim().min(1).max(64),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/transactions/recategorize", input),
+		);
+
+	}
+
+	if (scopes.has("mcp:budgets:write")) {
+		server.registerTool(
+			"set_budget_income",
+			{
+				title: "Gravar renda orçada",
+				description:
+					"Grava a renda orçada do mês. Se o mês já tem renda, substitui o valor.",
+				inputSchema: z.object({
+					month,
+					income: z.number().positive().describe("Valor positivo em reais"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/budget", input),
+		);
+
+		server.registerTool(
+			"set_spending_goal",
+			{
+				title: "Gravar teto de gasto",
+				description:
+					"Grava o teto de gasto do mês. Se o mês já tem teto, substitui o valor.",
+				inputSchema: z.object({
+					month,
+					targetAmount: z.number().positive().describe("Valor positivo em reais"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/spending-goal", input),
+		);
+
+		server.registerTool(
+			"set_savings_target",
+			{
+				title: "Gravar percentual de poupança",
+				description:
+					"Grava o percentual de poupança do mês (0 a 100). Se o mês já tem, substitui.",
+				inputSchema: z.object({
+					month,
+					savingsPercentage: z.number().min(0).max(100),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/savings-target", input),
+		);
+
+		server.registerTool(
+			"set_category_limit",
+			{
+				title: "Gravar limite por categoria",
+				description:
+					"Define o limite de gasto de uma categoria no mês. Se a categoria já tem limite nesse mês (maiúsculas e acentos não importam), substitui o valor.",
+				inputSchema: z.object({
+					month,
+					category: z.string().trim().min(1).max(64),
+					targetAmount: z.number().positive().describe("Valor positivo em reais"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/category-limits", input),
+		);
+
+		server.registerTool(
+			"delete_category_limit",
+			{
+				title: "Apagar limite por categoria",
+				description:
+					"Remove o limite de uma categoria no mês. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					month,
+					category: z.string().trim().min(1).max(64),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			(input) => call("DELETE", "/api/finance/category-limits", input),
+		);
+
+		server.registerTool(
+			"copy_category_limits",
+			{
+				title: "Copiar limites para outro mês",
+				description:
+					"Copia os limites por categoria de um mês para outro. Limites que já existem no mês de destino são mantidos.",
+				inputSchema: z.object({
+					fromMonth: month.describe("Mês de origem AAAA-MM"),
+					toMonth: month.describe("Mês de destino AAAA-MM"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/category-limits/copy", input),
+		);
+
+	}
+
+	if (scopes.has("mcp:goals:write")) {
+		server.registerTool(
+			"create_goal",
+			{
+				title: "Criar meta",
+				description: "Cria uma meta financeira.",
+				inputSchema: z.object({
+					name: z.string().trim().min(1).max(128),
+					targetAmount: z.number().positive(),
+					currentAmount: z.number().min(0).optional(),
+					targetDate: z.iso.date().nullable().optional().describe("Prazo AAAA-MM-DD"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/goals", input),
+		);
+
+		server.registerTool(
+			"update_goal",
+			{
+				title: "Atualizar meta",
+				description: "Atualiza nome, valores ou conclusão de uma meta.",
+				inputSchema: z.object({
+					id: z.string().describe("ID da meta, como retornado por list_goals"),
+					name: z.string().trim().min(1).max(128).optional(),
+					targetAmount: z.number().positive().optional(),
+					currentAmount: z.number().min(0).optional(),
+					isCompleted: z.boolean().optional(),
+					targetDate: z.iso.date().nullable().optional().describe("Prazo AAAA-MM-DD; null remove o prazo"),
+				}),
+				annotations: write,
+			},
+			({ id, ...patch }) => call("PATCH", `/api/finance/goals/${q(id)}`, patch),
+		);
+
+		server.registerTool(
+			"delete_goal",
+			{
+				title: "Apagar meta",
+				description:
+					"Apaga uma meta financeira. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					id: z.string().describe("ID da meta, como retornado por list_goals"),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			({ id }) => call("DELETE", `/api/finance/goals/${q(id)}`),
+		);
+
+		server.registerTool(
+			"add_goal_contribution",
+			{
+				title: "Registrar aporte em uma meta",
+				description:
+					"Registra um aporte (ou uma retirada) em uma meta e atualiza o valor atual dela. A data padrão é hoje. Não vira transação nem entra no gasto do mês. Uma retirada maior que o valor atual é recusada.",
+				inputSchema: z.object({
+					id: z.string().uuid().describe("ID da meta, como retornado por list_goals"),
+					amount: z.number().positive().describe("Valor positivo em reais"),
+					kind: z.enum(["deposit", "withdrawal"]).optional().describe("deposit = aporte (padrão), withdrawal = retirada"),
 					date: z.iso.date().optional().describe("Data AAAA-MM-DD"),
-					amount: z.number().positive().optional().describe("Valor positivo em reais"),
-					category: z.string().trim().min(1).max(64).optional(),
-					note: z.string().trim().max(280).nullable().optional(),
-				})
-				.refine(
-					({ id: _id, ...rest }) => Object.values(rest).some((v) => v !== undefined),
-					{ message: "Informe ao menos um campo para editar." },
+					note: z.string().trim().max(280).optional(),
+				}),
+				annotations: write,
+			},
+			({ id, ...body }) => call("POST", `/api/finance/goals/${q(id)}/contributions`, body),
+		);
+
+		server.registerTool(
+			"delete_goal_contribution",
+			{
+				title: "Apagar aporte de uma meta",
+				description:
+					"Apaga um aporte ou retirada e desfaz o efeito no valor atual da meta. Use o id que list_goal_contributions devolveu. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					id: z.string().uuid().describe("ID da meta"),
+					contributionId: z.string().uuid().describe("ID do aporte, como retornado por list_goal_contributions"),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			({ id, contributionId }) =>
+				call("DELETE", `/api/finance/goals/${q(id)}/contributions/${q(contributionId)}`),
+		);
+
+	}
+
+	if (scopes.has("mcp:bills:write")) {
+		server.registerTool(
+			"mark_bill_paid",
+			{
+				title: "Marcar fatura como paga",
+				description:
+					"Registra que uma fatura de cartão foi paga, para a tela e a projeção pararem de contá-la como pendente. Sem valor, marca a fatura inteira. Use o pluggyBillId que get_monthly_bills devolve. Quando o banco informar o pagamento, o valor do banco passa a valer.",
+				inputSchema: z.object({
+					pluggyBillId: z
+						.string()
+						.min(1)
+						.describe("pluggyBillId da fatura, como retornado por get_monthly_bills"),
+					paidAmount: z
+						.number()
+						.positive()
+						.optional()
+						.describe("Valor pago em reais; omita para marcar a fatura toda"),
+				}),
+				annotations: write,
+			},
+			({ pluggyBillId, paidAmount }) =>
+				call(
+					"POST",
+					`/api/finance/bills/${q(pluggyBillId)}/paid`,
+					paidAmount === undefined ? {} : { paidAmount },
 				),
-			annotations: write,
-		},
-		({ id, ...patch }) =>
-			call("PATCH", `/api/finance/transactions/manual/${q(id)}`, patch),
-	);
+		);
 
-	server.registerTool(
-		"recategorize_transactions",
-		{
-			title: "Recategorizar transações",
-			description:
-				"Muda a categoria exibida de transações. Não altera se elas contam como gasto ou receita.",
-			inputSchema: z.object({
-				ids,
-				category: z.string().trim().min(1).max(64),
-			}),
-			annotations: write,
-		},
-		(input) => call("POST", "/api/finance/transactions/recategorize", input),
-	);
+		server.registerTool(
+			"unmark_bill_paid",
+			{
+				title: "Desfazer fatura paga",
+				description:
+					"Remove a marcação manual de pagamento de uma fatura. O valor pago volta a ser o que o banco informou. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					pluggyBillId: z
+						.string()
+						.min(1)
+						.describe("pluggyBillId da fatura, como retornado por get_monthly_bills"),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			({ pluggyBillId }) =>
+				call("DELETE", `/api/finance/bills/${q(pluggyBillId)}/paid`),
+		);
+	
 
-	server.registerTool(
-		"hide_transactions",
-		{
-			title: "Ocultar transações",
-			description:
-				"Oculta gastos bancários do dashboard (por exemplo duplicados). Só gastos podem ser ocultados. Destrutivo: confirme com a pessoa antes de chamar.",
-			inputSchema: z.object({ ids }),
-			annotations: { ...write, destructiveHint: true },
-		},
-		(input) => call("POST", "/api/finance/transactions/hide", input),
-	);
-
-	server.registerTool(
-		"create_goal",
-		{
-			title: "Criar meta",
-			description: "Cria uma meta financeira.",
-			inputSchema: z.object({
-				name: z.string().trim().min(1).max(128),
-				targetAmount: z.number().positive(),
-				currentAmount: z.number().min(0).optional(),
-				targetDate: z.iso.date().nullable().optional().describe("Prazo AAAA-MM-DD"),
-			}),
-			annotations: write,
-		},
-		(input) => call("POST", "/api/finance/goals", input),
-	);
-
-	server.registerTool(
-		"update_goal",
-		{
-			title: "Atualizar meta",
-			description: "Atualiza nome, valores ou conclusão de uma meta.",
-			inputSchema: z.object({
-				id: z.string().describe("ID da meta, como retornado por list_goals"),
-				name: z.string().trim().min(1).max(128).optional(),
-				targetAmount: z.number().positive().optional(),
-				currentAmount: z.number().min(0).optional(),
-				isCompleted: z.boolean().optional(),
-				targetDate: z.iso.date().nullable().optional().describe("Prazo AAAA-MM-DD; null remove o prazo"),
-			}),
-			annotations: write,
-		},
-		({ id, ...patch }) => call("PATCH", `/api/finance/goals/${q(id)}`, patch),
-	);
-
-	server.registerTool(
-		"set_budget_income",
-		{
-			title: "Gravar renda orçada",
-			description:
-				"Grava a renda orçada do mês. Se o mês já tem renda, substitui o valor.",
-			inputSchema: z.object({
-				month,
-				income: z.number().positive().describe("Valor positivo em reais"),
-			}),
-			annotations: write,
-		},
-		(input) => call("POST", "/api/finance/budget", input),
-	);
-
-	server.registerTool(
-		"set_spending_goal",
-		{
-			title: "Gravar teto de gasto",
-			description:
-				"Grava o teto de gasto do mês. Se o mês já tem teto, substitui o valor.",
-			inputSchema: z.object({
-				month,
-				targetAmount: z.number().positive().describe("Valor positivo em reais"),
-			}),
-			annotations: write,
-		},
-		(input) => call("POST", "/api/finance/spending-goal", input),
-	);
-
-	server.registerTool(
-		"set_savings_target",
-		{
-			title: "Gravar percentual de poupança",
-			description:
-				"Grava o percentual de poupança do mês (0 a 100). Se o mês já tem, substitui.",
-			inputSchema: z.object({
-				month,
-				savingsPercentage: z.number().min(0).max(100),
-			}),
-			annotations: write,
-		},
-		(input) => call("POST", "/api/finance/savings-target", input),
-	);
-
-	server.registerTool(
-		"delete_goal",
-		{
-			title: "Apagar meta",
-			description:
-				"Apaga uma meta financeira. Destrutivo: confirme com a pessoa antes de chamar.",
-			inputSchema: z.object({
-				id: z.string().describe("ID da meta, como retornado por list_goals"),
-			}),
-			annotations: { ...write, destructiveHint: true },
-		},
-		({ id }) => call("DELETE", `/api/finance/goals/${q(id)}`),
-	);
-
-	server.registerTool(
-		"delete_manual_transactions",
-		{
-			title: "Apagar transações manuais",
-			description:
-				"Apaga transações criadas à mão (até 100). Lançamentos do banco são ignorados; a resposta traz a contagem apagada. Destrutivo: confirme com a pessoa antes de chamar.",
-			inputSchema: z.object({ ids }),
-			annotations: { ...write, destructiveHint: true },
-		},
-		(input) => call("DELETE", "/api/finance/expenses", input),
-	);
-
-	server.registerTool(
-		"set_category_limit",
-		{
-			title: "Gravar limite por categoria",
-			description:
-				"Define o limite de gasto de uma categoria no mês. Se a categoria já tem limite nesse mês (maiúsculas e acentos não importam), substitui o valor.",
-			inputSchema: z.object({
-				month,
-				category: z.string().trim().min(1).max(64),
-				targetAmount: z.number().positive().describe("Valor positivo em reais"),
-			}),
-			annotations: write,
-		},
-		(input) => call("POST", "/api/finance/category-limits", input),
-	);
-
-	server.registerTool(
-		"delete_category_limit",
-		{
-			title: "Apagar limite por categoria",
-			description:
-				"Remove o limite de uma categoria no mês. Destrutivo: confirme com a pessoa antes de chamar.",
-			inputSchema: z.object({
-				month,
-				category: z.string().trim().min(1).max(64),
-			}),
-			annotations: { ...write, destructiveHint: true },
-		},
-		(input) => call("DELETE", "/api/finance/category-limits", input),
-	);
-
-	server.registerTool(
-		"copy_category_limits",
-		{
-			title: "Copiar limites para outro mês",
-			description:
-				"Copia os limites por categoria de um mês para outro. Limites que já existem no mês de destino são mantidos.",
-			inputSchema: z.object({
-				fromMonth: month.describe("Mês de origem AAAA-MM"),
-				toMonth: month.describe("Mês de destino AAAA-MM"),
-			}),
-			annotations: write,
-		},
-		(input) => call("POST", "/api/finance/category-limits/copy", input),
-	);
-
-	server.registerTool(
-		"add_goal_contribution",
-		{
-			title: "Registrar aporte em uma meta",
-			description:
-				"Registra um aporte (ou uma retirada) em uma meta e atualiza o valor atual dela. A data padrão é hoje. Não vira transação nem entra no gasto do mês. Uma retirada maior que o valor atual é recusada.",
-			inputSchema: z.object({
-				id: z.string().uuid().describe("ID da meta, como retornado por list_goals"),
-				amount: z.number().positive().describe("Valor positivo em reais"),
-				kind: z.enum(["deposit", "withdrawal"]).optional().describe("deposit = aporte (padrão), withdrawal = retirada"),
-				date: z.iso.date().optional().describe("Data AAAA-MM-DD"),
-				note: z.string().trim().max(280).optional(),
-			}),
-			annotations: write,
-		},
-		({ id, ...body }) => call("POST", `/api/finance/goals/${q(id)}/contributions`, body),
-	);
-
-	server.registerTool(
-		"delete_goal_contribution",
-		{
-			title: "Apagar aporte de uma meta",
-			description:
-				"Apaga um aporte ou retirada e desfaz o efeito no valor atual da meta. Use o id que list_goal_contributions devolveu. Destrutivo: confirme com a pessoa antes de chamar.",
-			inputSchema: z.object({
-				id: z.string().uuid().describe("ID da meta"),
-				contributionId: z.string().uuid().describe("ID do aporte, como retornado por list_goal_contributions"),
-			}),
-			annotations: { ...write, destructiveHint: true },
-		},
-		({ id, contributionId }) =>
-			call("DELETE", `/api/finance/goals/${q(id)}/contributions/${q(contributionId)}`),
-	);
-
-	server.registerTool(
-		"mark_bill_paid",
-		{
-			title: "Marcar fatura como paga",
-			description:
-				"Registra que uma fatura de cartão foi paga, para a tela e a projeção pararem de contá-la como pendente. Sem valor, marca a fatura inteira. Use o pluggyBillId que get_monthly_bills devolve. Quando o banco informar o pagamento, o valor do banco passa a valer.",
-			inputSchema: z.object({
-				pluggyBillId: z
-					.string()
-					.min(1)
-					.describe("pluggyBillId da fatura, como retornado por get_monthly_bills"),
-				paidAmount: z
-					.number()
-					.positive()
-					.optional()
-					.describe("Valor pago em reais; omita para marcar a fatura toda"),
-			}),
-			annotations: write,
-		},
-		({ pluggyBillId, paidAmount }) =>
-			call(
-				"POST",
-				`/api/finance/bills/${q(pluggyBillId)}/paid`,
-				paidAmount === undefined ? {} : { paidAmount },
-			),
-	);
-
-	server.registerTool(
-		"unmark_bill_paid",
-		{
-			title: "Desfazer fatura paga",
-			description:
-				"Remove a marcação manual de pagamento de uma fatura. O valor pago volta a ser o que o banco informou. Destrutivo: confirme com a pessoa antes de chamar.",
-			inputSchema: z.object({
-				pluggyBillId: z
-					.string()
-					.min(1)
-					.describe("pluggyBillId da fatura, como retornado por get_monthly_bills"),
-			}),
-			annotations: { ...write, destructiveHint: true },
-		},
-		({ pluggyBillId }) =>
-			call("DELETE", `/api/finance/bills/${q(pluggyBillId)}/paid`),
-	);
+	}
 
 	return server;
 }
