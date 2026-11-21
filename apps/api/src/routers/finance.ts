@@ -28,11 +28,20 @@ import {
 	pluggyBills,
 	pluggyItems,
 	pluggyTransactions,
+	recurringItem,
+	recurringPayment,
 	savingsTarget,
 } from "../db/schema/index.js";
 import { paidSource } from "../services/bill-payment.js";
 import { calculateCategoryLimits } from "../services/category-limits.js";
 import { applyContribution, planGoal } from "../services/goal-plan.js";
+import {
+	buildOccurrences,
+	isActiveIn,
+	previousMonth,
+	type RecurringItemRow,
+	summarizeOccurrences,
+} from "../services/recurring.js";
 import {
 	matchesTransactionSearch,
 	normalizeText,
@@ -69,6 +78,50 @@ const expenseInput = z.object({
 const manualTransactionInput = expenseInput.extend({
 	kind: z.enum(["expense", "income"]),
 });
+
+const recurringMonth = z.string().regex(monthPattern);
+
+const recurringInput = z.object({
+	kind: z.enum(["bill", "income"]),
+	name: z.string().trim().min(1).max(128),
+	amount: z.number().positive(),
+	dayOfMonth: z.number().int().min(1).max(31),
+	startMonth: recurringMonth.optional(),
+	endMonth: recurringMonth.nullable().optional(),
+	category: z.string().trim().min(1).max(64),
+	matchText: z.string().trim().min(1).max(100).nullable().optional(),
+});
+
+const recurringPatch = z
+	.object({
+		name: z.string().trim().min(1).max(128).optional(),
+		amount: z.number().positive().optional(),
+		dayOfMonth: z.number().int().min(1).max(31).optional(),
+		category: z.string().trim().min(1).max(64).optional(),
+		matchText: z.string().trim().min(1).max(100).nullable().optional(),
+		endMonth: recurringMonth.nullable().optional(),
+		/** Changes apply from this month on; earlier months keep the old terms. */
+		effectiveFrom: recurringMonth.optional(),
+	})
+	.refine(
+		({ effectiveFrom: _from, ...rest }) =>
+			Object.values(rest).some((value) => value !== undefined),
+		{ message: "Informe ao menos um campo para editar." },
+	);
+
+function serializeRecurringItem(r: typeof recurringItem.$inferSelect): RecurringItemRow {
+	return {
+		id: r.id,
+		kind: r.kind === "income" ? "income" : "bill",
+		name: r.name,
+		amount: Number(r.amount),
+		dayOfMonth: r.dayOfMonth,
+		startMonth: r.startMonth,
+		endMonth: r.endMonth,
+		category: r.category,
+		matchText: r.matchText,
+	};
+}
 
 const manualTransactionPatch = z
 	.object({
@@ -1673,6 +1726,285 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					copied: inserted.length,
 					skipped: source.length - inserted.length,
 				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	// --- Fixed bills and recurring income ---
+
+	const RECURRING_NOT_FOUND = "Item recorrente não encontrado.";
+
+	server.route({
+		method: "GET",
+		url: "/recurring",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const query = req.query as { month?: string; all?: string };
+				const month = query.month ?? todayInSaoPaulo().slice(0, 7);
+				if (!monthPattern.test(month))
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
+
+				const rows = await db
+					.select()
+					.from(recurringItem)
+					.where(eq(recurringItem.userId, session.user.id))
+					.orderBy(asc(recurringItem.startMonth), asc(recurringItem.name));
+				const items = rows.map(serializeRecurringItem);
+
+				// Every item, including the ended ones, so an old one can still be found.
+				if (query.all === "true") return reply.send({ items });
+
+				const [paid, transactions] = await Promise.all([
+					db
+						.select({ itemId: recurringPayment.itemId })
+						.from(recurringPayment)
+						.where(
+							and(
+								eq(recurringPayment.userId, session.user.id),
+								eq(recurringPayment.month, month),
+							),
+						),
+					listFinanceTransactions({ userId: session.user.id, month }),
+				]);
+				const occurrences = buildOccurrences({
+					month,
+					items,
+					transactions,
+					paidByHand: new Set(paid.map((row) => row.itemId)),
+				});
+				return reply.send({
+					month,
+					items: occurrences,
+					summary: summarizeOccurrences(occurrences),
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/recurring",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const input = recurringInput.parse(req.body);
+				const startMonth = input.startMonth ?? todayInSaoPaulo().slice(0, 7);
+				if (input.endMonth && input.endMonth < startMonth)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "O mês final não pode ser antes do inicial."));
+
+				const [record] = await db
+					.insert(recurringItem)
+					.values({
+						userId: session.user.id,
+						kind: input.kind,
+						name: input.name,
+						amount: input.amount.toString(),
+						dayOfMonth: input.dayOfMonth,
+						startMonth,
+						endMonth: input.endMonth ?? null,
+						category: input.category,
+						matchText: input.matchText ?? null,
+					})
+					.returning();
+				return reply.code(201).send(serializeRecurringItem(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "PATCH",
+		url: "/recurring/:id",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+				const patch = recurringPatch.safeParse(req.body ?? {});
+				if (!patch.success)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", patch.error.issues[0]?.message ?? "Dados inválidos."));
+				const { effectiveFrom, endMonth, ...terms } = patch.data;
+
+				const result = await db.transaction(async (tx) => {
+					const [row] = await tx
+						.select()
+						.from(recurringItem)
+						.where(and(eq(recurringItem.id, id), eq(recurringItem.userId, session.user.id)))
+						.for("update")
+						.limit(1);
+					if (!row) return { error: "not_found" as const };
+
+					const newEnd = endMonth !== undefined ? endMonth : row.endMonth;
+					const changesTerms = Object.values(terms).some((value) => value !== undefined);
+					const values = {
+						name: terms.name ?? row.name,
+						amount: terms.amount !== undefined ? terms.amount.toString() : row.amount,
+						dayOfMonth: terms.dayOfMonth ?? row.dayOfMonth,
+						category: terms.category ?? row.category,
+						matchText: terms.matchText !== undefined ? terms.matchText : row.matchText,
+					};
+
+					// "From this month on": the old line stops the month before and a new
+					// one starts, so past months keep the amount they had.
+					if (changesTerms && effectiveFrom && effectiveFrom > row.startMonth) {
+						if (row.endMonth && effectiveFrom > row.endMonth) return { error: "after_end" as const };
+						if (newEnd && newEnd < effectiveFrom) return { error: "bad_end" as const };
+						const [closed] = await tx
+							.update(recurringItem)
+							.set({ endMonth: previousMonth(effectiveFrom) })
+							.where(eq(recurringItem.id, id))
+							.returning();
+						const [created] = await tx
+							.insert(recurringItem)
+							.values({
+								userId: session.user.id,
+								kind: row.kind,
+								...values,
+								startMonth: effectiveFrom,
+								endMonth: newEnd,
+							})
+							.returning();
+						return { item: created!, previous: closed! };
+					}
+
+					if (newEnd && newEnd < row.startMonth) return { error: "bad_end" as const };
+					const [updated] = await tx
+						.update(recurringItem)
+						.set({ ...values, endMonth: newEnd })
+						.where(eq(recurringItem.id, id))
+						.returning();
+					return { item: updated!, previous: null };
+				});
+
+				if ("error" in result) {
+					return result.error === "not_found"
+						? reply.status(404).send(errorBody("NOT_FOUND", RECURRING_NOT_FOUND))
+						: reply
+								.status(400)
+								.send(
+									errorBody(
+										"VALIDATION_ERROR",
+										result.error === "after_end"
+											? "A data de vigência está depois do fim do item."
+											: "O mês final não pode ser antes do início.",
+									),
+								);
+				}
+				return reply.send({
+					item: serializeRecurringItem(result.item),
+					previous: result.previous ? serializeRecurringItem(result.previous) : null,
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "DELETE",
+		url: "/recurring/:id",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+				const removed = await db
+					.delete(recurringItem)
+					.where(and(eq(recurringItem.id, id), eq(recurringItem.userId, session.user.id)))
+					.returning({ id: recurringItem.id });
+				if (removed.length === 0)
+					return reply.status(404).send(errorBody("NOT_FOUND", RECURRING_NOT_FOUND));
+				return reply.send({ deleted: 1 });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/recurring/:id/paid",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+				const { month } = z.object({ month: recurringMonth }).parse(req.body);
+
+				const [row] = await db
+					.select()
+					.from(recurringItem)
+					.where(and(eq(recurringItem.id, id), eq(recurringItem.userId, session.user.id)))
+					.limit(1);
+				if (!row) return reply.status(404).send(errorBody("NOT_FOUND", RECURRING_NOT_FOUND));
+				if (!isActiveIn(row, month))
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "O item não vale nesse mês."));
+
+				await db
+					.insert(recurringPayment)
+					.values({ itemId: id, userId: session.user.id, month })
+					.onConflictDoNothing();
+				return reply.send({ itemId: id, month, paid: true });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "DELETE",
+		url: "/recurring/:id/paid",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+				const { month } = z.object({ month: recurringMonth }).parse(req.body);
+
+				const [row] = await db
+					.select({ id: recurringItem.id })
+					.from(recurringItem)
+					.where(and(eq(recurringItem.id, id), eq(recurringItem.userId, session.user.id)))
+					.limit(1);
+				if (!row) return reply.status(404).send(errorBody("NOT_FOUND", RECURRING_NOT_FOUND));
+
+				const removed = await db
+					.delete(recurringPayment)
+					.where(and(eq(recurringPayment.itemId, id), eq(recurringPayment.month, month)))
+					.returning({ id: recurringPayment.id });
+				return reply.send({ itemId: id, month, cleared: removed.length > 0 });
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));

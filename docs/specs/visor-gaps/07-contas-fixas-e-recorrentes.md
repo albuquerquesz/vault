@@ -1,6 +1,8 @@
 # Spec: contas fixas e receitas recorrentes cadastradas à mão
 
-Status (20/11/2026): Aprovada pelo Victor (20/11), **sem financiamento**. Ainda não implementada.
+Status (21/11/2026): **Implementada** na branch `feat/recurring-items` (API e MCP; sem tela web ainda). Aprovada pelo Victor (20/11), **sem financiamento**.
+
+Desvios do desenho original, por simplicidade e para o status nunca ficar velho: (1) não há tabela `recurring_occurrence`; o status (`expected`, `realized`, `paid_manual`) é calculado na leitura, e só as marcações manuais de pago ficam numa tabela (`recurring_payment`); (2) não há `ended_at`: encerrar é definir o `end_month`; (3) a projeção de saldo (spec 01) ainda não existe, então o resumo de `GET /recurring` (planejado e pendente) é o que ela vai ler.
 
 Origem: lacuna #8. Formato `/to-spec`, sem entrevista. A página `/mcp` do Visor cita "parcelas pagas e restantes, contas fixas, receitas recorrentes e financiamentos, todos nas suas projeções". **Decisão do Victor (20/11): financiamento fica de fora.**
 

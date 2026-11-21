@@ -60,6 +60,11 @@ const newWrites = [
 	"copy_category_limits",
 	"add_goal_contribution",
 	"delete_goal_contribution",
+	"create_recurring_item",
+	"update_recurring_item",
+	"delete_recurring_item",
+	"mark_recurring_paid",
+	"unmark_recurring_paid",
 ];
 
 describe("MCP remoto: paridade", () => {
@@ -75,6 +80,7 @@ describe("MCP remoto: paridade", () => {
 			"get_category_limits",
 			"get_goal_plan",
 			"list_goal_contributions",
+			"list_recurring_items",
 		])
 			expect(names).toContain(n);
 		expect(names.join(" ")).not.toMatch(/pix|space|wallet/i);
@@ -91,6 +97,7 @@ describe("MCP remoto: paridade", () => {
 		expect(names).toContain("get_category_limits");
 		expect(names).toContain("get_goal_plan");
 		expect(names).toContain("list_goal_contributions");
+		expect(names).toContain("list_recurring_items");
 		const call = await rpc("tools/call", {
 			name: "delete_goal",
 			arguments: { id: "x" },
@@ -111,6 +118,8 @@ describe("MCP remoto: paridade", () => {
 			"unmark_bill_paid",
 			"delete_category_limit",
 			"delete_goal_contribution",
+			"delete_recurring_item",
+			"unmark_recurring_paid",
 		])
 			expect(by[n]).toBe(true);
 		for (const n of [
@@ -123,6 +132,9 @@ describe("MCP remoto: paridade", () => {
 			"set_category_limit",
 			"copy_category_limits",
 			"add_goal_contribution",
+			"create_recurring_item",
+			"update_recurring_item",
+			"mark_recurring_paid",
 		])
 			expect(by[n]).toBe(false);
 	});
@@ -151,6 +163,13 @@ describe("MCP remoto: paridade", () => {
 		await rpc("tools/call", { name: "add_goal_contribution", arguments: { id, amount: 150, date: "2026-11-20", note: "13o" } });
 		await rpc("tools/call", { name: "delete_goal_contribution", arguments: { id, contributionId: id } });
 		await rpc("tools/call", { name: "create_goal", arguments: { name: "Viagem", targetAmount: 5000, targetDate: "2027-06-30" } });
+		await rpc("tools/call", { name: "list_recurring_items", arguments: {} });
+		await rpc("tools/call", { name: "list_recurring_items", arguments: { month: "2026-12", all: true } });
+		await rpc("tools/call", { name: "create_recurring_item", arguments: { kind: "bill", name: "Aluguel", amount: 1500, dayOfMonth: 5, category: "Moradia" } });
+		await rpc("tools/call", { name: "update_recurring_item", arguments: { id, amount: 1600, effectiveFrom: "2027-01" } });
+		await rpc("tools/call", { name: "mark_recurring_paid", arguments: { id, month: "2026-12" } });
+		await rpc("tools/call", { name: "unmark_recurring_paid", arguments: { id, month: "2026-12" } });
+		await rpc("tools/call", { name: "delete_recurring_item", arguments: { id } });
 		expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
 			"GET /api/finance/spending-goal?month=2026-10&today=2026-10-15",
 			"GET /api/finance/savings-target?month=2026-10",
@@ -173,6 +192,13 @@ describe("MCP remoto: paridade", () => {
 			`POST /api/finance/goals/${id}/contributions`,
 			`DELETE /api/finance/goals/${id}/contributions/${id}`,
 			"POST /api/finance/goals",
+			"GET /api/finance/recurring",
+			"GET /api/finance/recurring?month=2026-12&all=true",
+			"POST /api/finance/recurring",
+			`PATCH /api/finance/recurring/${id}`,
+			`POST /api/finance/recurring/${id}/paid`,
+			`DELETE /api/finance/recurring/${id}/paid`,
+			`DELETE /api/finance/recurring/${id}`,
 		]);
 		expect(calls[6]?.body).toEqual({ ids: [id] });
 		expect(calls[7]?.body).toEqual({});
@@ -183,6 +209,10 @@ describe("MCP remoto: paridade", () => {
 		expect(calls[15]?.body).toEqual({ fromMonth: "2026-09", toMonth: "2026-10" });
 		expect(calls[18]?.body).toEqual({ amount: 150, date: "2026-11-20", note: "13o" });
 		expect(calls[20]?.body).toEqual({ name: "Viagem", targetAmount: 5000, targetDate: "2027-06-30" });
+		expect(calls[23]?.body).toEqual({ kind: "bill", name: "Aluguel", amount: 1500, dayOfMonth: 5, category: "Moradia" });
+		expect(calls[24]?.body).toEqual({ amount: 1600, effectiveFrom: "2027-01" });
+		expect(calls[25]?.body).toEqual({ month: "2026-12" });
+		expect(calls[26]?.body).toEqual({ month: "2026-12" });
 	});
 
 	test("validação recusa valor <= 0, mês inválido e 101 ids", async () => {
@@ -202,6 +232,11 @@ describe("MCP remoto: paridade", () => {
 			{ name: "add_goal_contribution", arguments: { id: "11111111-1111-4111-8111-111111111111", amount: 0 } },
 			{ name: "add_goal_contribution", arguments: { id: "nao-e-uuid", amount: 10 } },
 			{ name: "add_goal_contribution", arguments: { id: "11111111-1111-4111-8111-111111111111", amount: 10, kind: "transfer" } },
+			{ name: "create_recurring_item", arguments: { kind: "bill", name: "X", amount: 10, dayOfMonth: 32, category: "Y" } },
+			{ name: "create_recurring_item", arguments: { kind: "loan", name: "X", amount: 10, dayOfMonth: 5, category: "Y" } },
+			{ name: "create_recurring_item", arguments: { kind: "bill", name: "X", amount: 0, dayOfMonth: 5, category: "Y" } },
+			{ name: "update_recurring_item", arguments: { id: "11111111-1111-4111-8111-111111111111" } },
+			{ name: "mark_recurring_paid", arguments: { id: "11111111-1111-4111-8111-111111111111", month: "dezembro" } },
 		];
 		for (const b of bad) {
 			const r = await rpc("tools/call", b);
@@ -234,8 +269,13 @@ describe("MCP remoto: escopos OAuth", () => {
 			"update_goal",
 		]);
 		expect(await writeToolsOf(new Set(["mcp:read", "mcp:bills:write"]))).toEqual([
+			"create_recurring_item",
+			"delete_recurring_item",
 			"mark_bill_paid",
+			"mark_recurring_paid",
 			"unmark_bill_paid",
+			"unmark_recurring_paid",
+			"update_recurring_item",
 		]);
 		expect(await writeToolsOf(new Set(["mcp:read", "mcp:categories:write"]))).toEqual([
 			"recategorize_transactions",
@@ -267,7 +307,7 @@ describe("MCP remoto: escopos OAuth", () => {
 
 	test("todos os escopos listam todas as escritas", async () => {
 		const names = await writeToolsOf(ALL_MCP_SCOPES);
-		expect(names).toHaveLength(18);
+		expect(names).toHaveLength(23);
 	});
 
 	test("tool fora do escopo não existe para o cliente", async () => {

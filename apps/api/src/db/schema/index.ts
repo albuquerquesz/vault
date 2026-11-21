@@ -16,6 +16,7 @@ export * from "./pluggy-credentials.js";
 export * from "./pluggy-item.js";
 export * from "./pluggy-transaction.js";
 export * from "./push-subscription.js";
+export * from "./recurring-item.js";
 export * from "./savings-target.js";
 export * from "./session.js";
 export * from "./user.js";
