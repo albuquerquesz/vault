@@ -225,6 +225,13 @@
       "when": 1795294323454,
       "tag": "0031_category_rules_tags",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1795294332084,
+      "tag": "0032_investments",
+      "breakpoints": true
     }
   ]
 }

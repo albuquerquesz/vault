@@ -6,6 +6,7 @@ export * from "./category-alert-sent.js";
 export * from "./category-rule.js";
 export * from "./expense.js";
 export * from "./goal.js";
+export * from "./investment.js";
 export * from "./goal-contribution.js";
 export * from "./mcp-access-token.js";
 export * from "./monthly-bill.js";

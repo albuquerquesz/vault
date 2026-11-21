@@ -96,6 +96,7 @@ describe("MCP remoto: paridade", () => {
 			"list_recurring_items",
 			"list_credit_cards",
 			"list_installments",
+			"list_investments",
 			"get_chart",
 			"list_category_rules",
 			"preview_category_rule",
@@ -121,6 +122,7 @@ describe("MCP remoto: paridade", () => {
 		expect(names).toContain("list_recurring_items");
 		expect(names).toContain("list_credit_cards");
 		expect(names).toContain("list_installments");
+		expect(names).toContain("list_investments");
 		expect(names).toContain("get_chart");
 		expect(names).toContain("list_category_rules");
 		expect(names).toContain("preview_category_rule");
@@ -239,6 +241,8 @@ describe("MCP remoto: paridade", () => {
 		await rpc("tools/call", { name: "get_chart", arguments: { metric: "balance_projection", month: "2026-12" } });
 		await rpc("tools/call", { name: "get_balance_projection", arguments: {} });
 		await rpc("tools/call", { name: "get_balance_projection", arguments: { months: 12 } });
+		await rpc("tools/call", { name: "list_investments", arguments: {} });
+		await rpc("tools/call", { name: "get_chart", arguments: { metric: "portfolio_allocation", type: "donut" } });
 		expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
 			"GET /api/finance/spending-goal?month=2026-10&today=2026-10-15",
 			"GET /api/finance/savings-target?month=2026-10",
@@ -295,6 +299,8 @@ describe("MCP remoto: paridade", () => {
 			"GET /api/finance/chart?metric=balance_projection&month=2026-12",
 			"GET /api/finance/projection",
 			"GET /api/finance/projection?months=12",
+			"GET /api/finance/investments",
+			"GET /api/finance/chart?metric=portfolio_allocation&type=donut",
 		]);
 		expect(calls[6]?.body).toEqual({ ids: [id] });
 		expect(calls[7]?.body).toEqual({});

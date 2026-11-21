@@ -310,12 +310,12 @@ export function createVaultMcpServer(
 		{
 			title: "Gráfico",
 			description:
-				"Gráfico pronto de uma métrica. metric: spending_by_category (gastos por categoria do mês, rosca ou barras; as menores viram Outras; estornos não são abatidos), monthly_result (receita e gasto dos últimos months meses, barras agrupadas), spending_by_day (gasto por dia do mês, linha) ou upcoming_installments (parcelas de cartão que ainda vão cair, mês a mês, barras) ou balance_projection (saldo projetado das contas bancárias dia a dia no month, linha; do mês atual a 11 meses à frente; é ESTIMATIVA, e a resposta traz projection.assumptions com o que é fato, cadastrado ou estimado). Os números são os mesmos do dashboard. Devolve: data (a tabela de pontos), vegaLite (especificação Vega-Lite 5 para quem renderiza) e svg (o desenho completo, pronto para colar numa página ou numa resposta; texto em português e valores em reais). Se o cliente não desenha gráfico, use data como tabela.",
+				"Gráfico pronto de uma métrica. metric: spending_by_category (gastos por categoria do mês, rosca ou barras; as menores viram Outras; estornos não são abatidos), monthly_result (receita e gasto dos últimos months meses, barras agrupadas), spending_by_day (gasto por dia do mês, linha) ou upcoming_installments (parcelas de cartão que ainda vão cair, mês a mês, barras) ou balance_projection (saldo projetado das contas bancárias dia a dia no month, linha; do mês atual a 11 meses à frente; é ESTIMATIVA, e a resposta traz projection.assumptions com o que é fato, cadastrado ou estimado) ou portfolio_allocation (carteira de investimentos por tipo, rosca ou barras; vazio sem investimentos sincronizados). Os números são os mesmos do dashboard. Devolve: data (a tabela de pontos), vegaLite (especificação Vega-Lite 5 para quem renderiza) e svg (o desenho completo, pronto para colar numa página ou numa resposta; texto em português e valores em reais). Se o cliente não desenha gráfico, use data como tabela.",
 			inputSchema: z.object({
-				metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments", "balance_projection"]),
+				metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments", "balance_projection", "portfolio_allocation"]),
 				month: month.optional().describe("Mês AAAA-MM; padrão o atual. Em monthly_result é o último mês do período; em balance_projection é o mês desenhado."),
 				months: z.number().int().min(1).max(12).optional().describe("Quantos meses em monthly_result e upcoming_installments; padrão 6"),
-				type: z.enum(["donut", "bar", "line"]).optional().describe("donut ou bar para spending_by_category; os outros têm um tipo só"),
+				type: z.enum(["donut", "bar", "line"]).optional().describe("donut ou bar para spending_by_category e portfolio_allocation; os outros têm um tipo só"),
 			}),
 			annotations: readOnly,
 		},
@@ -340,6 +340,17 @@ export function createVaultMcpServer(
 		},
 		({ months }) =>
 			call("GET", months === undefined ? "/api/finance/projection" : `/api/finance/projection?months=${months}`),
+	);
+
+	server.registerTool(
+		"list_investments",
+		{
+			title: "Carteira de investimentos",
+			description:
+				"Carteira sincronizada da Pluggy: totalBalance (valor atual, só posições em reais e não resgatadas), byType (valor, percentual da carteira e quantidade por tipo: renda fixa, ações e FIIs, ETFs, fundos, previdência, COE, outros) e positions (cada investimento com nome, instituição, tipo, valor aplicado, valor atual, rentabilidade e percentual da carteira). Rentabilidade = (atual - aplicado) / aplicado e só existe quando o banco informa o valor aplicado (returnAmount e returnPercent vêm nulos senão). Sem investimentos sincronizados (ou com o produto desligado na Pluggy) volta a carteira vazia. Não é recomendação de investimento.",
+			annotations: readOnly,
+		},
+		() => call("GET", "/api/finance/investments"),
 	);
 
 	server.registerTool(

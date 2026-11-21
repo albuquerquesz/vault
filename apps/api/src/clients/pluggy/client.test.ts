@@ -118,3 +118,33 @@ describe("normalizeBill", () => {
 		expect(normalizeBill(base).billClosingDate).toBeUndefined();
 	});
 });
+
+describe("listInvestments", () => {
+	test("pagina, ignora linhas inválidas e devolve vazio sem resultados", async () => {
+		const { createPluggyClient, clearPluggyApiKeyCache } = await import("./client.js");
+		const original = globalThis.fetch;
+		const calls: string[] = [];
+		const pages: Record<string, unknown> = {
+			"1": { page: 1, totalPages: 2, results: [{ id: "a", balance: 10, type: "ETF" }, { nope: true }] },
+			"2": { page: 2, totalPages: 2, results: [{ id: "b", balance: 5 }] },
+		};
+		globalThis.fetch = (async (input: string | URL | Request) => {
+			const url = String(input);
+			calls.push(url);
+			if (url.endsWith("/auth")) return Response.json({ apiKey: "k", expiresIn: 7200 });
+			const page = new URL(url).searchParams.get("page") ?? "1";
+			return Response.json(pages[page] ?? { results: [] });
+		}) as typeof fetch;
+		try {
+			clearPluggyApiKeyCache();
+			const client = createPluggyClient({ clientId: "inv-test", clientSecret: "s" });
+			const list = await client.listInvestments("item-1");
+			expect(list.map((i) => i.id)).toEqual(["a", "b"]);
+			pages["1"] = { results: [] };
+			expect(await client.listInvestments("item-1")).toEqual([]);
+			expect(calls.some((c) => c.includes("/investments?itemId=item-1"))).toBe(true);
+		} finally {
+			globalThis.fetch = original;
+		}
+	});
+});

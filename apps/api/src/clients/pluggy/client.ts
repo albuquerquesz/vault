@@ -1,3 +1,4 @@
+import { PLUGGY_INVESTMENT_TYPES } from "./types.js";
 import type {
 	CreatePluggyConnectTokenInput,
 	PluggyAccount,
@@ -7,6 +8,7 @@ import type {
 	PluggyConnector,
 	PluggyConnectToken,
 	PluggyCredentials,
+	PluggyInvestment,
 	PluggyItem,
 	PluggyRemoteAccount,
 	PluggyRemoteBill,
@@ -171,6 +173,64 @@ export function normalizeBill(bill: PluggyRemoteBill): PluggyBill {
 		payments: bill.payments ?? [],
 		financeCharges: bill.financeCharges ?? [],
 	};
+}
+
+const asNumber = (value: unknown): number | null =>
+	typeof value === "number" && Number.isFinite(value) ? value : null;
+
+const asString = (value: unknown): string | null =>
+	typeof value === "string" && value.trim() ? value.trim() : null;
+
+/**
+ * Parses one raw `/investments` result. Returns null when it has no usable id
+ * or balance, so a malformed row is dropped instead of breaking the sync.
+ */
+export function normalizeInvestment(raw: unknown): PluggyInvestment | null {
+	if (!raw || typeof raw !== "object") return null;
+	const row = raw as Record<string, unknown>;
+	const id = asString(row.id);
+	const balance = asNumber(row.balance);
+	if (!id || balance === null) return null;
+	const rawType = asString(row.type);
+	const type = (PLUGGY_INVESTMENT_TYPES as readonly string[]).includes(
+		rawType ?? "",
+	)
+		? (rawType as PluggyInvestment["type"])
+		: "OTHER";
+	const institution = row.institution as { name?: unknown } | null | undefined;
+	const date = asString(row.date);
+	return {
+		id,
+		itemId: asString(row.itemId) ?? undefined,
+		name: asString(row.name) ?? "Investimento",
+		type,
+		subtype: asString(row.subtype),
+		institution: asString(institution?.name) ?? asString(row.issuer),
+		balance,
+		amountInvested: asNumber(row.amountOriginal),
+		amountProfit: asNumber(row.amountProfit),
+		currency: (asString(row.currencyCode) ?? "BRL").toUpperCase().slice(0, 3),
+		status: asString(row.status),
+		date: date && !Number.isNaN(Date.parse(date)) ? date : null,
+	};
+}
+
+/**
+ * True when Pluggy refused `/investments` because the product is not part of
+ * the team subscription (or the item/connector does not offer it). The exact
+ * payload was never observed (the team has no INVESTMENTS), so this is
+ * deliberately broad: 403, or 400/404 whose message talks about the
+ * product/plan. Item-not-found 404s are not matched.
+ */
+export function isInvestmentsUnavailableError(error: unknown): boolean {
+	if (!(error instanceof PluggyApiError)) return false;
+	if (error.statusCode === 403) return true;
+	if (error.statusCode !== 400 && error.statusCode !== 404) return false;
+	const text = `${error.message} ${error.details}`.toLowerCase();
+	if (text.includes("item not found")) return false;
+	return /product|plan|subscription|not enabled|not available|not supported|investment/.test(
+		text,
+	);
 }
 
 function isInvalidCursorError(error: unknown) {
@@ -339,6 +399,35 @@ export function createPluggyClient(creds: PluggyCredentials) {
 			} while (next);
 
 			return { transactions };
+		},
+
+		/**
+		 * Positions of an item (`GET /investments`). Zero rows = empty portfolio.
+		 * Throws PluggyApiError when the product is unavailable; callers decide
+		 * with `isInvestmentsUnavailableError`.
+		 */
+		async listInvestments(itemId: string): Promise<PluggyInvestment[]> {
+			const investments: PluggyInvestment[] = [];
+			const maxPages = 20;
+			for (let page = 1; page <= maxPages; page += 1) {
+				const params = new URLSearchParams({
+					itemId,
+					pageSize: "500",
+					page: String(page),
+				});
+				const response = (await pluggyFetch(
+					creds,
+					`/investments?${params}`,
+				)) as { results?: unknown; totalPages?: unknown } | null;
+				const results = Array.isArray(response?.results) ? response.results : [];
+				for (const raw of results) {
+					const parsed = normalizeInvestment(raw);
+					if (parsed) investments.push(parsed);
+				}
+				const totalPages = asNumber(response?.totalPages) ?? 1;
+				if (page >= totalPages || results.length === 0) break;
+			}
+			return investments;
 		},
 
 		async getItem(itemId: string): Promise<PluggyItem> {

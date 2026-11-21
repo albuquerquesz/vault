@@ -8,6 +8,7 @@ import type {
 	PluggyBill,
 	PluggyConnectToken,
 	PluggyCredentials,
+	PluggyInvestment,
 	PluggyTransaction,
 	PluggyTransactionsFetchResult,
 	RegisterPluggyWebhookInput,
@@ -19,6 +20,10 @@ import {
 	type CategoryRuleLike,
 	resolveDisplayCategory,
 } from "./category-rules.js";
+import {
+	type InvestmentsPhaseResult,
+	syncInvestmentsForItem,
+} from "./investments.js";
 import { getOwnerName, loadCategoryRules } from "./pluggy-ledger.js";
 import {
 	billPaymentOverride,
@@ -69,6 +74,8 @@ export type PluggySyncResult = {
 	accounts: PluggySyncPhaseResult;
 	bills: PluggySyncPhaseResult;
 	transactions: PluggySyncPhaseResult;
+	/** Informational: never changes `status` (the product may be disabled on the team). */
+	investments?: InvestmentsPhaseResult;
 };
 
 export type PluggyAccountSyncResult = PluggySyncPhaseResult & {
@@ -179,6 +186,10 @@ export function createPluggyService(creds: PluggyCredentials) {
 
 		listAccounts(itemId: string): Promise<PluggyAccount[]> {
 			return client.listAccounts(itemId);
+		},
+
+		listInvestments(itemId: string): Promise<PluggyInvestment[]> {
+			return client.listInvestments(itemId);
 		},
 
 		listBills(accountId: string): Promise<PluggyBill[]> {
@@ -1081,15 +1092,23 @@ export async function syncTransactionsForItem(params: {
 	lap("accounts", accountsStartedAt);
 	const accounts = accountsPhase.accounts;
 	if (accounts.length === 0) {
-		return summarizeSyncResult({
-			accounts: accountsPhase,
-			bills: skippedPhase(
-				"Nenhuma conta retornada pela Pluggy para sincronizar faturas.",
-			),
-			transactions: skippedPhase(
-				"Nenhuma conta retornada pela Pluggy para sincronizar transacoes.",
-			),
-		});
+		return {
+			...summarizeSyncResult({
+				accounts: accountsPhase,
+				bills: skippedPhase(
+					"Nenhuma conta retornada pela Pluggy para sincronizar faturas.",
+				),
+				transactions: skippedPhase(
+					"Nenhuma conta retornada pela Pluggy para sincronizar transacoes.",
+				),
+			}),
+			investments: await syncInvestmentsForItem({
+				service,
+				userId,
+				localItemId,
+				pluggyItemId,
+			}),
+		};
 	}
 
 	let billsPhase: PluggySyncPhaseResult;
@@ -1201,6 +1220,17 @@ export async function syncTransactionsForItem(params: {
 	}
 	lap("transactions", transactionsStartedAt);
 
+	// Last and isolated: a missing INVESTMENTS product or any error here
+	// must not change the outcome of accounts, bills and transactions.
+	const investmentsStartedAt = Date.now();
+	const investmentsPhase = await syncInvestmentsForItem({
+		service,
+		userId,
+		localItemId,
+		pluggyItemId,
+	});
+	lap("investments", investmentsStartedAt);
+
 	console.info("[pluggy-sync] item synced", {
 		localItemId,
 		totalMs: Date.now() - syncStartedAt,
@@ -1208,11 +1238,14 @@ export async function syncTransactionsForItem(params: {
 		accounts: accounts.length,
 	});
 
-	return summarizeSyncResult({
-		accounts: accountsPhase,
-		bills: billsPhase,
-		transactions: transactionsPhase,
-	});
+	return {
+		...summarizeSyncResult({
+			accounts: accountsPhase,
+			bills: billsPhase,
+			transactions: transactionsPhase,
+		}),
+		investments: investmentsPhase,
+	};
 }
 
 export async function persistPluggyItemAndSync(params: {
