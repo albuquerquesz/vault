@@ -3,6 +3,7 @@ import { Hono as HonoCtor } from "hono";
 import { createRouteRegistrar } from "../hono/registrar.js";
 import { registerConnectorRoutes } from "./connectors.js";
 import { registerFinanceRoutes } from "./finance.js";
+import { registerOrganizationRoutes } from "./finance-organization.js";
 import { registerPluggyRoutes } from "./pluggy.js";
 import { registerPushRoutes } from "./push.js";
 import { registerSettingsRoutes } from "./settings.js";
@@ -19,7 +20,10 @@ export function registerRoutes(app: Hono) {
 	};
 
 	mount("/api/push", registerPushRoutes);
-	mount("/api/finance", registerFinanceRoutes);
+	mount("/api/finance", (server) => {
+		registerFinanceRoutes(server);
+		registerOrganizationRoutes(server);
+	});
 	mount("/api/pluggy", registerPluggyRoutes);
 	mount("/api/connectors", registerConnectorRoutes);
 	mount("/api/settings", registerSettingsRoutes);

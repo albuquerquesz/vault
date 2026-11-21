@@ -1,7 +1,9 @@
 export * from "./account.js";
 export * from "./auth.js";
 export * from "./bill-payment-override.js";
+export * from "./category.js";
 export * from "./category-alert-sent.js";
+export * from "./category-rule.js";
 export * from "./expense.js";
 export * from "./goal.js";
 export * from "./goal-contribution.js";
@@ -20,5 +22,6 @@ export * from "./push-subscription.js";
 export * from "./recurring-item.js";
 export * from "./savings-target.js";
 export * from "./session.js";
+export * from "./tag.js";
 export * from "./user.js";
 export * from "./verification.js";

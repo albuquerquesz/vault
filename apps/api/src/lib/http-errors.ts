@@ -6,6 +6,7 @@ export type ErrorCode =
 	| "FORBIDDEN"
 	| "VALIDATION_ERROR"
 	| "NOT_FOUND"
+	| "CONFLICT"
 	| "RATE_LIMITED"
 	| "SERVICE_UNAVAILABLE"
 	| "PLUGGY_CREDENTIALS_MISSING"
@@ -20,6 +21,7 @@ const DEFAULT_MESSAGES: Record<ErrorCode, string> = {
 	FORBIDDEN: "Acesso negado.",
 	VALIDATION_ERROR: "Dados inválidos.",
 	NOT_FOUND: "Recurso não encontrado.",
+	CONFLICT: "Esse registro já existe ou está em uso.",
 	RATE_LIMITED: "Muitas tentativas. Aguarde um pouco e tente novamente.",
 	SERVICE_UNAVAILABLE: "Serviço indisponível no momento. Tente novamente.",
 	PLUGGY_CREDENTIALS_MISSING:

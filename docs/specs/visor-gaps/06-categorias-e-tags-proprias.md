@@ -1,6 +1,6 @@
 # Spec: categorias e tags próprias
 
-Status (20/11/2026): A rever.
+Status (21/11/2026): implementada (API, MCP), revista contra o código. Migração 0031 (`0031_category_rules_tags`, compartilhada com a spec 05).
 
 Origem: lacuna #7. Formato `/to-spec`, sem entrevista. O Visor oferece "criar suas próprias categorias e tags" no plano Pro.
 
@@ -32,25 +32,28 @@ Duas partes. Um catálogo de categorias por usuário, com criar, renomear (que a
 
 ## Implementation Decisions
 
-- Tabela `category`: `id`, `user_id`, `name`, `archived`, `created_at`; único em (`user_id`, nome normalizado). Preenchida por migração com as categorias já usadas em `expense.category`, `pluggy_transactions.category_override` e `category_override` das regras.
-- Renomear e juntar atualizam `expense.category`, `pluggy_transactions.category_override`, `category_rule.category` (spec 05) e `monthly_category_limit.category` (spec 02), numa transação de banco. É a parte mais delicada: precisa ser atômica.
-- Apagar categoria em uso exige `moveTo`; sem uso, apaga direto.
-- Tabela `tag` (`id`, `user_id`, `name`) e uma tabela de ligação `transaction_tag` com `transaction_kind` (`bank` | `manual`), `transaction_ref` (id da linha) e `tag_id`. Duas origens de transação justificam a coluna de tipo.
-- Rotas CRUD de categoria e tag; `POST /transactions/tag` e `/untag` em lote (até 100 ids, como `hide`).
-- `GET /transactions?month=&tag=` filtra; `GET /tags/:id/total?from=&to=` soma pelo mesmo critério do dashboard.
-- MCP: `list_categories` ganha `archived` e id; novas `create_category`, `rename_category`, `merge_categories`, `delete_category`, `create_tag`, `tag_transactions`, `untag_transactions`, `list_tags`. As que renomeiam, juntam ou apagam levam `destructiveHint`.
-- Normalização de nome: `trim` e minúsculas para unicidade, mantendo o nome como o usuário escreveu para exibir.
+- Tabela `category` (`id`, `user_id`, `name`, `name_key`, `archived`, `created_at`), única em (`user_id`, `name_key`). **Sem migração de preenchimento.** O rascunho previa copiar para ela as categorias já usadas; isso não funciona em SQL puro (sem `unaccent` não há como fazer a chave sem acento) e encheria o catálogo com os nomes em inglês da Pluggy. O catálogo que o usuário vê é a união de `category` (criadas, renomeadas, arquivadas à mão) com os nomes em uso, calculada na leitura (`GET /categories`). A categoria só ganha linha na tabela quando alguém a cria, arquiva, renomeia ou junta.
+- **Chave de nome** (`name_key`): minúsculas, **sem acento**, espaços colapsados (`normalizeLabel`). O rascunho dizia só `trim` e minúsculas, o que não junta "Alimentacao" e "Alimentação", o exemplo do próprio Problem Statement, e destoa dos limites por categoria e da busca, que já ignoram acento. O nome exibido guarda a grafia do usuário, com espaços colapsados.
+- As operações são por **nome**, não por id (categorias que só existem porque transações as usam não têm linha nem id). `list_categories` devolve `id` (nulo nesse caso) e `archived`.
+- Renomear e juntar (`moveCategory`, `services/category-catalog.ts`) rodam numa transação de banco e atualizam: `expense.category` dos lançamentos manuais, `pluggy_transactions.category_override`, `category_rule.category`, `monthly_category_limit` e **`recurring_item.category`** (faltava no rascunho; a spec 07 já existe). Linhas bancárias que mostram o nome da própria Pluggy (sem override) ganham um override com o nome novo; sem isso renomear "Shopping" não faria nada. Linhas cujo nome vem de uma regra são cobertas pela atualização da regra. Limites: se o destino já tem limite no mesmo mês, **vale o do destino** e o da origem é descartado; os alertas já enviados da categoria antiga são limpos. As linhas `expense` derivadas do banco são reconstruídas logo depois, fora da transação, porque podem ser recalculadas a qualquer momento.
+- Apagar categoria em uso exige `moveTo` (equivale a juntar); sem uso, só sai do catálogo (404 se não existe). "Em uso" inclui o nome que a Pluggy mostra, não só overrides.
+- Renomear para um nome que já está no catálogo devolve 409 (`CONFLICT`) e indica `merge_categories`.
+- Tabela `tag` (`id`, `user_id`, `name`, `name_key`) e `transaction_tag` com **duas chaves estrangeiras reais**, `pluggy_transaction_id` e `expense_id`, exatamente uma preenchida (`CHECK`), ambas `ON DELETE CASCADE`. O rascunho propunha `transaction_kind` + `transaction_ref` sem chave estrangeira: apagar uma transação manual ou um item da Pluggy deixaria ligações órfãs. Só se marcam transações bancárias (`pluggy_transactions.id`, o mesmo id que `list_transactions` mostra) e manuais (`expense.id`, origem diferente de `pluggy`); as linhas `expense` derivadas do banco são recriadas a cada sync e nunca recebem tag.
+- Rotas em `routers/finance-organization.ts`: `GET/POST /categories`, `POST /categories/rename|merge|archive`, `DELETE /categories`, `GET/POST /tags`, `DELETE /tags/:id`, `POST /transactions/tag` e `/untag` (até 100 ids), `GET /tags/:id/total?from=&to=` (período de até 24 meses). `GET /transactions?month=&tag=<id>` filtra, e cada transação da lista passa a trazer `tags`.
+- **Total de uma tag**: soma as despesas da tag, sem abater estornos, a mesma regra do gráfico por categoria. O rascunho dizia "mesmo critério do dashboard", mas o dashboard abate estornos e a lista já devolve estorno como entrada, então a soma por tag não consegue distinguir; fica documentado.
+- MCP, todas as de escrita no escopo `mcp:categories:write` (a de tags também, por serem organização): `create_category`, `rename_category`, `merge_categories`, `delete_category` (todas `destructiveHint`), `archive_category` (nova), `create_tag`, `tag_transactions`, `untag_transactions`, `delete_tag` (nova, destrutiva). Leitura: `list_categories` (com `archived`), `list_tags`, `get_tag_total` e o parâmetro `tag` em `list_transactions`.
 
 ## Testing Decisions
 
-Seam: o MCP. Renomear e juntar precisam de testes com Postgres de verdade, porque a atomicidade é o ponto. O Vault ainda não tem esse tipo de teste (os atuais usam dispatch falso e funções puras); criar um ambiente de teste com Postgres descartável faz parte desta spec.
+Seam: o MCP (nomes, rotas, escopos, `destructiveHint` em `server.test.ts`) e testes de integração com Postgres de verdade (PGlite, `apps/api/test-integration/organization.integration.test.ts`). O ambiente de teste que o rascunho pedia para criar já existe.
 
-- Renomear atualiza despesas manuais, override de transações bancárias, regras e limites, ou nada (atômico).
-- Juntar duas categorias deixa uma só e remove a antiga do catálogo.
-- Apagar em uso sem `moveTo` falha e não altera nada.
-- Uma transação aceita várias tags e uma categoria.
+- Renomear atualiza despesas manuais, override de transações bancárias, nome da Pluggy sem override, regras, limites e contas fixas.
+- Renomear para nome existente e apagar em uso sem `moveTo` falham (409) e não alteram nada.
+- Juntar deixa uma só e remove a antiga do catálogo; o limite do destino é mantido.
+- Uma transação aceita várias tags e uma categoria; repetir a marcação não duplica.
 - Filtrar por tag devolve só as marcadas, dos dois tipos de origem.
-- Dois nomes que diferem só em caixa e espaço colidem e devolvem erro.
+- Apagar a transação manual ou a tag remove as ligações.
+- Dois nomes que diferem só em caixa, acento e espaço colidem (409).
 - Bearer não vê as tools de escrita.
 
 ## Out of Scope
@@ -59,5 +62,6 @@ Categorias aninhadas, cor e ícone por categoria, limite por tag, regras por tag
 
 ## Further Notes
 
-- Depende das specs 02 e 05 apenas na hora de renomear; pode ser entregue antes delas, ignorando essas tabelas até existirem.
-- Tags (M) e categorias (S) podem sair em PRs separados.
+- As specs 02, 05 e 07 já existem, então renomear e juntar mexem em todas elas.
+- A atomicidade vale para as tabelas de origem; os testes cobrem recusa antes de qualquer escrita, mas não forçam uma falha no meio da transação.
+- Tags (M) e categorias (S) saíram juntas, na mesma migração.

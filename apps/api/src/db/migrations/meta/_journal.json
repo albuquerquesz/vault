@@ -218,6 +218,13 @@
       "when": 1795293148720,
       "tag": "0030_pace_alert",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1795294323454,
+      "tag": "0031_category_rules_tags",
+      "breakpoints": true
     }
   ]
 }
