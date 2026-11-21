@@ -239,6 +239,27 @@ export function createVaultMcpServer(
 		({ id }) => call("GET", `/api/finance/goals/${q(id)}/contributions`),
 	);
 
+	server.registerTool(
+		"list_recurring_items",
+		{
+			title: "Contas fixas e receitas recorrentes",
+			description:
+				"Contas fixas e receitas recorrentes cadastradas à mão, no mês (o atual se omitir). Cada item vem com o dia de vencimento, o valor e o status: expected (esperado), realized (uma transação real casou com ele) ou paid_manual (marcado como pago à mão). O resumo traz o planejado e o que ainda está pendente. Com all=true devolve todos os itens, inclusive os já encerrados, para achar o id de um item antigo.",
+			inputSchema: z.object({
+				month: month.optional(),
+				all: z.boolean().optional().describe("true para listar todos os itens, sem filtro de mês"),
+			}),
+			annotations: readOnly,
+		},
+		({ month, all }) => {
+			const params = new URLSearchParams();
+			if (month) params.set("month", month);
+			if (all) params.set("all", "true");
+			const suffix = params.toString();
+			return call("GET", `/api/finance/recurring${suffix ? `?${suffix}` : ""}`);
+		},
+	);
+
 	// Write tools are registered only for the scopes the token carries. The
 	// static vlt_mcp_ key carries `mcp:read` alone, so it never sees them.
 
@@ -555,6 +576,105 @@ export function createVaultMcpServer(
 				call("DELETE", `/api/finance/bills/${q(pluggyBillId)}/paid`),
 		);
 	
+
+		server.registerTool(
+			"create_recurring_item",
+			{
+				title: "Cadastrar conta fixa ou receita recorrente",
+				description:
+					"Cadastra uma conta fixa (bill, dinheiro que sai) ou uma receita recorrente (income, dinheiro que entra) que o banco não informa antes, como aluguel pago por boleto ou salário em conta não conectada. Vale do mês inicial (o atual se omitir) até o mês final (sem fim se omitir). Dia 31 em mês curto cai no último dia. Quando chegar uma transação real parecida (mesmo mês, valor até 5% de diferença, descrição com o nome ou com matchText), o item passa a realized sozinho.",
+				inputSchema: z.object({
+					kind: z.enum(["bill", "income"]).describe("bill = conta fixa, income = receita recorrente"),
+					name: z.string().trim().min(1).max(128),
+					amount: z.number().positive().describe("Valor positivo em reais"),
+					dayOfMonth: z.number().int().min(1).max(31),
+					startMonth: month.optional().describe("Mês inicial AAAA-MM; padrão o mês atual"),
+					endMonth: month.nullable().optional().describe("Mês final AAAA-MM, inclusive; omita para não ter fim"),
+					category: z.string().trim().min(1).max(64),
+					matchText: z
+						.string()
+						.trim()
+						.min(1)
+						.max(100)
+						.nullable()
+						.optional()
+						.describe("Texto que identifica a transação real; padrão o nome do item"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/recurring", input),
+		);
+
+		server.registerTool(
+			"update_recurring_item",
+			{
+				title: "Editar conta fixa ou receita recorrente",
+				description:
+					"Edita um item. Para mudar valor, dia, nome ou categoria daqui para a frente sem alterar os meses passados, informe effectiveFrom (AAAA-MM): o item antigo termina no mês anterior e um novo começa nesse mês. Sem effectiveFrom a edição vale para o item inteiro, como uma correção. Para encerrar um item sem apagar o histórico, informe endMonth (null remove o fim).",
+				inputSchema: z
+					.object({
+						id: z.string().uuid().describe("ID do item, como retornado por list_recurring_items"),
+						name: z.string().trim().min(1).max(128).optional(),
+						amount: z.number().positive().optional(),
+						dayOfMonth: z.number().int().min(1).max(31).optional(),
+						category: z.string().trim().min(1).max(64).optional(),
+						matchText: z.string().trim().min(1).max(100).nullable().optional(),
+						endMonth: month.nullable().optional(),
+						effectiveFrom: month.optional().describe("Mês a partir do qual a mudança vale, AAAA-MM"),
+					})
+					.refine(
+						({ id: _id, effectiveFrom: _from, ...rest }) =>
+							Object.values(rest).some((value) => value !== undefined),
+						{ message: "Informe ao menos um campo para editar." },
+					),
+				annotations: write,
+			},
+			({ id, ...patch }) => call("PATCH", `/api/finance/recurring/${q(id)}`, patch),
+		);
+
+		server.registerTool(
+			"delete_recurring_item",
+			{
+				title: "Apagar conta fixa ou receita recorrente",
+				description:
+					"Apaga o item e as marcações de pago dele. Para só parar de contá-lo daqui para a frente, prefira update_recurring_item com endMonth, que preserva o histórico. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					id: z.string().uuid().describe("ID do item, como retornado por list_recurring_items"),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			({ id }) => call("DELETE", `/api/finance/recurring/${q(id)}`),
+		);
+
+		server.registerTool(
+			"mark_recurring_paid",
+			{
+				title: "Marcar conta fixa como paga (ou receita como recebida)",
+				description:
+					"Marca o item como pago, ou recebido, em um mês, quando o banco não informa. O item precisa valer nesse mês. Se depois chegar uma transação real que case com ele, ela passa a valer como realized.",
+				inputSchema: z.object({
+					id: z.string().uuid().describe("ID do item, como retornado por list_recurring_items"),
+					month,
+				}),
+				annotations: write,
+			},
+			({ id, month }) => call("POST", `/api/finance/recurring/${q(id)}/paid`, { month }),
+		);
+
+		server.registerTool(
+			"unmark_recurring_paid",
+			{
+				title: "Desfazer item pago",
+				description:
+					"Remove a marcação manual de pago, ou recebido, de um item em um mês. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					id: z.string().uuid().describe("ID do item"),
+					month,
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			({ id, month }) => call("DELETE", `/api/finance/recurring/${q(id)}/paid`, { month }),
+		);
 
 	}
 
