@@ -171,6 +171,33 @@ export function createVaultMcpServer(
 		({ month }) => call("GET", `/api/finance/savings-target?month=${q(month)}`),
 	);
 
+	server.registerTool(
+		"search_transactions",
+		{
+			title: "Buscar transações",
+			description:
+				"Busca transações bancárias e manuais por texto (descrição ou categoria, sem diferenciar maiúsculas nem acentos), valor, categoria, tipo e período. Sem período, olha os últimos 3 meses; o máximo é 24 meses. Valores mínimo e máximo são em reais, sem sinal. Paginado: use nextCursor para a próxima página.",
+			inputSchema: z.object({
+				q: z.string().trim().min(1).max(100).optional(),
+				from: z.iso.date().optional().describe("Data inicial AAAA-MM-DD"),
+				to: z.iso.date().optional().describe("Data final AAAA-MM-DD"),
+				minAmount: z.number().min(0).optional(),
+				maxAmount: z.number().min(0).optional(),
+				category: z.string().trim().min(1).max(64).optional(),
+				kind: z.enum(["income", "expense"]).optional(),
+				limit: z.number().int().min(1).max(200).optional(),
+				cursor: z.string().max(12).optional(),
+			}),
+			annotations: readOnly,
+		},
+		(input) => {
+			const params = new URLSearchParams();
+			for (const [key, value] of Object.entries(input))
+				if (value !== undefined) params.set(key, String(value));
+			return call("GET", `/api/finance/transactions/search?${params.toString()}`);
+		},
+	);
+
 	// API keys (vlt_mcp_…) are read-only; writes need an OAuth login.
 	if (options.readOnly) return server;
 
@@ -191,6 +218,30 @@ export function createVaultMcpServer(
 			annotations: write,
 		},
 		(input) => call("POST", "/api/finance/transactions/manual", input),
+	);
+
+	server.registerTool(
+		"update_manual_transaction",
+		{
+			title: "Editar transação manual",
+			description:
+				"Edita valor, data, categoria ou nota de uma transação criada à mão. Lançamentos vindos do banco não podem ter valor nem data editados (o banco é a fonte); para eles use recategorize_transactions.",
+			inputSchema: z
+				.object({
+					id: z.string().uuid().describe("ID da transação, como retornado por list_transactions"),
+					date: z.iso.date().optional().describe("Data AAAA-MM-DD"),
+					amount: z.number().positive().optional().describe("Valor positivo em reais"),
+					category: z.string().trim().min(1).max(64).optional(),
+					note: z.string().trim().max(280).nullable().optional(),
+				})
+				.refine(
+					({ id: _id, ...rest }) => Object.values(rest).some((v) => v !== undefined),
+					{ message: "Informe ao menos um campo para editar." },
+				),
+			annotations: write,
+		},
+		({ id, ...patch }) =>
+			call("PATCH", `/api/finance/transactions/manual/${q(id)}`, patch),
 	);
 
 	server.registerTool(

@@ -12,6 +12,7 @@ export type ErrorCode =
 	| "PLUGGY_INVALID_CREDENTIALS"
 	| "PLUGGY_API_ERROR"
 	| "DATABASE_ERROR"
+	| "BANK_TRANSACTION_READ_ONLY"
 	| "INTERNAL_ERROR";
 
 const DEFAULT_MESSAGES: Record<ErrorCode, string> = {
@@ -28,6 +29,8 @@ const DEFAULT_MESSAGES: Record<ErrorCode, string> = {
 	PLUGGY_API_ERROR: "A Pluggy não respondeu como esperado. Tente novamente.",
 	DATABASE_ERROR:
 		"Não foi possível salvar ou carregar os dados. Tente novamente em instantes.",
+	BANK_TRANSACTION_READ_ONLY:
+		"Lançamentos do banco não podem ter valor ou data editados: o banco é a fonte. Use a recategorização para mudar a categoria.",
 	INTERNAL_ERROR: "Erro inesperado no servidor. Tente novamente em instantes.",
 };
 

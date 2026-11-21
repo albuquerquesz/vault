@@ -30,6 +30,10 @@ import {
 } from "../db/schema/index.js";
 import { paidSource } from "../services/bill-payment.js";
 import {
+	matchesTransactionSearch,
+	paginate,
+} from "../services/transaction-search.js";
+import {
 	materializeMonthlyBillsFromPluggy,
 	rebuildExpensesFromStoredTransactions,
 } from "../services/pluggy.js";
@@ -56,6 +60,29 @@ const expenseInput = z.object({
 
 const manualTransactionInput = expenseInput.extend({
 	kind: z.enum(["expense", "income"]),
+});
+
+const manualTransactionPatch = z
+	.object({
+		date: z.iso.date().optional(),
+		amount: z.number().positive().optional(),
+		category: z.string().trim().min(1).max(64).optional(),
+		note: z.string().trim().max(280).nullable().optional(),
+	})
+	.refine((value) => Object.values(value).some((field) => field !== undefined), {
+		message: "Informe ao menos um campo para editar.",
+	});
+
+const transactionSearchQuery = z.object({
+	q: z.string().trim().min(1).max(100).optional(),
+	from: z.iso.date().optional(),
+	to: z.iso.date().optional(),
+	minAmount: z.coerce.number().min(0).optional(),
+	maxAmount: z.coerce.number().min(0).optional(),
+	category: z.string().trim().min(1).max(64).optional(),
+	kind: z.enum(["income", "expense"]).optional(),
+	limit: z.coerce.number().int().min(1).max(200).default(50),
+	cursor: z.string().max(12).optional(),
 });
 
 const recategorizeInput = z.object({
@@ -142,8 +169,16 @@ async function listFinanceTransactions(params: {
 	userId: string;
 	month: string;
 }) {
-	const { userId, month } = params;
-	const { start, end } = getMonthBounds(month);
+	const { start, end } = getMonthBounds(params.month);
+	return listFinanceTransactionsBetween({ userId: params.userId, start, end });
+}
+
+async function listFinanceTransactionsBetween(params: {
+	userId: string;
+	start: string;
+	end: string;
+}) {
+	const { userId, start, end } = params;
 
 	const [manualExpenses, pluggyRows] = await Promise.all([
 		db
@@ -399,6 +434,108 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					})
 					.returning();
 				return reply.code(201).send(serializeExpense(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/transactions/search",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const parsed = transactionSearchQuery.safeParse(req.query);
+				if (!parsed.success)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Busca inválida."));
+				const { q, minAmount, maxAmount, category, kind, limit, cursor } = parsed.data;
+
+				const today = new Date().toISOString().slice(0, 10);
+				const defaultFrom = new Date(`${today}T00:00:00.000Z`);
+				defaultFrom.setUTCMonth(defaultFrom.getUTCMonth() - 3);
+				const from = parsed.data.from ?? defaultFrom.toISOString().slice(0, 10);
+				const to = parsed.data.to ?? today;
+				if (from > to)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "A data inicial não pode ser depois da final."));
+				const maxFrom = new Date(`${to}T00:00:00.000Z`);
+				maxFrom.setUTCMonth(maxFrom.getUTCMonth() - 24);
+				if (from < maxFrom.toISOString().slice(0, 10))
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "O período da busca pode ter no máximo 24 meses."));
+
+				const all = await listFinanceTransactionsBetween({
+					userId: session.user.id,
+					start: from,
+					end: to,
+				});
+				const matches = all.filter((tx) =>
+					matchesTransactionSearch(tx, { q, minAmount, maxAmount, category, kind }),
+				);
+				const { page, total, nextCursor } = paginate(matches, { limit, cursor });
+				return reply.send({ from, to, total, nextCursor, transactions: page });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "PATCH",
+		url: "/transactions/manual/:id",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+				const patch = manualTransactionPatch.safeParse(req.body ?? {});
+				if (!patch.success)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", patch.error.issues[0]?.message ?? "Dados inválidos."));
+
+				const [existing] = await db
+					.select({ id: expense.id, source: expense.source })
+					.from(expense)
+					.where(and(eq(expense.id, id), eq(expense.userId, session.user.id)))
+					.limit(1);
+
+				if (!existing) {
+					const [bank] = await db
+						.select({ id: pluggyTransactions.id })
+						.from(pluggyTransactions)
+						.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
+						.where(and(eq(pluggyTransactions.id, id), eq(pluggyItems.userId, session.user.id)))
+						.limit(1);
+					if (bank)
+						return reply.status(400).send(errorBody("BANK_TRANSACTION_READ_ONLY"));
+					return reply.status(404).send(errorBody("NOT_FOUND", "Transação não encontrada."));
+				}
+				if (existing.source === "pluggy")
+					return reply.status(400).send(errorBody("BANK_TRANSACTION_READ_ONLY"));
+
+				const { date, amount, category, note } = patch.data;
+				const [record] = await db
+					.update(expense)
+					.set({
+						...(date !== undefined ? { expenseDate: date } : {}),
+						...(amount !== undefined ? { amount: amount.toString() } : {}),
+						...(category !== undefined ? { category } : {}),
+						...(note !== undefined ? { note } : {}),
+					})
+					.where(and(eq(expense.id, id), eq(expense.userId, session.user.id)))
+					.returning();
+				return reply.send(serializeExpense(record!));
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));
