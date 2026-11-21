@@ -6,7 +6,7 @@ Estimativa de esforço (minha, não medida): **S** um PR pequeno; **M** vários 
 
 | Spec | Funcionalidade | Esforço | Depende de | Status |
 | --- | --- | --- | --- | --- |
-| [01](01-projecao-de-saldo.md) | Projeção de saldo (3, 6, 12 meses) | M | refresh diário da Pluggy (PR #20); melhora com 03 e 07 | a rever |
+| [01](01-projecao-de-saldo.md) | Projeção de saldo (3, 6, 12 meses) | M | refresh diário da Pluggy (PR #20); usa 03, 07 e 08 | implementada (API, MCP, gráfico), a validar com dados reais |
 | [02](02-limite-por-categoria.md) | Limite por categoria | S-M | nada | implementada (API, MCP) |
 | [03](03-parcelas.md) | Parcelas de cartão | M | confirmar campos de parcela da Pluggy | implementada (API, MCP) |
 | [04](04-fatura-paga-manual.md) | Marcar fatura como paga | S | nada | implementada (API, MCP) |
@@ -15,7 +15,7 @@ Estimativa de esforço (minha, não medida): **S** um PR pequeno; **M** vários 
 | [07](07-contas-fixas-e-recorrentes.md) | Contas fixas, receitas recorrentes, financiamentos | M | usado pela 01 | implementada (API, MCP), sem financiamento |
 | [08](08-alerta-de-ritmo-de-gasto.md) | Alerta de ritmo de gasto | S-M | melhor com 02 | implementada (API, push) |
 | [09](09-escopos-oauth-do-mcp.md) | Escopos OAuth por domínio no MCP | S-M | nenhuma; fazer antes das tools de escrita novas | implementada |
-| [10](10-graficos-no-mcp.md) | Gráficos pelo MCP | M | melhor com 01 e 02 | aprovada |
+| [10](10-graficos-no-mcp.md) | Gráficos pelo MCP | M | melhor com 01 e 02 | aprovada; `get_chart` com `balance_projection` pronto |
 | [11](11-busca-de-transacoes.md) | Busca e edição de transação manual | S | decidir `unaccent` | implementada (API, MCP) |
 | [12](12-aporte-de-meta.md) | Aportes de meta e plano de poupança | S-M | nada | implementada (API, MCP) |
 | [13](13-onboarding-pluggy-do-servidor.md) | Conectar banco sem conta própria na Pluggy | L | **decisão de custo da Pluggy em produção** | a rever |
