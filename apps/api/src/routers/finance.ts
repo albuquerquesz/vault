@@ -34,6 +34,7 @@ import {
 	savingsTarget,
 } from "../db/schema/index.js";
 import { paidSource } from "../services/bill-payment.js";
+import { buildChart, groupSmall, monthLabel } from "../services/charts.js";
 import { calculateCategoryLimits } from "../services/category-limits.js";
 import {
 	addMonthsClamped,
@@ -326,6 +327,50 @@ async function listFinanceTransactionsBetween(params: {
 
 		return right.createdAt.getTime() - left.createdAt.getTime();
 	});
+}
+
+/** The card installment plans still running, from the card's own installment fields. */
+async function loadActiveInstallmentPlans(userId: string, today: string) {
+	// Long enough to see a purchase of up to a year from its first installment.
+	const since = addMonthsClamped(today, -16);
+	const rows = await db
+		.select({
+			id: pluggyTransactions.id,
+			accountId: pluggyTransactions.pluggyAccountId,
+			cardName: pluggyAccounts.name,
+			date: pluggyTransactions.date,
+			amount: pluggyTransactions.amount,
+			description: pluggyTransactions.description,
+			installmentNumber: pluggyTransactions.installmentNumber,
+			totalInstallments: pluggyTransactions.totalInstallments,
+		})
+		.from(pluggyTransactions)
+		.innerJoin(pluggyAccounts, eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id))
+		.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
+		.where(
+			and(
+				eq(pluggyItems.userId, userId),
+				eq(pluggyAccounts.type, "CREDIT"),
+				isNull(pluggyTransactions.hiddenAt),
+				gte(pluggyTransactions.date, since),
+			),
+		);
+
+	return activePlans(
+		buildInstallmentPlans(
+			rows.map((row) => ({
+				id: row.id,
+				accountId: row.accountId ?? "",
+				cardName: row.cardName,
+				date: row.date,
+				amount: Number(row.amount),
+				description: row.description,
+				installmentNumber: row.installmentNumber,
+				totalInstallments: row.totalInstallments,
+			})),
+		),
+		today,
+	);
 }
 
 async function getPartialResultMetrics(params: {
@@ -1770,6 +1815,108 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 		},
 	});
 
+	// --- Charts ---
+
+	const CHART_TYPES = {
+		spending_by_category: ["donut", "bar"],
+		monthly_result: ["bar"],
+		spending_by_day: ["line"],
+		upcoming_installments: ["bar"],
+	} as const;
+
+	const chartQuery = z.object({
+		metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments"]),
+		month: z.string().regex(monthPattern).optional(),
+		months: z.coerce.number().int().min(1).max(12).optional(),
+		type: z.enum(["donut", "bar", "line"]).optional(),
+	});
+
+	server.route({
+		method: "GET",
+		url: "/chart",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const parsed = chartQuery.safeParse(req.query);
+				if (!parsed.success)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "Informe metric (spending_by_category, monthly_result, spending_by_day ou upcoming_installments), month AAAA-MM e months de 1 a 12."));
+				const { metric } = parsed.data;
+				const allowed = CHART_TYPES[metric] as readonly string[];
+				const type = parsed.data.type ?? allowed[0];
+				if (!type || !allowed.includes(type))
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", `O tipo ${type} não vale para ${metric}; use: ${allowed.join(", ")}.`));
+				const today = todayInSaoPaulo();
+				const month = parsed.data.month ?? today.slice(0, 7);
+				const userId = session.user.id;
+
+				let title: string;
+				let data: { label: string; value: number; series?: string }[];
+
+				if (metric === "spending_by_category") {
+					const rows = await listFinanceTransactions({ userId, month });
+					const byCategory = new Map<string, number>();
+					for (const row of rows)
+						if (row.kind === "expense")
+							byCategory.set(row.category, (byCategory.get(row.category) ?? 0) + Math.abs(row.amount));
+					title = `Gastos por categoria em ${monthLabel(month)}`;
+					data = groupSmall([...byCategory].map(([label, value]) => ({ label, value })));
+				} else if (metric === "spending_by_day") {
+					const rows = await listFinanceTransactions({ userId, month });
+					const byDay = new Map<number, number>();
+					for (const row of rows)
+						if (row.kind === "expense") {
+							const day = Number(row.date.slice(8, 10));
+							byDay.set(day, (byDay.get(day) ?? 0) + Math.abs(row.amount));
+						}
+					const lastDay = Number(getMonthBounds(month).end.slice(8, 10));
+					// In the running month the days to come are not drawn as zeros.
+					const upTo = month === today.slice(0, 7) ? Number(today.slice(8, 10)) : lastDay;
+					title = `Gasto por dia em ${monthLabel(month)}`;
+					data = Array.from({ length: upTo }, (_, index) => ({
+						label: String(index + 1),
+						value: byDay.get(index + 1) ?? 0,
+					}));
+				} else if (metric === "monthly_result") {
+					const count = parsed.data.months ?? 6;
+					const list: string[] = [month];
+					while (list.length < count) list.unshift(previousMonth(list[0] as string));
+					const results = await Promise.all(
+						list.map((value) => getPartialResultMetrics({ userId, month: value })),
+					);
+					title = `Receita e gasto: ${count === 1 ? "mês" : `últimos ${count} meses`} até ${monthLabel(month)}`;
+					data = list.flatMap((value, index) => [
+						{ label: monthLabel(value), series: "Receita", value: results[index]?.income ?? 0 },
+						{ label: monthLabel(value), series: "Gasto", value: results[index]?.spent ?? 0 },
+					]);
+				} else {
+					const count = parsed.data.months ?? 6;
+					const plans = await loadActiveInstallmentPlans(userId, today);
+					title = `Parcelas de cartão nos próximos ${count} meses`;
+					data = projectUpcoming(plans, today, count).map((entry) => ({
+						label: monthLabel(entry.month),
+						value: entry.total,
+					}));
+				}
+
+				const chart = buildChart({ type: type as "donut" | "bar" | "line", title, data });
+				const single = data.every((point) => point.series === undefined);
+				return reply.send({
+					metric,
+					...chart,
+					total: single ? Math.round(data.reduce((sum, point) => sum + point.value, 0) * 100) / 100 : null,
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
 	// --- Credit cards ---
 
 	server.route({
@@ -1894,46 +2041,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						.send(errorBody("VALIDATION_ERROR", "months deve ser um número de 1 a 12."));
 
 				const today = todayInSaoPaulo();
-				// Long enough to see a purchase of up to a year from its first installment.
-				const since = addMonthsClamped(today, -16);
-				const rows = await db
-					.select({
-						id: pluggyTransactions.id,
-						accountId: pluggyTransactions.pluggyAccountId,
-						cardName: pluggyAccounts.name,
-						date: pluggyTransactions.date,
-						amount: pluggyTransactions.amount,
-						description: pluggyTransactions.description,
-						installmentNumber: pluggyTransactions.installmentNumber,
-						totalInstallments: pluggyTransactions.totalInstallments,
-					})
-					.from(pluggyTransactions)
-					.innerJoin(pluggyAccounts, eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id))
-					.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
-					.where(
-						and(
-							eq(pluggyItems.userId, session.user.id),
-							eq(pluggyAccounts.type, "CREDIT"),
-							isNull(pluggyTransactions.hiddenAt),
-							gte(pluggyTransactions.date, since),
-						),
-					);
-
-				const plans = activePlans(
-					buildInstallmentPlans(
-						rows.map((row) => ({
-							id: row.id,
-							accountId: row.accountId ?? "",
-							cardName: row.cardName,
-							date: row.date,
-							amount: Number(row.amount),
-							description: row.description,
-							installmentNumber: row.installmentNumber,
-							totalInstallments: row.totalInstallments,
-						})),
-					),
-					today,
-				);
+				const plans = await loadActiveInstallmentPlans(session.user.id, today);
 				return reply.send({
 					plans,
 					upcoming: projectUpcoming(plans, today, parsed.data.months),

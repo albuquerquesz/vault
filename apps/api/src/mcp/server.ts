@@ -241,6 +241,28 @@ export function createVaultMcpServer(
 	);
 
 	server.registerTool(
+		"get_chart",
+		{
+			title: "Gráfico",
+			description:
+				"Gráfico pronto de uma métrica. metric: spending_by_category (gastos por categoria do mês, rosca ou barras; as menores viram Outras; estornos não são abatidos), monthly_result (receita e gasto dos últimos months meses, barras agrupadas), spending_by_day (gasto por dia do mês, linha) ou upcoming_installments (parcelas de cartão que ainda vão cair, mês a mês, barras). Os números são os mesmos do dashboard. Devolve: data (a tabela de pontos), vegaLite (especificação Vega-Lite 5 para quem renderiza) e svg (o desenho completo, pronto para colar numa página ou numa resposta; texto em português e valores em reais). Se o cliente não desenha gráfico, use data como tabela.",
+			inputSchema: z.object({
+				metric: z.enum(["spending_by_category", "monthly_result", "spending_by_day", "upcoming_installments"]),
+				month: month.optional().describe("Mês AAAA-MM; padrão o atual. Em monthly_result é o último mês do período."),
+				months: z.number().int().min(1).max(12).optional().describe("Quantos meses em monthly_result e upcoming_installments; padrão 6"),
+				type: z.enum(["donut", "bar", "line"]).optional().describe("donut ou bar para spending_by_category; os outros têm um tipo só"),
+			}),
+			annotations: readOnly,
+		},
+		(input) => {
+			const params = new URLSearchParams();
+			for (const [key, value] of Object.entries(input))
+				if (value !== undefined) params.set(key, String(value));
+			return call("GET", `/api/finance/chart?${params.toString()}`);
+		},
+	);
+
+	server.registerTool(
 		"list_credit_cards",
 		{
 			title: "Cartões de crédito",

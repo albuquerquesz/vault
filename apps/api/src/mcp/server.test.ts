@@ -83,6 +83,7 @@ describe("MCP remoto: paridade", () => {
 			"list_recurring_items",
 			"list_credit_cards",
 			"list_installments",
+			"get_chart",
 		])
 			expect(names).toContain(n);
 		expect(names.join(" ")).not.toMatch(/pix|space|wallet/i);
@@ -102,6 +103,7 @@ describe("MCP remoto: paridade", () => {
 		expect(names).toContain("list_recurring_items");
 		expect(names).toContain("list_credit_cards");
 		expect(names).toContain("list_installments");
+		expect(names).toContain("get_chart");
 		const call = await rpc("tools/call", {
 			name: "delete_goal",
 			arguments: { id: "x" },
@@ -177,6 +179,8 @@ describe("MCP remoto: paridade", () => {
 		await rpc("tools/call", { name: "list_credit_cards", arguments: {} });
 		await rpc("tools/call", { name: "list_installments", arguments: {} });
 		await rpc("tools/call", { name: "list_installments", arguments: { months: 12 } });
+		await rpc("tools/call", { name: "get_chart", arguments: { metric: "spending_by_category", month: "2026-11", type: "bar" } });
+		await rpc("tools/call", { name: "get_chart", arguments: { metric: "monthly_result" } });
 		expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
 			"GET /api/finance/spending-goal?month=2026-10&today=2026-10-15",
 			"GET /api/finance/savings-target?month=2026-10",
@@ -209,6 +213,8 @@ describe("MCP remoto: paridade", () => {
 			"GET /api/finance/credit-cards",
 			"GET /api/finance/installments",
 			"GET /api/finance/installments?months=12",
+			"GET /api/finance/chart?metric=spending_by_category&month=2026-11&type=bar",
+			"GET /api/finance/chart?metric=monthly_result",
 		]);
 		expect(calls[6]?.body).toEqual({ ids: [id] });
 		expect(calls[7]?.body).toEqual({});
@@ -249,6 +255,9 @@ describe("MCP remoto: paridade", () => {
 			{ name: "mark_recurring_paid", arguments: { id: "11111111-1111-4111-8111-111111111111", month: "dezembro" } },
 			{ name: "list_installments", arguments: { months: 13 } },
 			{ name: "list_installments", arguments: { months: 0 } },
+			{ name: "get_chart", arguments: { metric: "pie_of_everything" } },
+			{ name: "get_chart", arguments: { metric: "monthly_result", months: 13 } },
+			{ name: "get_chart", arguments: { metric: "spending_by_day", month: "novembro" } },
 		];
 		for (const b of bad) {
 			const r = await rpc("tools/call", b);
