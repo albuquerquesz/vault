@@ -20,6 +20,14 @@ const ids = z
 	.max(100)
 	.describe("IDs das transações, como retornados por list_transactions");
 
+const ruleCandidate = z.object({
+	matchType: z
+		.enum(["contains", "starts_with", "equals"])
+		.describe("contains = a descrição contém o texto, starts_with = começa com, equals = é igual"),
+	pattern: z.string().trim().min(1).max(100).describe("Texto a procurar na descrição"),
+	category: z.string().trim().min(1).max(64).optional().describe("Categoria de destino, para contar só o que mudaria"),
+});
+
 const readOnly = {
 	readOnlyHint: true,
 	destructiveHint: false,
@@ -89,11 +97,15 @@ export function createVaultMcpServer(
 		{
 			title: "Listar transações",
 			description:
-				"Transações bancárias e manuais do mês, com id, data, valor (negativo = gasto), categoria e conta.",
-			inputSchema: z.object({ month }),
+				"Transações bancárias e manuais do mês, com id, data, valor (negativo = gasto), categoria, conta e tags.",
+			inputSchema: z.object({
+				month,
+				tag: z.string().uuid().optional().describe("ID de uma tag (list_tags): devolve só as transações marcadas com ela"),
+			}),
 			annotations: readOnly,
 		},
-		({ month }) => call("GET", `/api/finance/transactions?month=${q(month)}`),
+		({ month, tag }) =>
+			call("GET", `/api/finance/transactions?month=${q(month)}${tag ? `&tag=${q(tag)}` : ""}`),
 	);
 
 	server.registerTool(
@@ -134,10 +146,63 @@ export function createVaultMcpServer(
 		{
 			title: "Listar categorias",
 			description:
-				"Categorias já usadas, com contagem. Use antes de recategorizar ou criar transações para reaproveitar nomes existentes.",
+				"Categorias já usadas e as criadas à mão, com contagem (0 = criada e ainda sem uso), id (nulo quando a categoria só existe porque transações a usam) e archived. Arquivadas sem uso ficam de fora, a menos que archived=true. Use antes de recategorizar ou criar transações para reaproveitar nomes existentes.",
+			inputSchema: z.object({
+				archived: z.boolean().optional().describe("true para incluir as arquivadas sem uso"),
+			}),
 			annotations: readOnly,
 		},
-		() => call("GET", "/api/finance/categories"),
+		({ archived }) => call("GET", `/api/finance/categories${archived ? "?archived=true" : ""}`),
+	);
+
+	server.registerTool(
+		"list_category_rules",
+		{
+			title: "Regras de categoria",
+			description:
+				"Regras automáticas de categoria, da prioridade mais alta (número menor) para a mais baixa: texto da descrição que casa (contains, starts_with ou equals, sem diferenciar maiúsculas nem acentos) e a categoria que passa a ser exibida nas transações bancárias. Categoria manual vence a regra; a regra vence a categoria do banco.",
+			annotations: readOnly,
+		},
+		() => call("GET", "/api/finance/category-rules"),
+	);
+
+	server.registerTool(
+		"preview_category_rule",
+		{
+			title: "Pré-visualizar uma regra",
+			description:
+				"Mostra quantas transações bancárias uma regra candidata mudaria e até 20 exemplos, sem gravar nada. Transações com categoria manual e movimentos que não contam como gasto ou receita ficam de fora.",
+			inputSchema: ruleCandidate,
+			annotations: readOnly,
+		},
+		(input) => call("POST", "/api/finance/category-rules/preview", input),
+	);
+
+	server.registerTool(
+		"list_tags",
+		{
+			title: "Listar tags",
+			description: "Tags do usuário, com id, nome e quantas transações têm cada uma.",
+			annotations: readOnly,
+		},
+		() => call("GET", "/api/finance/tags"),
+	);
+
+	server.registerTool(
+		"get_tag_total",
+		{
+			title: "Total gasto de uma tag",
+			description:
+				"Quanto foi gasto nas transações de uma tag no período (no máximo 24 meses). Só despesas contam, sem abater estornos (mesma regra do gráfico por categoria).",
+			inputSchema: z.object({
+				id: z.string().uuid().describe("ID da tag, como retornado por list_tags"),
+				from: z.iso.date().describe("Data inicial AAAA-MM-DD"),
+				to: z.iso.date().describe("Data final AAAA-MM-DD"),
+			}),
+			annotations: readOnly,
+		},
+		({ id, from, to }) =>
+			call("GET", `/api/finance/tags/${q(id)}/total?from=${q(from)}&to=${q(to)}`),
 	);
 
 	server.registerTool(
@@ -396,6 +461,198 @@ export function createVaultMcpServer(
 				annotations: write,
 			},
 			(input) => call("POST", "/api/finance/transactions/recategorize", input),
+		);
+
+		server.registerTool(
+			"create_category",
+			{
+				title: "Criar categoria",
+				description:
+					"Cria uma categoria antes de usá-la. Nomes que só diferem em maiúsculas, acentos ou espaços são a mesma categoria e a segunda é recusada.",
+				inputSchema: z.object({ name: z.string().trim().min(1).max(64) }),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/categories", input),
+		);
+
+		server.registerTool(
+			"rename_category",
+			{
+				title: "Renomear categoria",
+				description:
+					"Renomeia uma categoria em tudo que a usa: transações manuais e bancárias, regras, limites por categoria e contas fixas, de uma vez só (tudo ou nada). Se o novo nome já existe, use merge_categories. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					name: z.string().trim().min(1).max(64).describe("Nome atual"),
+					newName: z.string().trim().min(1).max(64),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			(input) => call("POST", "/api/finance/categories/rename", input),
+		);
+
+		server.registerTool(
+			"merge_categories",
+			{
+				title: "Juntar categorias",
+				description:
+					"Move tudo de uma categoria para outra e tira a primeira do catálogo. Se os dois meses têm limite para as duas, vale o limite da categoria de destino. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					from: z.string().trim().min(1).max(64).describe("Categoria que deixa de existir"),
+					into: z.string().trim().min(1).max(64).describe("Categoria que fica"),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			(input) => call("POST", "/api/finance/categories/merge", input),
+		);
+
+		server.registerTool(
+			"archive_category",
+			{
+				title: "Arquivar categoria",
+				description:
+					"Arquiva (ou volta a mostrar) uma categoria, para ela sair das sugestões de list_categories. Não mexe em nenhuma transação.",
+				inputSchema: z.object({
+					name: z.string().trim().min(1).max(64),
+					archived: z.boolean().describe("true arquiva, false desarquiva"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/categories/archive", input),
+		);
+
+		server.registerTool(
+			"delete_category",
+			{
+				title: "Apagar categoria",
+				description:
+					"Apaga uma categoria. Em uso, exige moveTo (a categoria que fica com as transações, regras e limites); sem moveTo a chamada falha e nada muda. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					name: z.string().trim().min(1).max(64),
+					moveTo: z.string().trim().min(1).max(64).optional().describe("Obrigatório quando a categoria está em uso"),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			(input) => call("DELETE", "/api/finance/categories", input),
+		);
+
+		server.registerTool(
+			"create_category_rule",
+			{
+				title: "Criar regra de categoria",
+				description:
+					"Cria uma regra: transações bancárias cuja descrição casa com o texto passam a ser exibidas na categoria. Vale para as novas e para o histórico, na hora (use preview_category_rule antes para ver o efeito). Não muda se algo conta como gasto ou receita, não mexe em transação com categoria manual nem em lançamento manual. priority menor vence; omitida, a regra fica por último.",
+				inputSchema: ruleCandidate
+					.extend({
+						category: z.string().trim().min(1).max(64),
+						priority: z.number().int().min(0).max(100000).optional(),
+						enabled: z.boolean().optional(),
+					}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/category-rules", input),
+		);
+
+		server.registerTool(
+			"update_category_rule",
+			{
+				title: "Editar regra de categoria",
+				description:
+					"Edita uma regra: texto, tipo de casamento, categoria, prioridade ou enabled (false desativa sem apagar).",
+				inputSchema: z
+					.object({
+						id: z.string().uuid().describe("ID da regra, como retornado por list_category_rules"),
+						matchType: z.enum(["contains", "starts_with", "equals"]).optional(),
+						pattern: z.string().trim().min(1).max(100).optional(),
+						category: z.string().trim().min(1).max(64).optional(),
+						priority: z.number().int().min(0).max(100000).optional(),
+						enabled: z.boolean().optional(),
+					})
+					.refine(({ id: _id, ...rest }) => Object.values(rest).some((v) => v !== undefined), {
+						message: "Informe ao menos um campo para editar.",
+					}),
+				annotations: write,
+			},
+			({ id, ...patch }) => call("PATCH", `/api/finance/category-rules/${q(id)}`, patch),
+		);
+
+		server.registerTool(
+			"delete_category_rule",
+			{
+				title: "Apagar regra de categoria",
+				description:
+					"Apaga uma regra; as transações que ela mudava voltam à categoria do banco. Para só pausar, use update_category_rule com enabled=false. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					id: z.string().uuid().describe("ID da regra, como retornado por list_category_rules"),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			({ id }) => call("DELETE", `/api/finance/category-rules/${q(id)}`),
+		);
+
+		server.registerTool(
+			"apply_category_rules",
+			{
+				title: "Reaplicar regras de categoria",
+				description:
+					"Recalcula as categorias guardadas das transações bancárias com as regras de agora e diz quantas transações vêm de regra. Criar, editar e apagar regras já faz isso; use só se algo parecer fora de sincronia.",
+				annotations: write,
+			},
+			() => call("POST", "/api/finance/category-rules/apply", {}),
+		);
+
+		server.registerTool(
+			"create_tag",
+			{
+				title: "Criar tag",
+				description:
+					"Cria uma tag (rótulo livre, por exemplo \"Viagem Lisboa\"). Uma transação pode ter várias tags e uma só categoria. Nomes que só diferem em maiúsculas ou acentos são a mesma tag.",
+				inputSchema: z.object({ name: z.string().trim().min(1).max(48) }),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/tags", input),
+		);
+
+		server.registerTool(
+			"tag_transactions",
+			{
+				title: "Marcar transações com uma tag",
+				description:
+					"Aplica uma tag a até 100 transações (bancárias ou manuais; ids de list_transactions). Não muda a categoria. Repetir não duplica.",
+				inputSchema: z.object({
+					ids,
+					tagId: z.string().uuid().describe("ID da tag, como retornado por list_tags"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/transactions/tag", input),
+		);
+
+		server.registerTool(
+			"untag_transactions",
+			{
+				title: "Tirar a tag de transações",
+				description: "Remove a tag de até 100 transações, sem apagar a tag.",
+				inputSchema: z.object({
+					ids,
+					tagId: z.string().uuid().describe("ID da tag, como retornado por list_tags"),
+				}),
+				annotations: write,
+			},
+			(input) => call("POST", "/api/finance/transactions/untag", input),
+		);
+
+		server.registerTool(
+			"delete_tag",
+			{
+				title: "Apagar tag",
+				description:
+					"Apaga a tag e a tira de todas as transações; as transações e as categorias não mudam. Destrutivo: confirme com a pessoa antes de chamar.",
+				inputSchema: z.object({
+					id: z.string().uuid().describe("ID da tag, como retornado por list_tags"),
+				}),
+				annotations: { ...write, destructiveHint: true },
+			},
+			({ id }) => call("DELETE", `/api/finance/tags/${q(id)}`),
 		);
 
 	}

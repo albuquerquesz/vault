@@ -15,7 +15,11 @@ import type {
 } from "../clients/pluggy/types.js";
 import { db } from "../db/index.js";
 import { classifyPluggyTransactions } from "./pluggy-classification.js";
-import { getOwnerName } from "./pluggy-ledger.js";
+import {
+	type CategoryRuleLike,
+	resolveDisplayCategory,
+} from "./category-rules.js";
+import { getOwnerName, loadCategoryRules } from "./pluggy-ledger.js";
 import {
 	billPaymentOverride,
 	expense,
@@ -906,8 +910,10 @@ export function mapPluggyTransactionsToExpenses(params: {
 	transactions: StoredTransactionForExpense[];
 	/** User's full name; transfers to/from it are internal. */
 	ownerName?: string | null;
+	/** Category rules; they only change the category name stored on the row. */
+	rules?: CategoryRuleLike[];
 }) {
-	const { userId, localItemId, transactions, ownerName } = params;
+	const { userId, localItemId, transactions, ownerName, rules = [] } = params;
 	const keyOf = (tx: StoredTransactionForExpense) =>
 		tx.id ?? tx.pluggyTransactionId;
 	const classified = classifyPluggyTransactions(
@@ -936,8 +942,12 @@ export function mapPluggyTransactionsToExpenses(params: {
 				userId,
 				expenseDate: tx.date,
 				amount: amount.toFixed(2),
-				category:
-					tx.categoryOverride?.trim() || tx.category?.trim() || "Outros",
+				category: resolveDisplayCategory({
+					override: tx.categoryOverride,
+					original: tx.category,
+					description: tx.description,
+					rules,
+				}),
 				note: tx.description ?? null,
 				source: PLUGGY_EXPENSE_SOURCE,
 				sourceExternalId: tx.pluggyTransactionId,
@@ -963,6 +973,7 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 }) {
 	const { userId, localItemId } = params;
 	const ownerName = await getOwnerName(userId);
+	const rules = await loadCategoryRules(userId);
 
 	// Read, work out and replace under the user's lock, so a second sync of the
 	// same user waits and then works from what this one wrote.
@@ -1001,6 +1012,7 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 			localItemId,
 			transactions: storedTransactions,
 			ownerName,
+			rules,
 		});
 
 		await tx

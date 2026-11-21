@@ -65,6 +65,19 @@ const newWrites = [
 	"delete_recurring_item",
 	"mark_recurring_paid",
 	"unmark_recurring_paid",
+	"create_category",
+	"rename_category",
+	"merge_categories",
+	"archive_category",
+	"delete_category",
+	"create_category_rule",
+	"update_category_rule",
+	"delete_category_rule",
+	"apply_category_rules",
+	"create_tag",
+	"tag_transactions",
+	"untag_transactions",
+	"delete_tag",
 ];
 
 describe("MCP remoto: paridade", () => {
@@ -84,6 +97,10 @@ describe("MCP remoto: paridade", () => {
 			"list_credit_cards",
 			"list_installments",
 			"get_chart",
+			"list_category_rules",
+			"preview_category_rule",
+			"list_tags",
+			"get_tag_total",
 		])
 			expect(names).toContain(n);
 		expect(names.join(" ")).not.toMatch(/pix|space|wallet/i);
@@ -104,6 +121,10 @@ describe("MCP remoto: paridade", () => {
 		expect(names).toContain("list_credit_cards");
 		expect(names).toContain("list_installments");
 		expect(names).toContain("get_chart");
+		expect(names).toContain("list_category_rules");
+		expect(names).toContain("preview_category_rule");
+		expect(names).toContain("list_tags");
+		expect(names).toContain("get_tag_total");
 		const call = await rpc("tools/call", {
 			name: "delete_goal",
 			arguments: { id: "x" },
@@ -126,6 +147,11 @@ describe("MCP remoto: paridade", () => {
 			"delete_goal_contribution",
 			"delete_recurring_item",
 			"unmark_recurring_paid",
+			"rename_category",
+			"merge_categories",
+			"delete_category",
+			"delete_category_rule",
+			"delete_tag",
 		])
 			expect(by[n]).toBe(true);
 		for (const n of [
@@ -141,6 +167,14 @@ describe("MCP remoto: paridade", () => {
 			"create_recurring_item",
 			"update_recurring_item",
 			"mark_recurring_paid",
+			"create_category",
+			"archive_category",
+			"create_category_rule",
+			"update_category_rule",
+			"apply_category_rules",
+			"create_tag",
+			"tag_transactions",
+			"untag_transactions",
 		])
 			expect(by[n]).toBe(false);
 	});
@@ -181,6 +215,25 @@ describe("MCP remoto: paridade", () => {
 		await rpc("tools/call", { name: "list_installments", arguments: { months: 12 } });
 		await rpc("tools/call", { name: "get_chart", arguments: { metric: "spending_by_category", month: "2026-11", type: "bar" } });
 		await rpc("tools/call", { name: "get_chart", arguments: { metric: "monthly_result" } });
+		await rpc("tools/call", { name: "list_categories", arguments: {} });
+		await rpc("tools/call", { name: "list_category_rules", arguments: {} });
+		await rpc("tools/call", { name: "preview_category_rule", arguments: { matchType: "contains", pattern: "ifood", category: "Delivery" } });
+		await rpc("tools/call", { name: "create_category_rule", arguments: { matchType: "starts_with", pattern: "uber", category: "Transporte", priority: 2 } });
+		await rpc("tools/call", { name: "update_category_rule", arguments: { id, enabled: false } });
+		await rpc("tools/call", { name: "delete_category_rule", arguments: { id } });
+		await rpc("tools/call", { name: "apply_category_rules", arguments: {} });
+		await rpc("tools/call", { name: "create_category", arguments: { name: "Pets" } });
+		await rpc("tools/call", { name: "rename_category", arguments: { name: "Alimentacao", newName: "Alimentação" } });
+		await rpc("tools/call", { name: "merge_categories", arguments: { from: "Mercado", into: "Alimentação" } });
+		await rpc("tools/call", { name: "archive_category", arguments: { name: "Pets", archived: true } });
+		await rpc("tools/call", { name: "delete_category", arguments: { name: "Pets", moveTo: "Outros" } });
+		await rpc("tools/call", { name: "list_tags", arguments: {} });
+		await rpc("tools/call", { name: "create_tag", arguments: { name: "Viagem" } });
+		await rpc("tools/call", { name: "tag_transactions", arguments: { ids: [id], tagId: id } });
+		await rpc("tools/call", { name: "untag_transactions", arguments: { ids: [id], tagId: id } });
+		await rpc("tools/call", { name: "get_tag_total", arguments: { id, from: "2026-11-01", to: "2026-11-30" } });
+		await rpc("tools/call", { name: "list_transactions", arguments: { month: "2026-11", tag: id } });
+		await rpc("tools/call", { name: "delete_tag", arguments: { id } });
 		expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
 			"GET /api/finance/spending-goal?month=2026-10&today=2026-10-15",
 			"GET /api/finance/savings-target?month=2026-10",
@@ -215,6 +268,25 @@ describe("MCP remoto: paridade", () => {
 			"GET /api/finance/installments?months=12",
 			"GET /api/finance/chart?metric=spending_by_category&month=2026-11&type=bar",
 			"GET /api/finance/chart?metric=monthly_result",
+			"GET /api/finance/categories",
+			"GET /api/finance/category-rules",
+			"POST /api/finance/category-rules/preview",
+			"POST /api/finance/category-rules",
+			`PATCH /api/finance/category-rules/${id}`,
+			`DELETE /api/finance/category-rules/${id}`,
+			"POST /api/finance/category-rules/apply",
+			"POST /api/finance/categories",
+			"POST /api/finance/categories/rename",
+			"POST /api/finance/categories/merge",
+			"POST /api/finance/categories/archive",
+			"DELETE /api/finance/categories",
+			"GET /api/finance/tags",
+			"POST /api/finance/tags",
+			"POST /api/finance/transactions/tag",
+			"POST /api/finance/transactions/untag",
+			`GET /api/finance/tags/${id}/total?from=2026-11-01&to=2026-11-30`,
+			`GET /api/finance/transactions?month=2026-11&tag=${id}`,
+			`DELETE /api/finance/tags/${id}`,
 		]);
 		expect(calls[6]?.body).toEqual({ ids: [id] });
 		expect(calls[7]?.body).toEqual({});
@@ -229,6 +301,13 @@ describe("MCP remoto: paridade", () => {
 		expect(calls[24]?.body).toEqual({ amount: 1600, effectiveFrom: "2027-01" });
 		expect(calls[25]?.body).toEqual({ month: "2026-12" });
 		expect(calls[26]?.body).toEqual({ month: "2026-12" });
+		expect(calls[35]?.body).toEqual({ matchType: "contains", pattern: "ifood", category: "Delivery" });
+		expect(calls[36]?.body).toEqual({ matchType: "starts_with", pattern: "uber", category: "Transporte", priority: 2 });
+		expect(calls[37]?.body).toEqual({ enabled: false });
+		expect(calls[41]?.body).toEqual({ name: "Alimentacao", newName: "Alimentação" });
+		expect(calls[42]?.body).toEqual({ from: "Mercado", into: "Alimentação" });
+		expect(calls[44]?.body).toEqual({ name: "Pets", moveTo: "Outros" });
+		expect(calls[47]?.body).toEqual({ ids: [id], tagId: id });
 	});
 
 	test("validação recusa valor <= 0, mês inválido e 101 ids", async () => {
@@ -258,6 +337,12 @@ describe("MCP remoto: paridade", () => {
 			{ name: "get_chart", arguments: { metric: "pie_of_everything" } },
 			{ name: "get_chart", arguments: { metric: "monthly_result", months: 13 } },
 			{ name: "get_chart", arguments: { metric: "spending_by_day", month: "novembro" } },
+			{ name: "create_category_rule", arguments: { matchType: "regex", pattern: "x", category: "Y" } },
+			{ name: "create_category_rule", arguments: { matchType: "contains", pattern: "", category: "Y" } },
+			{ name: "update_category_rule", arguments: { id: "11111111-1111-4111-8111-111111111111" } },
+			{ name: "tag_transactions", arguments: { ids: Array(101).fill("11111111-1111-4111-8111-111111111111"), tagId: "11111111-1111-4111-8111-111111111111" } },
+			{ name: "tag_transactions", arguments: { ids: ["11111111-1111-4111-8111-111111111111"], tagId: "nome" } },
+			{ name: "get_tag_total", arguments: { id: "11111111-1111-4111-8111-111111111111", from: "ontem", to: "2026-11-30" } },
 		];
 		for (const b of bad) {
 			const r = await rpc("tools/call", b);
@@ -299,7 +384,20 @@ describe("MCP remoto: escopos OAuth", () => {
 			"update_recurring_item",
 		]);
 		expect(await writeToolsOf(new Set(["mcp:read", "mcp:categories:write"]))).toEqual([
+			"apply_category_rules",
+			"archive_category",
+			"create_category",
+			"create_category_rule",
+			"create_tag",
+			"delete_category",
+			"delete_category_rule",
+			"delete_tag",
+			"merge_categories",
 			"recategorize_transactions",
+			"rename_category",
+			"tag_transactions",
+			"untag_transactions",
+			"update_category_rule",
 		]);
 		expect(await writeToolsOf(new Set(["mcp:read", "mcp:budgets:write"]))).toEqual([
 			"copy_category_limits",
@@ -328,7 +426,7 @@ describe("MCP remoto: escopos OAuth", () => {
 
 	test("todos os escopos listam todas as escritas", async () => {
 		const names = await writeToolsOf(ALL_MCP_SCOPES);
-		expect(names).toHaveLength(23);
+		expect(names).toHaveLength(36);
 	});
 
 	test("tool fora do escopo não existe para o cliente", async () => {

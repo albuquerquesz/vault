@@ -64,7 +64,7 @@ export async function listCurrentSubscriptions(params: {
 				date: row.date,
 				amount: Math.abs(signedAmount(row.classification)),
 				description: row.description,
-				category: row.categoryOverride?.trim() || row.category?.trim() || null,
+				category: row.displayCategory,
 				accountName: row.accountName,
 				source: "pluggy",
 			})),

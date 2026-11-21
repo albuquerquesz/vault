@@ -32,6 +32,8 @@ import {
 	recurringItem,
 	recurringPayment,
 	savingsTarget,
+	tag,
+	transactionTag,
 } from "../db/schema/index.js";
 import { paidSource } from "../services/bill-payment.js";
 import { buildChart, groupSmall, monthLabel } from "../services/charts.js";
@@ -238,7 +240,36 @@ type FinanceTransactionRecord = {
 	kind: "income" | "expense";
 	isDeletable: boolean;
 	isHideable: boolean;
+	tags: { id: string; name: string }[];
 };
+
+/** Fills `tags` on each record from the user's tag links (bank id or manual id). */
+async function attachTags(userId: string, records: FinanceTransactionRecord[]) {
+	if (records.length === 0) return;
+	const links = await db
+		.select({
+			pluggyTransactionId: transactionTag.pluggyTransactionId,
+			expenseId: transactionTag.expenseId,
+			id: tag.id,
+			name: tag.name,
+		})
+		.from(transactionTag)
+		.innerJoin(tag, eq(transactionTag.tagId, tag.id))
+		.where(eq(tag.userId, userId));
+	if (links.length === 0) return;
+	const byTransaction = new Map<string, { id: string; name: string }[]>();
+	for (const link of links) {
+		const key = link.pluggyTransactionId ?? link.expenseId;
+		if (!key) continue;
+		const list = byTransaction.get(key) ?? [];
+		list.push({ id: link.id, name: link.name });
+		byTransaction.set(key, list);
+	}
+	for (const record of records)
+		record.tags = (byTransaction.get(record.id) ?? []).sort((a, b) =>
+			a.name.localeCompare(b.name),
+		);
+}
 
 export async function listFinanceTransactions(params: {
 	userId: string;
@@ -248,7 +279,7 @@ export async function listFinanceTransactions(params: {
 	return listFinanceTransactionsBetween({ userId: params.userId, start, end });
 }
 
-async function listFinanceTransactionsBetween(params: {
+export async function listFinanceTransactionsBetween(params: {
 	userId: string;
 	start: string;
 	end: string;
@@ -272,8 +303,7 @@ async function listFinanceTransactionsBetween(params: {
 				id: row.id,
 				date: row.date,
 				amount: signedAmount(row.classification),
-				category:
-					row.categoryOverride?.trim() || row.category?.trim() || "Outros",
+				category: row.displayCategory,
 				description: row.description ?? null,
 				source: "pluggy",
 				sourceExternalId: null,
@@ -289,6 +319,7 @@ async function listFinanceTransactionsBetween(params: {
 				kind: row.classification.kind === "expense" ? "expense" : "income",
 				isDeletable: false,
 				isHideable: row.classification.kind === "expense",
+				tags: [],
 			})),
 		...manualExpenses.map<FinanceTransactionRecord>((row) => ({
 			id: row.id,
@@ -309,8 +340,11 @@ async function listFinanceTransactionsBetween(params: {
 			kind: row.kind === "income" ? "income" : "expense",
 			isDeletable: true,
 			isHideable: false,
+			tags: [],
 		})),
 	];
+
+	await attachTags(userId, transactions);
 
 	return transactions.sort((left, right) => {
 		const dateDiff = right.date.localeCompare(left.date);
@@ -486,17 +520,25 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 		async handler(req, reply) {
 			try {
 				const session = await requireSession(req.raw, { allowMcpToken: true });
-				const month = (req.query as { month: string }).month;
+				const { month, tag: tagId } = req.query as { month: string; tag?: string };
 				if (!monthPattern.test(month))
 					return reply
 						.status(400)
 						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
+				if (tagId !== undefined && !z.uuid().safeParse(tagId).success)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "tag precisa ser o id de uma tag."));
 
 				const records = await listFinanceTransactions({
 					userId: session.user.id,
 					month,
 				});
-				return reply.send(records);
+				return reply.send(
+					tagId
+						? records.filter((record) => record.tags.some((t) => t.id === tagId))
+						: records,
+				);
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));
@@ -859,29 +901,6 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					.returning({ id: expense.id });
 
 				return reply.send({ updated: ownedPluggyIds.length + manual.length });
-			} catch (error) {
-				return sendKnownError(reply, error);
-			}
-		},
-	});
-
-	server.route({
-		method: "GET",
-		url: "/categories",
-		async handler(req, reply) {
-			try {
-				const session = await requireSession(req.raw, { allowMcpToken: true });
-				const rows = await db
-					.select({
-						category: expense.category,
-						kind: expense.kind,
-						count: sql<number>`count(*)`.mapWith(Number),
-					})
-					.from(expense)
-					.where(eq(expense.userId, session.user.id))
-					.groupBy(expense.category, expense.kind)
-					.orderBy(desc(sql`count(*)`));
-				return reply.send(rows);
 			} catch (error) {
 				return sendKnownError(reply, error);
 			}

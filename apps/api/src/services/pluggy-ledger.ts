@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { and, eq, gte, isNull, lte, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
 import {
+	categoryRule,
 	pluggyAccounts,
 	pluggyItems,
 	pluggyTransactions,
@@ -12,6 +13,11 @@ import {
 	classifyPluggyTransactions,
 	summarizeClassified,
 } from "./pluggy-classification.js";
+import {
+	type CategoryRuleLike,
+	type RuleMatchType,
+	resolveDisplayCategory,
+} from "./category-rules.js";
 
 export type ClassifiedPluggyRow = {
 	id: string;
@@ -21,6 +27,8 @@ export type ClassifiedPluggyRow = {
 	rawAmount: number;
 	category: string | null;
 	categoryOverride: string | null;
+	/** What the user sees: manual override, then the first matching rule, then `category`. */
+	displayCategory: string;
 	description: string | null;
 	provider: string | null;
 	accountId: string | null;
@@ -40,6 +48,25 @@ export async function getOwnerName(userId: string) {
 		.where(eq(user.id, userId))
 		.limit(1);
 	return row?.name ?? null;
+}
+
+/** The user's category rules (all of them; callers pick the enabled ones). */
+export async function loadCategoryRules(
+	userId: string,
+): Promise<CategoryRuleLike[]> {
+	const rows = await db
+		.select()
+		.from(categoryRule)
+		.where(eq(categoryRule.userId, userId));
+	return rows.map((row) => ({
+		id: row.id,
+		matchType: row.matchType as RuleMatchType,
+		pattern: row.pattern,
+		category: row.category,
+		priority: row.priority,
+		enabled: row.enabled,
+		createdAt: row.createdAt,
+	}));
 }
 
 /** Days loaded beyond the period so transfer legs just outside it still pair. */
@@ -98,6 +125,7 @@ export async function loadClassifiedPluggyTransactions(params: {
 			),
 		);
 
+	const rules = await loadCategoryRules(userId);
 	const classified = classifyPluggyTransactions(
 		rows.map((row) => ({
 			id: row.id,
@@ -115,6 +143,12 @@ export async function loadClassifiedPluggyTransactions(params: {
 		.filter((row) => (!start || row.date >= start) && (!end || row.date <= end))
 		.map((row) => ({
 			...row,
+			displayCategory: resolveDisplayCategory({
+				override: row.categoryOverride,
+				original: row.category,
+				description: row.description,
+				rules,
+			}),
 			classification: classified.get(row.id) ?? {
 				kind: "ignored",
 				amount: Math.abs(row.rawAmount),
