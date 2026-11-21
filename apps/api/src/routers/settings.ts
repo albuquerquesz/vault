@@ -33,6 +33,10 @@ const dailySummarySchema = z.object({
 	enabled: z.boolean(),
 });
 
+const paceAlertsSchema = z.object({
+	enabled: z.boolean(),
+});
+
 const profileSchema = z.object({
 	name: z.string().min(1).max(100).nullish(),
 	email: z.string().email().max(255).nullish(),
@@ -139,6 +143,41 @@ export function registerSettingsRoutes(server: RouteRegistrar) {
 			});
 			const settings = mergeSettings(u?.settings as UserSettings | null, {
 				dailySummaryEnabled: body.enabled,
+			});
+			await db
+				.update(user)
+				.set({ settings })
+				.where(eq(user.id, session.user.id));
+			return reply.send(body);
+		} catch (error) {
+			return sendKnownError(reply, error);
+		}
+	});
+
+	server.get("/push/pace-alerts", async (req, reply) => {
+		try {
+			const session = await requireSession(req.raw);
+			const u = await db.query.user.findFirst({
+				where: eq(user.id, session.user.id),
+				columns: { settings: true },
+			});
+			const settings = (u?.settings ?? {}) as UserSettings;
+			return reply.send({ enabled: settings.paceAlertsEnabled ?? false });
+		} catch (error) {
+			return sendKnownError(reply, error);
+		}
+	});
+
+	server.put("/push/pace-alerts", async (req, reply) => {
+		try {
+			const session = await requireSession(req.raw);
+			const body = paceAlertsSchema.parse(req.body);
+			const u = await db.query.user.findFirst({
+				where: eq(user.id, session.user.id),
+				columns: { settings: true },
+			});
+			const settings = mergeSettings(u?.settings as UserSettings | null, {
+				paceAlertsEnabled: body.enabled,
 			});
 			await db
 				.update(user)

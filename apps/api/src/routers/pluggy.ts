@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "../db/index.js";
+import { db, runInBackground } from "../db/index.js";
 import {
 	pluggyAccounts,
 	pluggyItems,
@@ -19,6 +19,7 @@ import {
 	syncTransactionsForItem,
 	toPluggyUserMessage,
 } from "../services/pluggy.js";
+import { sendPaceAlertAfterSync } from "../services/pace-alert-dispatch.js";
 import { getPluggyWebhookUrl } from "../services/pluggy-webhook-config.js";
 import { requireSession } from "../session.js";
 
@@ -219,6 +220,13 @@ export function registerPluggyRoutes(server: RouteRegistrar) {
 					localItemId: item.id,
 					pluggyItemId: item.pluggyItemId,
 				});
+
+				if (sync.status === "success") {
+					// After the response; the alert never delays or fails the sync.
+					const alert = sendPaceAlertAfterSync(session.user.id);
+					runInBackground(alert);
+					if (req.waitUntil) req.waitUntil(alert);
+				}
 
 				return reply.send({ itemId: item.id, sync });
 			} catch (error) {

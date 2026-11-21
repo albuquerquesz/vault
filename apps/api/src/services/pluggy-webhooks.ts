@@ -8,6 +8,7 @@ import {
 	MissingPluggyCredentialsError,
 	resolvePluggyCredentials,
 } from "./connectors/credentials.js";
+import { sendPaceAlertAfterSync } from "./pace-alert-dispatch.js";
 import {
 	createPluggyService,
 	deleteDerivedExpensesForItem,
@@ -202,6 +203,9 @@ async function syncOneLocalItem(params: {
 			lastSyncCompletedAt: dayjs().toDate(),
 			lastSyncError: sync.error ?? null,
 		});
+
+		// Already after the webhook response; never fails the sync result.
+		if (sync.status === "success") await sendPaceAlertAfterSync(userId);
 
 		return {
 			localItemId,

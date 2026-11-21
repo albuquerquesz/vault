@@ -1,6 +1,7 @@
 export * from "./account.js";
 export * from "./auth.js";
 export * from "./bill-payment-override.js";
+export * from "./category-alert-sent.js";
 export * from "./expense.js";
 export * from "./goal.js";
 export * from "./goal-contribution.js";
