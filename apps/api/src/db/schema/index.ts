@@ -1,5 +1,6 @@
 export * from "./account.js";
 export * from "./auth.js";
+export * from "./bill-payment-override.js";
 export * from "./expense.js";
 export * from "./goal.js";
 export * from "./mcp-access-token.js";

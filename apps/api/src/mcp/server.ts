@@ -323,5 +323,50 @@ export function createVaultMcpServer(
 		(input) => call("DELETE", "/api/finance/expenses", input),
 	);
 
+	server.registerTool(
+		"mark_bill_paid",
+		{
+			title: "Marcar fatura como paga",
+			description:
+				"Registra que uma fatura de cartão foi paga, para a tela e a projeção pararem de contá-la como pendente. Sem valor, marca a fatura inteira. Use o pluggyBillId que get_monthly_bills devolve. Quando o banco informar o pagamento, o valor do banco passa a valer.",
+			inputSchema: z.object({
+				pluggyBillId: z
+					.string()
+					.min(1)
+					.describe("pluggyBillId da fatura, como retornado por get_monthly_bills"),
+				paidAmount: z
+					.number()
+					.positive()
+					.optional()
+					.describe("Valor pago em reais; omita para marcar a fatura toda"),
+			}),
+			annotations: write,
+		},
+		({ pluggyBillId, paidAmount }) =>
+			call(
+				"POST",
+				`/api/finance/bills/${q(pluggyBillId)}/paid`,
+				paidAmount === undefined ? {} : { paidAmount },
+			),
+	);
+
+	server.registerTool(
+		"unmark_bill_paid",
+		{
+			title: "Desfazer fatura paga",
+			description:
+				"Remove a marcação manual de pagamento de uma fatura. O valor pago volta a ser o que o banco informou. Destrutivo: confirme com a pessoa antes de chamar.",
+			inputSchema: z.object({
+				pluggyBillId: z
+					.string()
+					.min(1)
+					.describe("pluggyBillId da fatura, como retornado por get_monthly_bills"),
+			}),
+			annotations: { ...write, destructiveHint: true },
+		},
+		({ pluggyBillId }) =>
+			call("DELETE", `/api/finance/bills/${q(pluggyBillId)}/paid`),
+	);
+
 	return server;
 }

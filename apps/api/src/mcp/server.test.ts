@@ -41,6 +41,8 @@ const newWrites = [
 	"set_savings_target",
 	"delete_goal",
 	"delete_manual_transactions",
+	"mark_bill_paid",
+	"unmark_bill_paid",
 ];
 
 describe("MCP remoto: paridade", () => {
@@ -50,7 +52,7 @@ describe("MCP remoto: paridade", () => {
 		const names = result.tools.map((t: { name: string }) => t.name);
 		for (const n of [...newWrites, "get_spending_goal", "get_savings_target"])
 			expect(names).toContain(n);
-		expect(names.join(" ")).not.toMatch(/pix|space|wallet|paid/i);
+		expect(names.join(" ")).not.toMatch(/pix|space|wallet/i);
 	});
 
 	test("bearer só lê: sem escrita nova, com leituras novas", async () => {
@@ -73,9 +75,20 @@ describe("MCP remoto: paridade", () => {
 		const by = Object.fromEntries(
 			result.tools.map((t: { name: string; annotations: { destructiveHint: boolean } }) => [t.name, t.annotations.destructiveHint]),
 		);
-		for (const n of ["delete_goal", "delete_manual_transactions", "hide_transactions"])
+		for (const n of [
+			"delete_goal",
+			"delete_manual_transactions",
+			"hide_transactions",
+			"unmark_bill_paid",
+		])
 			expect(by[n]).toBe(true);
-		for (const n of ["create_goal", "update_goal", "set_budget_income", "recategorize_transactions"])
+		for (const n of [
+			"create_goal",
+			"update_goal",
+			"set_budget_income",
+			"recategorize_transactions",
+			"mark_bill_paid",
+		])
 			expect(by[n]).toBe(false);
 	});
 
@@ -89,6 +102,9 @@ describe("MCP remoto: paridade", () => {
 		await rpc("tools/call", { name: "set_savings_target", arguments: { month: "2026-10", savingsPercentage: 20 } });
 		await rpc("tools/call", { name: "delete_goal", arguments: { id: "g1" } });
 		await rpc("tools/call", { name: "delete_manual_transactions", arguments: { ids: [id] } });
+		await rpc("tools/call", { name: "mark_bill_paid", arguments: { pluggyBillId: "bill-1" } });
+		await rpc("tools/call", { name: "mark_bill_paid", arguments: { pluggyBillId: "bill-2", paidAmount: 120.5 } });
+		await rpc("tools/call", { name: "unmark_bill_paid", arguments: { pluggyBillId: "bill-1" } });
 		expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
 			"GET /api/finance/spending-goal?month=2026-10&today=2026-10-15",
 			"GET /api/finance/savings-target?month=2026-10",
@@ -97,8 +113,13 @@ describe("MCP remoto: paridade", () => {
 			"POST /api/finance/savings-target",
 			"DELETE /api/finance/goals/g1",
 			"DELETE /api/finance/expenses",
+			"POST /api/finance/bills/bill-1/paid",
+			"POST /api/finance/bills/bill-2/paid",
+			"DELETE /api/finance/bills/bill-1/paid",
 		]);
 		expect(calls[6]?.body).toEqual({ ids: [id] });
+		expect(calls[7]?.body).toEqual({});
+		expect(calls[8]?.body).toEqual({ paidAmount: 120.5 });
 	});
 
 	test("validação recusa valor <= 0, mês inválido e 101 ids", async () => {
@@ -108,6 +129,8 @@ describe("MCP remoto: paridade", () => {
 			{ name: "set_spending_goal", arguments: { month: "2026-10", targetAmount: -1 } },
 			{ name: "set_savings_target", arguments: { month: "2026-13", savingsPercentage: 10 } },
 			{ name: "delete_manual_transactions", arguments: { ids: Array(101).fill("11111111-1111-4111-8111-111111111111") } },
+			{ name: "mark_bill_paid", arguments: { pluggyBillId: "bill-1", paidAmount: 0 } },
+			{ name: "mark_bill_paid", arguments: { pluggyBillId: "" } },
 		];
 		for (const b of bad) {
 			const r = await rpc("tools/call", b);

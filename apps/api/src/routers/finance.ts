@@ -15,6 +15,7 @@ import { z } from "zod";
 import { db } from "../db/index.js";
 import { errorBody, sendKnownError } from "../lib/http-errors.js";
 import {
+	billPaymentOverride,
 	expense,
 	goal,
 	monthlyBill,
@@ -22,11 +23,16 @@ import {
 	monthlyBudget,
 	monthlySpendingGoal,
 	pluggyAccounts,
+	pluggyBills,
 	pluggyItems,
 	pluggyTransactions,
 	savingsTarget,
 } from "../db/schema/index.js";
-import { rebuildExpensesFromStoredTransactions } from "../services/pluggy.js";
+import { paidSource } from "../services/bill-payment.js";
+import {
+	materializeMonthlyBillsFromPluggy,
+	rebuildExpensesFromStoredTransactions,
+} from "../services/pluggy.js";
 import {
 	classifyPluggyTransactions,
 	signedAmount,
@@ -1082,13 +1088,147 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						return billItems.map(serializeMonthlyBillItem);
 					}),
 				);
+				const flatItems = items.flat();
+				const billIds = flatItems
+					.map((item) => item.pluggyBillId)
+					.filter((id): id is string => Boolean(id));
+				const [bankRows, manualRows] =
+					billIds.length === 0
+						? [[], []]
+						: await Promise.all([
+								db
+									.select({
+										pluggyBillId: pluggyBills.pluggyBillId,
+										paidAmount: pluggyBills.paidAmount,
+									})
+									.from(pluggyBills)
+									.where(inArray(pluggyBills.pluggyBillId, billIds)),
+								db
+									.select({ pluggyBillId: billPaymentOverride.pluggyBillId })
+									.from(billPaymentOverride)
+									.where(
+										and(
+											eq(billPaymentOverride.userId, session.user.id),
+											inArray(billPaymentOverride.pluggyBillId, billIds),
+										),
+									),
+							]);
+				const bankPaidByBill = new Map(
+					bankRows.map((row) => [row.pluggyBillId, Number(row.paidAmount) || 0]),
+				);
+				const manualBills = new Set(manualRows.map((row) => row.pluggyBillId));
 				return reply.send({
 					bills: bills.map(serializeMonthlyBill),
-					items: items.flat(),
+					items: flatItems.map((item) => ({
+						...item,
+						paidSource: item.pluggyBillId
+							? paidSource({
+									bankPaid: bankPaidByBill.get(item.pluggyBillId) ?? 0,
+									effectivePaid: item.paidAmount,
+									hasManualPayment: manualBills.has(item.pluggyBillId),
+								})
+							: null,
+					})),
 				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	// --- Manual bill payments ---
+
+	async function findOwnBill(userId: string, pluggyBillId: string) {
+		const [bill] = await db
+			.select({ pluggyBillId: pluggyBills.pluggyBillId })
+			.from(pluggyBills)
+			.innerJoin(pluggyAccounts, eq(pluggyBills.pluggyAccountId, pluggyAccounts.id))
+			.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
+			.where(
+				and(eq(pluggyItems.userId, userId), eq(pluggyBills.pluggyBillId, pluggyBillId)),
+			)
+			.limit(1);
+		return bill;
+	}
+
+	server.route({
+		method: "POST",
+		url: "/bills/:pluggyBillId/paid",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { pluggyBillId } = z
+					.object({ pluggyBillId: z.string().min(1) })
+					.parse(req.params);
+				const { paidAmount } = z
+					.object({ paidAmount: z.number().positive().optional() })
+					.parse(req.body ?? {});
+
+				if (!(await findOwnBill(session.user.id, pluggyBillId)))
+					return reply
+						.status(404)
+						.send(errorBody("NOT_FOUND", "Fatura não encontrada."));
+
+				await db
+					.insert(billPaymentOverride)
+					.values({
+						userId: session.user.id,
+						pluggyBillId,
+						paidAmount: paidAmount === undefined ? null : paidAmount.toString(),
+					})
+					.onConflictDoUpdate({
+						target: [billPaymentOverride.userId, billPaymentOverride.pluggyBillId],
+						set: {
+							paidAmount: paidAmount === undefined ? null : paidAmount.toString(),
+						},
+					});
+				await materializeMonthlyBillsFromPluggy({ userId: session.user.id });
+
+				return reply.send({ pluggyBillId, paidAmount: paidAmount ?? null });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "DELETE",
+		url: "/bills/:pluggyBillId/paid",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { pluggyBillId } = z
+					.object({ pluggyBillId: z.string().min(1) })
+					.parse(req.params);
+
+				if (!(await findOwnBill(session.user.id, pluggyBillId)))
+					return reply
+						.status(404)
+						.send(errorBody("NOT_FOUND", "Fatura não encontrada."));
+
+				const removed = await db
+					.delete(billPaymentOverride)
+					.where(
+						and(
+							eq(billPaymentOverride.userId, session.user.id),
+							eq(billPaymentOverride.pluggyBillId, pluggyBillId),
+						),
+					)
+					.returning({ id: billPaymentOverride.id });
+				await materializeMonthlyBillsFromPluggy({ userId: session.user.id });
+
+				return reply.send({ pluggyBillId, cleared: removed.length > 0 });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
 				throw error;
 			}
 		},

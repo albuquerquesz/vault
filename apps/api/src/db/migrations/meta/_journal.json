@@ -169,6 +169,13 @@
       "when": 1793380913790,
       "tag": "0023_pluggy_transaction_bill_id",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795229490313,
+      "tag": "0024_bill_payment_override",
+      "breakpoints": true
     }
   ]
 }
