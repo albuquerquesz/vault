@@ -3,6 +3,7 @@ export * from "./auth.js";
 export * from "./bill-payment-override.js";
 export * from "./expense.js";
 export * from "./goal.js";
+export * from "./goal-contribution.js";
 export * from "./mcp-access-token.js";
 export * from "./monthly-bill.js";
 export * from "./monthly-bill-item.js";

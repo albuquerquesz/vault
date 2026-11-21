@@ -210,6 +210,33 @@ export function createVaultMcpServer(
 		({ month }) => call("GET", `/api/finance/category-limits?month=${q(month)}`),
 	);
 
+	server.registerTool(
+		"get_goal_plan",
+		{
+			title: "Plano de uma meta",
+			description:
+				"Quanto falta para a meta e, se ela tem prazo, quanto guardar por mês até lá (sem juros). Informa se o prazo já passou.",
+			inputSchema: z.object({
+				id: z.string().uuid().describe("ID da meta, como retornado por list_goals"),
+			}),
+			annotations: readOnly,
+		},
+		({ id }) => call("GET", `/api/finance/goals/${q(id)}/plan`),
+	);
+
+	server.registerTool(
+		"list_goal_contributions",
+		{
+			title: "Aportes de uma meta",
+			description: "Histórico de aportes e retiradas de uma meta, do mais recente para o mais antigo.",
+			inputSchema: z.object({
+				id: z.string().uuid().describe("ID da meta, como retornado por list_goals"),
+			}),
+			annotations: readOnly,
+		},
+		({ id }) => call("GET", `/api/finance/goals/${q(id)}/contributions`),
+	);
+
 	// API keys (vlt_mcp_…) are read-only; writes need an OAuth login.
 	if (options.readOnly) return server;
 
@@ -292,6 +319,7 @@ export function createVaultMcpServer(
 				name: z.string().trim().min(1).max(128),
 				targetAmount: z.number().positive(),
 				currentAmount: z.number().min(0).optional(),
+				targetDate: z.iso.date().nullable().optional().describe("Prazo AAAA-MM-DD"),
 			}),
 			annotations: write,
 		},
@@ -309,6 +337,7 @@ export function createVaultMcpServer(
 				targetAmount: z.number().positive().optional(),
 				currentAmount: z.number().min(0).optional(),
 				isCompleted: z.boolean().optional(),
+				targetDate: z.iso.date().nullable().optional().describe("Prazo AAAA-MM-DD; null remove o prazo"),
 			}),
 			annotations: write,
 		},
@@ -430,6 +459,40 @@ export function createVaultMcpServer(
 			annotations: write,
 		},
 		(input) => call("POST", "/api/finance/category-limits/copy", input),
+	);
+
+	server.registerTool(
+		"add_goal_contribution",
+		{
+			title: "Registrar aporte em uma meta",
+			description:
+				"Registra um aporte (ou uma retirada) em uma meta e atualiza o valor atual dela. A data padrão é hoje. Não vira transação nem entra no gasto do mês. Uma retirada maior que o valor atual é recusada.",
+			inputSchema: z.object({
+				id: z.string().uuid().describe("ID da meta, como retornado por list_goals"),
+				amount: z.number().positive().describe("Valor positivo em reais"),
+				kind: z.enum(["deposit", "withdrawal"]).optional().describe("deposit = aporte (padrão), withdrawal = retirada"),
+				date: z.iso.date().optional().describe("Data AAAA-MM-DD"),
+				note: z.string().trim().max(280).optional(),
+			}),
+			annotations: write,
+		},
+		({ id, ...body }) => call("POST", `/api/finance/goals/${q(id)}/contributions`, body),
+	);
+
+	server.registerTool(
+		"delete_goal_contribution",
+		{
+			title: "Apagar aporte de uma meta",
+			description:
+				"Apaga um aporte ou retirada e desfaz o efeito no valor atual da meta. Use o id que list_goal_contributions devolveu. Destrutivo: confirme com a pessoa antes de chamar.",
+			inputSchema: z.object({
+				id: z.string().uuid().describe("ID da meta"),
+				contributionId: z.string().uuid().describe("ID do aporte, como retornado por list_goal_contributions"),
+			}),
+			annotations: { ...write, destructiveHint: true },
+		},
+		({ id, contributionId }) =>
+			call("DELETE", `/api/finance/goals/${q(id)}/contributions/${q(contributionId)}`),
 	);
 
 	server.registerTool(

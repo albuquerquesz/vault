@@ -18,6 +18,7 @@ import {
 	billPaymentOverride,
 	expense,
 	goal,
+	goalContribution,
 	monthlyBill,
 	monthlyBillItem,
 	monthlyBudget,
@@ -31,6 +32,7 @@ import {
 } from "../db/schema/index.js";
 import { paidSource } from "../services/bill-payment.js";
 import { calculateCategoryLimits } from "../services/category-limits.js";
+import { applyContribution, planGoal } from "../services/goal-plan.js";
 import {
 	matchesTransactionSearch,
 	normalizeText,
@@ -49,7 +51,10 @@ import {
 	loadClassifiedPluggyTransactions,
 } from "../services/pluggy-ledger.js";
 import { calculateMonthlySpendingGoal } from "../services/monthly-spending-goal.js";
-import { listCurrentSubscriptions } from "../services/subscriptions.js";
+import {
+	listCurrentSubscriptions,
+	todayInSaoPaulo,
+} from "../services/subscriptions.js";
 import { requireSession } from "../session.js";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -1053,12 +1058,13 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 		async handler(req, reply) {
 			try {
 				const session = await requireSession(req.raw);
-				const { name, targetAmount, currentAmount, url } = z
+				const { name, targetAmount, currentAmount, url, targetDate } = z
 					.object({
 						name: z.string().trim().min(1).max(128),
 						targetAmount: z.number().positive(),
 						currentAmount: z.number().min(0).default(0),
 						url: optionalGoalUrl,
+						targetDate: z.iso.date().nullable().optional(),
 					})
 					.parse(req.body);
 				const [record] = await db
@@ -1067,6 +1073,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						userId: session.user.id,
 						name,
 						url,
+						targetDate: targetDate ?? null,
 						targetAmount: targetAmount.toString(),
 						currentAmount: (currentAmount ?? 0).toString(),
 						isCompleted: (currentAmount ?? 0) >= targetAmount,
@@ -1097,6 +1104,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						currentAmount: z.number().min(0).optional(),
 						isCompleted: z.boolean().optional(),
 						url: optionalGoalUrl,
+						targetDate: z.iso.date().nullable().optional(),
 					})
 					.refine(
 						(data) =>
@@ -1104,7 +1112,8 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 							data.targetAmount !== undefined ||
 							data.currentAmount !== undefined ||
 							data.isCompleted !== undefined ||
-							data.url !== undefined,
+							data.url !== undefined ||
+							data.targetDate !== undefined,
 						{ message: "At least one field is required" },
 					)
 					.parse(req.body);
@@ -1137,10 +1146,222 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 									}
 								: {}),
 						...(body.url !== undefined ? { url: body.url } : {}),
+						...(body.targetDate !== undefined ? { targetDate: body.targetDate } : {}),
 					})
 					.where(eq(goal.id, id))
 					.returning();
 				return reply.send(serializeGoal(record!));
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	async function findOwnGoal(userId: string, id: string) {
+		const [row] = await db
+			.select()
+			.from(goal)
+			.where(and(eq(goal.id, id), eq(goal.userId, userId)))
+			.limit(1);
+		return row;
+	}
+
+	const GOAL_NOT_FOUND = "Meta não encontrada.";
+
+	server.route({
+		method: "GET",
+		url: "/goals/:id/plan",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+				const row = await findOwnGoal(session.user.id, id);
+				if (!row)
+					return reply.status(404).send(errorBody("NOT_FOUND", GOAL_NOT_FOUND));
+				return reply.send({
+					goalId: row.id,
+					name: row.name,
+					targetAmount: Number(row.targetAmount),
+					currentAmount: Number(row.currentAmount),
+					...planGoal({
+						targetAmount: Number(row.targetAmount),
+						currentAmount: Number(row.currentAmount),
+						targetDate: row.targetDate,
+						today: todayInSaoPaulo(),
+					}),
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/goals/:id/contributions",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+				if (!(await findOwnGoal(session.user.id, id)))
+					return reply.status(404).send(errorBody("NOT_FOUND", GOAL_NOT_FOUND));
+				const rows = await db
+					.select()
+					.from(goalContribution)
+					.where(eq(goalContribution.goalId, id))
+					.orderBy(desc(goalContribution.date), desc(goalContribution.createdAt));
+				return reply.send(
+					rows.map((row) => ({ ...row, amount: Number(row.amount) })),
+				);
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/goals/:id/contributions",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+				const input = z
+					.object({
+						amount: z.number().positive(),
+						kind: z.enum(["deposit", "withdrawal"]).default("deposit"),
+						date: z.iso.date().optional(),
+						note: z.string().trim().max(280).optional(),
+					})
+					.parse(req.body);
+
+				const result = await db.transaction(async (tx) => {
+					const [row] = await tx
+						.select()
+						.from(goal)
+						.where(and(eq(goal.id, id), eq(goal.userId, session.user.id)))
+						.for("update")
+						.limit(1);
+					if (!row) return { error: "not_found" as const };
+
+					const next = applyContribution({
+						currentAmount: Number(row.currentAmount),
+						amount: input.amount,
+						kind: input.kind,
+					});
+					if (next < 0) return { error: "overdraw" as const };
+
+					const [contribution] = await tx
+						.insert(goalContribution)
+						.values({
+							goalId: id,
+							userId: session.user.id,
+							amount: input.amount.toString(),
+							kind: input.kind,
+							date: input.date ?? todayInSaoPaulo(),
+							note: input.note ?? null,
+						})
+						.returning();
+					const [updated] = await tx
+						.update(goal)
+						.set({
+							currentAmount: next.toString(),
+							// Reaching the target completes the goal; a withdrawal never undoes it.
+							...(next >= Number(row.targetAmount) ? { isCompleted: true } : {}),
+						})
+						.where(eq(goal.id, id))
+						.returning();
+					return { contribution: contribution!, goal: updated! };
+				});
+
+				if ("error" in result) {
+					return result.error === "not_found"
+						? reply.status(404).send(errorBody("NOT_FOUND", GOAL_NOT_FOUND))
+						: reply
+								.status(400)
+								.send(errorBody("VALIDATION_ERROR", "A retirada é maior que o valor atual da meta."));
+				}
+				return reply.code(201).send({
+					contribution: { ...result.contribution, amount: Number(result.contribution.amount) },
+					goal: serializeGoal(result.goal),
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "DELETE",
+		url: "/goals/:id/contributions/:contributionId",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { id, contributionId } = z
+					.object({ id: z.string().uuid(), contributionId: z.string().uuid() })
+					.parse(req.params);
+
+				const result = await db.transaction(async (tx) => {
+					const [row] = await tx
+						.select()
+						.from(goal)
+						.where(and(eq(goal.id, id), eq(goal.userId, session.user.id)))
+						.for("update")
+						.limit(1);
+					if (!row) return { error: "goal" as const };
+					const [contribution] = await tx
+						.select()
+						.from(goalContribution)
+						.where(
+							and(
+								eq(goalContribution.id, contributionId),
+								eq(goalContribution.goalId, id),
+							),
+						)
+						.limit(1);
+					if (!contribution) return { error: "contribution" as const };
+
+					const next = applyContribution({
+						currentAmount: Number(row.currentAmount),
+						amount: Number(contribution.amount),
+						kind: contribution.kind === "withdrawal" ? "withdrawal" : "deposit",
+						undo: true,
+					});
+					await tx.delete(goalContribution).where(eq(goalContribution.id, contributionId));
+					const [updated] = await tx
+						.update(goal)
+						.set({ currentAmount: Math.max(next, 0).toString() })
+						.where(eq(goal.id, id))
+						.returning();
+					return { goal: updated! };
+				});
+
+				if ("error" in result)
+					return reply
+						.status(404)
+						.send(
+							errorBody(
+								"NOT_FOUND",
+								result.error === "goal" ? GOAL_NOT_FOUND : "Aporte não encontrado.",
+							),
+						);
+				return reply.send({ deleted: 1, goal: serializeGoal(result.goal) });
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));

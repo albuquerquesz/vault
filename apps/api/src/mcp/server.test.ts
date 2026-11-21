@@ -47,6 +47,8 @@ const newWrites = [
 	"set_category_limit",
 	"delete_category_limit",
 	"copy_category_limits",
+	"add_goal_contribution",
+	"delete_goal_contribution",
 ];
 
 describe("MCP remoto: paridade", () => {
@@ -60,6 +62,8 @@ describe("MCP remoto: paridade", () => {
 			"get_savings_target",
 			"search_transactions",
 			"get_category_limits",
+			"get_goal_plan",
+			"list_goal_contributions",
 		])
 			expect(names).toContain(n);
 		expect(names.join(" ")).not.toMatch(/pix|space|wallet/i);
@@ -74,6 +78,8 @@ describe("MCP remoto: paridade", () => {
 		expect(names).toContain("get_savings_target");
 		expect(names).toContain("search_transactions");
 		expect(names).toContain("get_category_limits");
+		expect(names).toContain("get_goal_plan");
+		expect(names).toContain("list_goal_contributions");
 		const call = await rpc("tools/call", {
 			name: "delete_goal",
 			arguments: { id: "x" },
@@ -93,6 +99,7 @@ describe("MCP remoto: paridade", () => {
 			"hide_transactions",
 			"unmark_bill_paid",
 			"delete_category_limit",
+			"delete_goal_contribution",
 		])
 			expect(by[n]).toBe(true);
 		for (const n of [
@@ -104,6 +111,7 @@ describe("MCP remoto: paridade", () => {
 			"update_manual_transaction",
 			"set_category_limit",
 			"copy_category_limits",
+			"add_goal_contribution",
 		])
 			expect(by[n]).toBe(false);
 	});
@@ -127,6 +135,11 @@ describe("MCP remoto: paridade", () => {
 		await rpc("tools/call", { name: "set_category_limit", arguments: { month: "2026-10", category: "Alimentação", targetAmount: 800 } });
 		await rpc("tools/call", { name: "delete_category_limit", arguments: { month: "2026-10", category: "Lazer" } });
 		await rpc("tools/call", { name: "copy_category_limits", arguments: { fromMonth: "2026-09", toMonth: "2026-10" } });
+		await rpc("tools/call", { name: "get_goal_plan", arguments: { id } });
+		await rpc("tools/call", { name: "list_goal_contributions", arguments: { id } });
+		await rpc("tools/call", { name: "add_goal_contribution", arguments: { id, amount: 150, date: "2026-11-20", note: "13o" } });
+		await rpc("tools/call", { name: "delete_goal_contribution", arguments: { id, contributionId: id } });
+		await rpc("tools/call", { name: "create_goal", arguments: { name: "Viagem", targetAmount: 5000, targetDate: "2027-06-30" } });
 		expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
 			"GET /api/finance/spending-goal?month=2026-10&today=2026-10-15",
 			"GET /api/finance/savings-target?month=2026-10",
@@ -144,6 +157,11 @@ describe("MCP remoto: paridade", () => {
 			"POST /api/finance/category-limits",
 			"DELETE /api/finance/category-limits",
 			"POST /api/finance/category-limits/copy",
+			`GET /api/finance/goals/${id}/plan`,
+			`GET /api/finance/goals/${id}/contributions`,
+			`POST /api/finance/goals/${id}/contributions`,
+			`DELETE /api/finance/goals/${id}/contributions/${id}`,
+			"POST /api/finance/goals",
 		]);
 		expect(calls[6]?.body).toEqual({ ids: [id] });
 		expect(calls[7]?.body).toEqual({});
@@ -152,6 +170,8 @@ describe("MCP remoto: paridade", () => {
 		expect(calls[13]?.body).toEqual({ month: "2026-10", category: "Alimentação", targetAmount: 800 });
 		expect(calls[14]?.body).toEqual({ month: "2026-10", category: "Lazer" });
 		expect(calls[15]?.body).toEqual({ fromMonth: "2026-09", toMonth: "2026-10" });
+		expect(calls[18]?.body).toEqual({ amount: 150, date: "2026-11-20", note: "13o" });
+		expect(calls[20]?.body).toEqual({ name: "Viagem", targetAmount: 5000, targetDate: "2027-06-30" });
 	});
 
 	test("validação recusa valor <= 0, mês inválido e 101 ids", async () => {
@@ -168,6 +188,9 @@ describe("MCP remoto: paridade", () => {
 			{ name: "set_category_limit", arguments: { month: "2026-10", category: "Lazer", targetAmount: 0 } },
 			{ name: "set_category_limit", arguments: { month: "2026-13", category: "Lazer", targetAmount: 10 } },
 			{ name: "copy_category_limits", arguments: { fromMonth: "2026-09", toMonth: "setembro" } },
+			{ name: "add_goal_contribution", arguments: { id: "11111111-1111-4111-8111-111111111111", amount: 0 } },
+			{ name: "add_goal_contribution", arguments: { id: "nao-e-uuid", amount: 10 } },
+			{ name: "add_goal_contribution", arguments: { id: "11111111-1111-4111-8111-111111111111", amount: 10, kind: "transfer" } },
 		];
 		for (const b of bad) {
 			const r = await rpc("tools/call", b);
