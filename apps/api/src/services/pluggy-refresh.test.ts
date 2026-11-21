@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { type RefreshableItem, refreshItems } from "./pluggy-refresh.js";
+import {
+	isNotUpdatableByApi,
+	type RefreshableItem,
+	refreshItems,
+} from "./pluggy-refresh.js";
 
 const item = (id: string, status: string): RefreshableItem => ({
 	id,
@@ -69,5 +73,58 @@ describe("refreshItems", () => {
 
 		expect(summary).toEqual({ requested: 2, skipped: 0, failed: 1 });
 		expect(marked).toEqual(["a", "c"]);
+	});
+
+	test("MeuPluggy items are skipped without asking Pluggy", async () => {
+		const asked: string[] = [];
+
+		const summary = await refreshItems(
+			[{ ...item("a", "UPDATED"), provider: "MeuPluggy" }, { ...item("b", "UPDATED"), provider: "Nubank" }],
+			{
+				updateItem: async (i) => {
+					asked.push(i.id);
+				},
+				markRequested: async () => {},
+				log: () => {},
+			},
+		);
+
+		expect(summary).toEqual({ requested: 1, skipped: 1, failed: 0 });
+		expect(asked).toEqual(["b"]);
+	});
+
+	test("Pluggy refusing an update because the item updates itself counts as skipped", async () => {
+		const marked: string[] = [];
+		const refused = Object.assign(new Error("MeuPluggy item cant be updated"), {
+			details: '{"message":"MeuPluggy item cant be updated"}',
+		});
+
+		const summary = await refreshItems([item("a", "UPDATED"), item("b", "UPDATED")], {
+			updateItem: async (i) => {
+				if (i.id === "a") throw refused;
+			},
+			markRequested: async (i) => {
+				marked.push(i.id);
+			},
+			log: () => {},
+		});
+
+		expect(summary).toEqual({ requested: 1, skipped: 1, failed: 0 });
+		expect(marked).toEqual(["b"]);
+	});
+});
+
+describe("isNotUpdatableByApi", () => {
+	test("recognises the message or the error code, and nothing else", () => {
+		expect(isNotUpdatableByApi(new Error("MeuPluggy item cant be updated"))).toBe(true);
+		expect(
+			isNotUpdatableByApi(
+				Object.assign(new Error("Bad request"), {
+					details: '{"codeDescription":"MEU_PLUGGY_ITEM_UPDATE_NOT_ALLOWED"}',
+				}),
+			),
+		).toBe(true);
+		expect(isNotUpdatableByApi(new Error("Rate limited"))).toBe(false);
+		expect(isNotUpdatableByApi("MeuPluggy item cant be updated")).toBe(false);
 	});
 });

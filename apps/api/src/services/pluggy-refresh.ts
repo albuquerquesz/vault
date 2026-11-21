@@ -6,10 +6,30 @@ import { resolvePluggyCredentials } from "./connectors/credentials.js";
 import { createPluggyService } from "./pluggy.js";
 
 /**
- * Pluggy does not refresh these items on its own (the app's plan has no
- * update frequency), so the Vault asks for it once a day. Pluggy collects the
- * item and calls the webhook with `item/updated`, which runs the sync.
+ * Pluggy does not refresh most items on its own (the app's plan has no update
+ * frequency), so the Vault asks for it once a day. Pluggy collects the item and
+ * calls the webhook with `item/updated`, which runs the sync.
+ *
+ * MeuPluggy items are the exception: Pluggy refuses an update by API
+ * (MEU_PLUGGY_ITEM_UPDATE_NOT_ALLOWED) and refreshes them itself a couple of
+ * times a day, calling the same webhook. They are skipped, not failed.
  */
+
+/** Connector whose items update themselves and reject an update request. */
+const SELF_UPDATING_PROVIDERS = new Set(["meupluggy"]);
+
+const NOT_UPDATABLE_CODE = "MEU_PLUGGY_ITEM_UPDATE_NOT_ALLOWED";
+const NOT_UPDATABLE_MESSAGE = "meupluggy item cant be updated";
+
+/** Pluggy's answer when an item updates itself and cannot be asked to refresh. */
+export function isNotUpdatableByApi(error: unknown): boolean {
+	if (!(error instanceof Error)) return false;
+	const details = (error as { details?: unknown }).details;
+	return (
+		error.message.toLowerCase().includes(NOT_UPDATABLE_MESSAGE) ||
+		(typeof details === "string" && details.includes(NOT_UPDATABLE_CODE))
+	);
+}
 
 /** States where asking for an update would fail or collide with a running one. */
 const SKIPPED_STATUSES = new Set([
@@ -23,6 +43,8 @@ export type RefreshableItem = {
 	userId: string;
 	pluggyItemId: string;
 	status: string;
+	/** Connector name, e.g. "MeuPluggy". */
+	provider?: string;
 };
 
 export type RefreshDeps = {
@@ -46,7 +68,10 @@ export async function refreshItems(
 	const summary: RefreshSummary = { requested: 0, skipped: 0, failed: 0 };
 
 	for (const item of items) {
-		if (SKIPPED_STATUSES.has(item.status.toUpperCase())) {
+		if (
+			SKIPPED_STATUSES.has(item.status.toUpperCase()) ||
+			SELF_UPDATING_PROVIDERS.has((item.provider ?? "").toLowerCase())
+		) {
 			summary.skipped += 1;
 			continue;
 		}
@@ -55,6 +80,11 @@ export async function refreshItems(
 			await deps.markRequested(item);
 			summary.requested += 1;
 		} catch (error) {
+			if (isNotUpdatableByApi(error)) {
+				// Not a failure: this item refreshes itself.
+				summary.skipped += 1;
+				continue;
+			}
 			summary.failed += 1;
 			log("[pluggy-refresh] item refresh failed", {
 				localItemId: item.id,
@@ -75,6 +105,7 @@ export async function requestPluggyItemRefreshes(): Promise<RefreshSummary> {
 			userId: pluggyItems.userId,
 			pluggyItemId: pluggyItems.pluggyItemId,
 			status: pluggyItems.status,
+			provider: pluggyItems.provider,
 		})
 		.from(pluggyItems);
 
