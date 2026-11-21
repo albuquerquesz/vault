@@ -1976,10 +1976,11 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					const lastDueDate = dateOnly(last?.dueDate);
 					const lastClosingDate = dateOnly(last?.billClosingDate);
 					// Old rows saved before billId existed are still unbilled in the
-					// table but belong to bills that closed long ago.
+					// table but belong to bills that closed long ago. Purchases made on the
+					// closing date itself go to the next bill (no billId yet), so keep them.
 					const since = openBillSince(lastDueDate, lastClosingDate);
 					const open = unbilled.filter(
-						(row) => row.accountId === account.id && (since === null || row.date > since),
+						(row) => row.accountId === account.id && (since === null || row.date >= since),
 					);
 					return {
 						id: account.id,
