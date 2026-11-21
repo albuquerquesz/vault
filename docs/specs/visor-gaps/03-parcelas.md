@@ -1,6 +1,6 @@
 # Spec: parcelas de cartão como lista própria
 
-Status (20/11/2026): A rever.
+Status (21/11/2026): **Implementada** na branch `feat/credit-cards` (API e MCP; sem tela web). Desvios, depois de ver o que o MeuPluggy realmente manda (log `[pluggy-shape]`): (1) os campos `installmentNumber` e `totalInstallments` da Pluggy EXISTEM e viram colunas em `pluggy_transactions`; o "n/m" no texto é só a reserva (no gold os dois coincidem, 18 de 77; no Mercado Pago só o campo estruturado existe, 3 de 57); (2) a Pluggy não manda parcela futura (nenhuma transação com data futura), então as próximas são projetadas: mesma data um mês depois da última e o valor da última; (3) compras parceladas do mesmo comerciante e total são separadas por sequência e valor (Steam 1/3, 2/3, 3/3 e depois outro 1/3, 2/3); (4) plano parado há mais de 62 dias fica de fora.
 
 Origem: lacuna #4. Formato `/to-spec`, sem entrevista. O Visor mostra "controle de parcelas" (1/6, 5/10…) e a página `/mcp` fala em "parcelas pagas e restantes".
 

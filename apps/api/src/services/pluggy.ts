@@ -739,6 +739,8 @@ async function syncTransactionsForAccount(params: {
 			description: tx.description ?? null,
 			category: tx.category ?? null,
 			pluggyBillId: tx.creditCardMetadata?.billId ?? null,
+			installmentNumber: tx.creditCardMetadata?.installmentNumber ?? null,
+			totalInstallments: tx.creditCardMetadata?.totalInstallments ?? null,
 		}));
 
 	if (insertable.length === 0) {
@@ -769,6 +771,12 @@ async function syncTransactionsForAccount(params: {
 				// Keep a known bill link if a later page omits it.
 				pluggyBillId: sql.raw(
 					`coalesce(EXCLUDED.pluggy_bill_id, pluggy_transactions.pluggy_bill_id)`,
+				),
+				installmentNumber: sql.raw(
+					`coalesce(EXCLUDED.installment_number, pluggy_transactions.installment_number)`,
+				),
+				totalInstallments: sql.raw(
+					`coalesce(EXCLUDED.total_installments, pluggy_transactions.total_installments)`,
 				),
 			},
 		})

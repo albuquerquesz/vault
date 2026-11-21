@@ -252,6 +252,21 @@ export function createVaultMcpServer(
 	);
 
 	server.registerTool(
+		"list_installments",
+		{
+			title: "Compras parceladas no cartão",
+			description:
+				"Compras parceladas em andamento nos cartões de crédito: de cada uma, o comerciante, o cartão, o valor da parcela, a última parcela vista (n de total), quantas faltam, quanto falta pagar e a data estimada da próxima. Em upcoming soma as parcelas que ainda vão cair mês a mês (o atual incluído), até months meses (padrão 6, máximo 12). A Pluggy não envia parcelas futuras: elas são projetadas a partir da última parcela, com a mesma data um mês depois e o valor da última, então as datas e os centavos são estimativas. Planos concluídos e os parados há mais de dois meses ficam de fora. Compras parceladas aparecem aqui, não em list_subscriptions.",
+			inputSchema: z.object({
+				months: z.number().int().min(1).max(12).optional().describe("Quantos meses à frente somar; padrão 6"),
+			}),
+			annotations: readOnly,
+		},
+		({ months }) =>
+			call("GET", `/api/finance/installments${months ? `?months=${months}` : ""}`),
+	);
+
+	server.registerTool(
 		"list_recurring_items",
 		{
 			title: "Contas fixas e receitas recorrentes",

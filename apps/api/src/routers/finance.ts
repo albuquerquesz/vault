@@ -36,10 +36,16 @@ import {
 import { paidSource } from "../services/bill-payment.js";
 import { calculateCategoryLimits } from "../services/category-limits.js";
 import {
+	addMonthsClamped,
 	dateOnly,
 	estimateOpenBill,
 	summarizeLimit,
 } from "../services/credit-cards.js";
+import {
+	activePlans,
+	buildInstallmentPlans,
+	projectUpcoming,
+} from "../services/installments.js";
 import { applyContribution, planGoal } from "../services/goal-plan.js";
 import {
 	buildOccurrences,
@@ -1860,6 +1866,79 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					};
 				});
 				return reply.send({ cards });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "GET",
+		url: "/installments",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const parsed = z
+					.object({ months: z.coerce.number().int().min(1).max(12).default(6) })
+					.safeParse(req.query);
+				if (!parsed.success)
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "months deve ser um número de 1 a 12."));
+
+				const today = todayInSaoPaulo();
+				// Long enough to see a purchase of up to a year from its first installment.
+				const since = addMonthsClamped(today, -16);
+				const rows = await db
+					.select({
+						id: pluggyTransactions.id,
+						accountId: pluggyTransactions.pluggyAccountId,
+						cardName: pluggyAccounts.name,
+						date: pluggyTransactions.date,
+						amount: pluggyTransactions.amount,
+						description: pluggyTransactions.description,
+						installmentNumber: pluggyTransactions.installmentNumber,
+						totalInstallments: pluggyTransactions.totalInstallments,
+					})
+					.from(pluggyTransactions)
+					.innerJoin(pluggyAccounts, eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id))
+					.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
+					.where(
+						and(
+							eq(pluggyItems.userId, session.user.id),
+							eq(pluggyAccounts.type, "CREDIT"),
+							isNull(pluggyTransactions.hiddenAt),
+							gte(pluggyTransactions.date, since),
+						),
+					);
+
+				const plans = activePlans(
+					buildInstallmentPlans(
+						rows.map((row) => ({
+							id: row.id,
+							accountId: row.accountId ?? "",
+							cardName: row.cardName,
+							date: row.date,
+							amount: Number(row.amount),
+							description: row.description,
+							installmentNumber: row.installmentNumber,
+							totalInstallments: row.totalInstallments,
+						})),
+					),
+					today,
+				);
+				return reply.send({
+					plans,
+					upcoming: projectUpcoming(plans, today, parsed.data.months),
+					summary: {
+						activePlans: plans.length,
+						remainingInstallments: plans.reduce((sum, plan) => sum + plan.remainingInstallments, 0),
+						remainingAmount:
+							Math.round(plans.reduce((sum, plan) => sum + plan.remainingAmount, 0) * 100) / 100,
+					},
+				});
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));

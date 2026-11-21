@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
 	date,
 	index,
+	integer,
 	numeric,
 	pgTable,
 	timestamp,
@@ -34,6 +35,9 @@ export const pluggyTransactions = pgTable(
 		categoryOverride: varchar("category_override", { length: 100 }),
 		/** Pluggy bill id (credit cards), set once the transaction is billed. */
 		pluggyBillId: varchar("pluggy_bill_id", { length: 255 }),
+		/** Credit card installment purchases: "installment n of total", from Pluggy's metadata. */
+		installmentNumber: integer("installment_number"),
+		totalInstallments: integer("total_installments"),
 		hiddenAt: timestamp("hidden_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 	},

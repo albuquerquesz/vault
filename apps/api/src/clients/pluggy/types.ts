@@ -50,8 +50,12 @@ export interface PluggyTransaction {
 	description?: string;
 	category?: string;
 	accountId: string;
-	/** Credit card only: the bill the transaction belongs to, once billed. */
-	creditCardMetadata?: { billId?: string | null } | null;
+	/** Credit card only: the bill the transaction belongs to, once billed, and the installment. */
+	creditCardMetadata?: {
+		billId?: string | null;
+		installmentNumber?: number | null;
+		totalInstallments?: number | null;
+	} | null;
 }
 
 export interface PluggyRemoteTransaction {
@@ -61,8 +65,12 @@ export interface PluggyRemoteTransaction {
 	description?: string;
 	category?: string;
 	accountId: string;
-	/** Credit card only: the bill the transaction belongs to, once billed. */
-	creditCardMetadata?: { billId?: string | null } | null;
+	/** Credit card only: the bill the transaction belongs to, once billed, and the installment. */
+	creditCardMetadata?: {
+		billId?: string | null;
+		installmentNumber?: number | null;
+		totalInstallments?: number | null;
+	} | null;
 }
 
 export interface PluggyTransactionsPage {
