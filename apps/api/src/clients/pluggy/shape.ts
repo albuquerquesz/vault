@@ -112,6 +112,10 @@ const METADATA_KEYS = [
 	"billId",
 	"payeeMCC",
 	"cardNumber",
+	"billForecastDate",
+	"billPostDate",
+	"purchaseDate",
+	"paymentType",
 ] as const;
 
 /** Credit card transactions: whether installment metadata comes and whether any row is future dated. */

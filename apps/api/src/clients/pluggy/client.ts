@@ -138,10 +138,11 @@ async function pluggyFetch(
 	return res.json();
 }
 
-function normalizeAccount(account: PluggyRemoteAccount): PluggyAccount {
+export function normalizeAccount(account: PluggyRemoteAccount): PluggyAccount {
+	const credit = account.creditData;
 	const availableBalance =
 		account.bankData?.availableBalance ??
-		account.creditData?.availableCreditLimit ??
+		credit?.availableCreditLimit ??
 		account.balance;
 
 	return {
@@ -154,14 +155,21 @@ function normalizeAccount(account: PluggyRemoteAccount): PluggyAccount {
 		availableBalance,
 		currency: account.currencyCode,
 		transferNumber: account.bankData?.transferNumber ?? account.number,
-		status: account.status,
+		brand: credit?.brand ?? undefined,
+		status: account.status ?? credit?.status ?? undefined,
+		creditLimit: credit?.creditLimit ?? undefined,
+		availableCreditLimit: credit?.availableCreditLimit ?? undefined,
+		balanceCloseDate: credit?.balanceCloseDate ?? undefined,
+		balanceDueDate: credit?.balanceDueDate ?? undefined,
+		minimumPayment: credit?.minimumPayment ?? undefined,
 	};
 }
 
-function normalizeBill(bill: PluggyRemoteBill): PluggyBill {
+export function normalizeBill(bill: PluggyRemoteBill): PluggyBill {
 	return {
 		id: bill.id,
 		dueDate: bill.dueDate,
+		billClosingDate: bill.billClosingDate ?? undefined,
 		totalAmount: bill.totalAmount,
 		totalAmountCurrencyCode: bill.totalAmountCurrencyCode,
 		minimumPaymentAmount: bill.minimumPaymentAmount ?? undefined,

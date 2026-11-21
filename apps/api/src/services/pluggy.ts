@@ -274,6 +274,11 @@ export async function syncAccountsForItem(params: {
 		transferNumber: acc.transferNumber ?? null,
 		brand: acc.brand ?? null,
 		status: acc.status ?? null,
+		creditLimit: acc.creditLimit?.toString() ?? null,
+		availableCreditLimit: acc.availableCreditLimit?.toString() ?? null,
+		balanceCloseDate: acc.balanceCloseDate ? new Date(acc.balanceCloseDate) : null,
+		balanceDueDate: acc.balanceDueDate ? new Date(acc.balanceDueDate) : null,
+		minimumPayment: acc.minimumPayment?.toString() ?? null,
 	}));
 
 	if (insertable.length === 0) {
@@ -301,6 +306,11 @@ export async function syncAccountsForItem(params: {
 				transferNumber: sql.raw(`EXCLUDED.transfer_number`),
 				brand: sql.raw(`EXCLUDED.brand`),
 				status: sql.raw(`EXCLUDED.status`),
+				creditLimit: sql.raw(`EXCLUDED.credit_limit`),
+				availableCreditLimit: sql.raw(`EXCLUDED.available_credit_limit`),
+				balanceCloseDate: sql.raw(`EXCLUDED.balance_close_date`),
+				balanceDueDate: sql.raw(`EXCLUDED.balance_due_date`),
+				minimumPayment: sql.raw(`EXCLUDED.minimum_payment`),
 				updatedAt: new Date(),
 			},
 		})
@@ -392,6 +402,9 @@ export async function syncBillsForCreditAccounts(params: {
 						pluggyAccountId: localAccountId,
 						pluggyBillId: bill.id,
 						dueDate: new Date(bill.dueDate),
+						billClosingDate: bill.billClosingDate
+							? new Date(bill.billClosingDate)
+							: null,
 						totalAmount: bill.totalAmount.toString(),
 						paidAmount: paidAmount.toString(),
 						minimumPaymentAmount:
@@ -420,6 +433,7 @@ export async function syncBillsForCreditAccounts(params: {
 					target: [pluggyBills.pluggyAccountId, pluggyBills.pluggyBillId],
 					set: {
 						dueDate: sql.raw(`EXCLUDED.due_date`),
+						billClosingDate: sql.raw(`EXCLUDED.bill_closing_date`),
 						totalAmount: sql.raw(`EXCLUDED.total_amount`),
 						paidAmount: sql.raw(`EXCLUDED.paid_amount`),
 						minimumPaymentAmount: sql.raw(`EXCLUDED.minimum_payment_amount`),
@@ -725,6 +739,8 @@ async function syncTransactionsForAccount(params: {
 			description: tx.description ?? null,
 			category: tx.category ?? null,
 			pluggyBillId: tx.creditCardMetadata?.billId ?? null,
+			installmentNumber: tx.creditCardMetadata?.installmentNumber ?? null,
+			totalInstallments: tx.creditCardMetadata?.totalInstallments ?? null,
 		}));
 
 	if (insertable.length === 0) {
@@ -755,6 +771,12 @@ async function syncTransactionsForAccount(params: {
 				// Keep a known bill link if a later page omits it.
 				pluggyBillId: sql.raw(
 					`coalesce(EXCLUDED.pluggy_bill_id, pluggy_transactions.pluggy_bill_id)`,
+				),
+				installmentNumber: sql.raw(
+					`coalesce(EXCLUDED.installment_number, pluggy_transactions.installment_number)`,
+				),
+				totalInstallments: sql.raw(
+					`coalesce(EXCLUDED.total_installments, pluggy_transactions.total_installments)`,
 				),
 			},
 		})

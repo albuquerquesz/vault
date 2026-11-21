@@ -81,6 +81,8 @@ describe("MCP remoto: paridade", () => {
 			"get_goal_plan",
 			"list_goal_contributions",
 			"list_recurring_items",
+			"list_credit_cards",
+			"list_installments",
 		])
 			expect(names).toContain(n);
 		expect(names.join(" ")).not.toMatch(/pix|space|wallet/i);
@@ -98,6 +100,8 @@ describe("MCP remoto: paridade", () => {
 		expect(names).toContain("get_goal_plan");
 		expect(names).toContain("list_goal_contributions");
 		expect(names).toContain("list_recurring_items");
+		expect(names).toContain("list_credit_cards");
+		expect(names).toContain("list_installments");
 		const call = await rpc("tools/call", {
 			name: "delete_goal",
 			arguments: { id: "x" },
@@ -170,6 +174,9 @@ describe("MCP remoto: paridade", () => {
 		await rpc("tools/call", { name: "mark_recurring_paid", arguments: { id, month: "2026-12" } });
 		await rpc("tools/call", { name: "unmark_recurring_paid", arguments: { id, month: "2026-12" } });
 		await rpc("tools/call", { name: "delete_recurring_item", arguments: { id } });
+		await rpc("tools/call", { name: "list_credit_cards", arguments: {} });
+		await rpc("tools/call", { name: "list_installments", arguments: {} });
+		await rpc("tools/call", { name: "list_installments", arguments: { months: 12 } });
 		expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
 			"GET /api/finance/spending-goal?month=2026-10&today=2026-10-15",
 			"GET /api/finance/savings-target?month=2026-10",
@@ -199,6 +206,9 @@ describe("MCP remoto: paridade", () => {
 			`POST /api/finance/recurring/${id}/paid`,
 			`DELETE /api/finance/recurring/${id}/paid`,
 			`DELETE /api/finance/recurring/${id}`,
+			"GET /api/finance/credit-cards",
+			"GET /api/finance/installments",
+			"GET /api/finance/installments?months=12",
 		]);
 		expect(calls[6]?.body).toEqual({ ids: [id] });
 		expect(calls[7]?.body).toEqual({});
@@ -237,6 +247,8 @@ describe("MCP remoto: paridade", () => {
 			{ name: "create_recurring_item", arguments: { kind: "bill", name: "X", amount: 0, dayOfMonth: 5, category: "Y" } },
 			{ name: "update_recurring_item", arguments: { id: "11111111-1111-4111-8111-111111111111" } },
 			{ name: "mark_recurring_paid", arguments: { id: "11111111-1111-4111-8111-111111111111", month: "dezembro" } },
+			{ name: "list_installments", arguments: { months: 13 } },
+			{ name: "list_installments", arguments: { months: 0 } },
 		];
 		for (const b of bad) {
 			const r = await rpc("tools/call", b);

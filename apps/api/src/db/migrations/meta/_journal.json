@@ -197,6 +197,20 @@
       "when": 1795231740190,
       "tag": "0027_recurring_items",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1795285300940,
+      "tag": "0028_credit_card_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1795289746893,
+      "tag": "0029_installment_fields",
+      "breakpoints": true
     }
   ]
 }

@@ -8,7 +8,7 @@ Estimativa de esforço (minha, não medida): **S** um PR pequeno; **M** vários 
 | --- | --- | --- | --- | --- |
 | [01](01-projecao-de-saldo.md) | Projeção de saldo (3, 6, 12 meses) | M | refresh diário da Pluggy (PR #20); melhora com 03 e 07 | a rever |
 | [02](02-limite-por-categoria.md) | Limite por categoria | S-M | nada | implementada (API, MCP) |
-| [03](03-parcelas.md) | Parcelas de cartão | M | confirmar campos de parcela da Pluggy | a rever |
+| [03](03-parcelas.md) | Parcelas de cartão | M | confirmar campos de parcela da Pluggy | implementada (API, MCP) |
 | [04](04-fatura-paga-manual.md) | Marcar fatura como paga | S | nada | implementada (API, MCP) |
 | [05](05-regras-de-categoria.md) | Regras automáticas de categoria | M | nada | a rever |
 | [06](06-categorias-e-tags-proprias.md) | Categorias e tags próprias | S (categorias) / M (tags) | toca 02 e 05 ao renomear | a rever |

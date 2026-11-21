@@ -50,8 +50,12 @@ export interface PluggyTransaction {
 	description?: string;
 	category?: string;
 	accountId: string;
-	/** Credit card only: the bill the transaction belongs to, once billed. */
-	creditCardMetadata?: { billId?: string | null } | null;
+	/** Credit card only: the bill the transaction belongs to, once billed, and the installment. */
+	creditCardMetadata?: {
+		billId?: string | null;
+		installmentNumber?: number | null;
+		totalInstallments?: number | null;
+	} | null;
 }
 
 export interface PluggyRemoteTransaction {
@@ -61,8 +65,12 @@ export interface PluggyRemoteTransaction {
 	description?: string;
 	category?: string;
 	accountId: string;
-	/** Credit card only: the bill the transaction belongs to, once billed. */
-	creditCardMetadata?: { billId?: string | null } | null;
+	/** Credit card only: the bill the transaction belongs to, once billed, and the installment. */
+	creditCardMetadata?: {
+		billId?: string | null;
+		installmentNumber?: number | null;
+		totalInstallments?: number | null;
+	} | null;
 }
 
 export interface PluggyTransactionsPage {
@@ -87,6 +95,12 @@ export interface PluggyAccount {
 	transferNumber?: string;
 	brand?: string;
 	status?: string;
+	/** Credit cards only. */
+	creditLimit?: number;
+	availableCreditLimit?: number;
+	balanceCloseDate?: string;
+	balanceDueDate?: string;
+	minimumPayment?: number;
 }
 
 export interface PluggyRemoteAccount {
@@ -106,7 +120,14 @@ export interface PluggyRemoteAccount {
 		availableBalance?: number;
 	};
 	creditData?: {
-		availableCreditLimit?: number;
+		brand?: string | null;
+		level?: string | null;
+		status?: string | null;
+		availableCreditLimit?: number | null;
+		creditLimit?: number | null;
+		balanceCloseDate?: string | null;
+		balanceDueDate?: string | null;
+		minimumPayment?: number | null;
 	};
 	status?: string;
 }
@@ -139,6 +160,7 @@ export interface PluggyBillFinanceCharge {
 export interface PluggyBill {
 	id: string;
 	dueDate: string;
+	billClosingDate?: string;
 	totalAmount: number;
 	totalAmountCurrencyCode?: string;
 	minimumPaymentAmount?: number;
@@ -150,6 +172,7 @@ export interface PluggyBill {
 export interface PluggyRemoteBill {
 	id: string;
 	dueDate: string;
+	billClosingDate?: string | null;
 	totalAmount: number;
 	totalAmountCurrencyCode?: string;
 	minimumPaymentAmount?: number | null;
