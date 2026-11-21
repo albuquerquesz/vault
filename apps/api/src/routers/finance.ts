@@ -39,6 +39,7 @@ import {
 	addMonthsClamped,
 	dateOnly,
 	estimateOpenBill,
+	openBillSince,
 	summarizeLimit,
 } from "../services/credit-cards.js";
 import {
@@ -1808,8 +1809,8 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					db
 						.select({
 							accountId: pluggyTransactions.pluggyAccountId,
-							total: sum(pluggyTransactions.amount).mapWith(Number),
-							count: sql<number>`count(*)`.mapWith(Number),
+							date: pluggyTransactions.date,
+							amount: pluggyTransactions.amount,
 						})
 						.from(pluggyTransactions)
 						.where(
@@ -1820,15 +1821,19 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 								sql`coalesce(${pluggyTransactions.category}, '') <> 'Credit card payment'`,
 								sql`coalesce(${pluggyTransactions.description}, '') not ilike 'pagamento recebido%'`,
 							),
-						)
-						.groupBy(pluggyTransactions.pluggyAccountId),
+						),
 				]);
 
 				const cards = accounts.map((account) => {
 					const last = bills.find((bill) => bill.pluggyAccountId === account.id);
-					const open = unbilled.find((row) => row.accountId === account.id);
 					const lastDueDate = dateOnly(last?.dueDate);
 					const lastClosingDate = dateOnly(last?.billClosingDate);
+					// Old rows saved before billId existed are still unbilled in the
+					// table but belong to bills that closed long ago.
+					const since = openBillSince(lastDueDate, lastClosingDate);
+					const open = unbilled.filter(
+						(row) => row.accountId === account.id && (since === null || row.date > since),
+					);
 					return {
 						id: account.id,
 						name: account.name,
@@ -1860,8 +1865,8 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						openBill: estimateOpenBill({
 							lastDueDate,
 							lastClosingDate,
-							unbilledTotal: open?.total ?? 0,
-							unbilledCount: open?.count ?? 0,
+							unbilledTotal: open.reduce((sum, row) => sum + Number(row.amount), 0),
+							unbilledCount: open.length,
 						}),
 					};
 				});

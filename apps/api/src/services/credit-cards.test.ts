@@ -3,6 +3,7 @@ import {
 	addMonthsClamped,
 	dateOnly,
 	estimateOpenBill,
+	openBillSince,
 	summarizeLimit,
 } from "./credit-cards.js";
 
@@ -68,5 +69,20 @@ describe("estimateOpenBill", () => {
 
 	test("a card with a past bill and nothing unbilled has an open bill of zero", () => {
 		expect(estimateOpenBill({ lastDueDate: "2026-11-17", lastClosingDate: null, unbilledTotal: 0, unbilledCount: 0 })?.estimatedTotal).toBe(0);
+	});
+});
+
+describe("openBillSince", () => {
+	test("starts at the last closing date when it is known", () => {
+		expect(openBillSince("2026-11-19", "2026-11-12")).toBe("2026-11-12");
+	});
+
+	test("without a closing date it starts a month before the last due date", () => {
+		expect(openBillSince("2026-11-19", null)).toBe("2026-10-19");
+		expect(openBillSince("2026-03-31", null)).toBe("2026-02-28");
+	});
+
+	test("a card with no bill has no starting point", () => {
+		expect(openBillSince(null, null)).toBeNull();
 	});
 });
