@@ -87,6 +87,12 @@ export interface PluggyAccount {
 	transferNumber?: string;
 	brand?: string;
 	status?: string;
+	/** Credit cards only. */
+	creditLimit?: number;
+	availableCreditLimit?: number;
+	balanceCloseDate?: string;
+	balanceDueDate?: string;
+	minimumPayment?: number;
 }
 
 export interface PluggyRemoteAccount {
@@ -106,7 +112,14 @@ export interface PluggyRemoteAccount {
 		availableBalance?: number;
 	};
 	creditData?: {
-		availableCreditLimit?: number;
+		brand?: string | null;
+		level?: string | null;
+		status?: string | null;
+		availableCreditLimit?: number | null;
+		creditLimit?: number | null;
+		balanceCloseDate?: string | null;
+		balanceDueDate?: string | null;
+		minimumPayment?: number | null;
 	};
 	status?: string;
 }
@@ -139,6 +152,7 @@ export interface PluggyBillFinanceCharge {
 export interface PluggyBill {
 	id: string;
 	dueDate: string;
+	billClosingDate?: string;
 	totalAmount: number;
 	totalAmountCurrencyCode?: string;
 	minimumPaymentAmount?: number;
@@ -150,6 +164,7 @@ export interface PluggyBill {
 export interface PluggyRemoteBill {
 	id: string;
 	dueDate: string;
+	billClosingDate?: string | null;
 	totalAmount: number;
 	totalAmountCurrencyCode?: string;
 	minimumPaymentAmount?: number | null;

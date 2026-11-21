@@ -19,6 +19,8 @@ export const pluggyBills = pgTable(
 			.notNull(),
 		pluggyBillId: varchar("pluggy_bill_id", { length: 255 }).notNull(),
 		dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+		/** When the bill closed; the bank sends it for some bills only. */
+		billClosingDate: timestamp("bill_closing_date", { withTimezone: true }),
 		totalAmount: numeric("total_amount", { precision: 14, scale: 2 }).notNull(),
 		paidAmount: numeric("paid_amount", { precision: 14, scale: 2 })
 			.default("0")

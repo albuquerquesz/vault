@@ -5,6 +5,7 @@ import {
 	eq,
 	gte,
 	inArray,
+	isNull,
 	lte,
 	not,
 	sql,
@@ -34,6 +35,11 @@ import {
 } from "../db/schema/index.js";
 import { paidSource } from "../services/bill-payment.js";
 import { calculateCategoryLimits } from "../services/category-limits.js";
+import {
+	dateOnly,
+	estimateOpenBill,
+	summarizeLimit,
+} from "../services/credit-cards.js";
 import { applyContribution, planGoal } from "../services/goal-plan.js";
 import {
 	buildOccurrences,
@@ -1515,6 +1521,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 										pluggyBillId: pluggyBills.pluggyBillId,
 										paidAmount: pluggyBills.paidAmount,
 										dueDate: pluggyBills.dueDate,
+										billClosingDate: pluggyBills.billClosingDate,
 										minimumPaymentAmount: pluggyBills.minimumPaymentAmount,
 									})
 									.from(pluggyBills)
@@ -1538,6 +1545,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 						{
 							// Pluggy sends midnight UTC; the date part is the due day as the bank states it.
 							dueDate: row.dueDate.toISOString().slice(0, 10),
+							closingDate: dateOnly(row.billClosingDate),
 							minimumPaymentAmount:
 								row.minimumPaymentAmount === null
 									? null
@@ -1551,6 +1559,7 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					items: flatItems.map((item) => ({
 						...item,
 						dueDate: billInfo.get(item.pluggyBillId ?? "")?.dueDate ?? null,
+						closingDate: billInfo.get(item.pluggyBillId ?? "")?.closingDate ?? null,
 						minimumPaymentAmount:
 							billInfo.get(item.pluggyBillId ?? "")?.minimumPaymentAmount ?? null,
 						paidSource: item.pluggyBillId
@@ -1749,6 +1758,111 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				if (error instanceof z.ZodError)
 					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	// --- Credit cards ---
+
+	server.route({
+		method: "GET",
+		url: "/credit-cards",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const accounts = await db
+					.select({
+						id: pluggyAccounts.id,
+						name: pluggyAccounts.name,
+						brand: pluggyAccounts.brand,
+						status: pluggyAccounts.status,
+						creditLimit: pluggyAccounts.creditLimit,
+						availableCreditLimit: pluggyAccounts.availableCreditLimit,
+						balanceDueDate: pluggyAccounts.balanceDueDate,
+						balanceCloseDate: pluggyAccounts.balanceCloseDate,
+						minimumPayment: pluggyAccounts.minimumPayment,
+						provider: pluggyItems.provider,
+					})
+					.from(pluggyAccounts)
+					.innerJoin(pluggyItems, eq(pluggyAccounts.pluggyItemId, pluggyItems.id))
+					.where(and(eq(pluggyItems.userId, session.user.id), eq(pluggyAccounts.type, "CREDIT")))
+					.orderBy(asc(pluggyAccounts.name));
+				if (accounts.length === 0) return reply.send({ cards: [] });
+
+				const ids = accounts.map((account) => account.id);
+				const [bills, unbilled] = await Promise.all([
+					db
+						.select()
+						.from(pluggyBills)
+						.where(inArray(pluggyBills.pluggyAccountId, ids))
+						.orderBy(desc(pluggyBills.dueDate)),
+					// Purchases no closed bill has claimed yet make up the open bill. Card
+					// payments are left out, as when the monthly bills are rebuilt.
+					db
+						.select({
+							accountId: pluggyTransactions.pluggyAccountId,
+							total: sum(pluggyTransactions.amount).mapWith(Number),
+							count: sql<number>`count(*)`.mapWith(Number),
+						})
+						.from(pluggyTransactions)
+						.where(
+							and(
+								inArray(pluggyTransactions.pluggyAccountId, ids),
+								isNull(pluggyTransactions.pluggyBillId),
+								isNull(pluggyTransactions.hiddenAt),
+								sql`coalesce(${pluggyTransactions.category}, '') <> 'Credit card payment'`,
+								sql`coalesce(${pluggyTransactions.description}, '') not ilike 'pagamento recebido%'`,
+							),
+						)
+						.groupBy(pluggyTransactions.pluggyAccountId),
+				]);
+
+				const cards = accounts.map((account) => {
+					const last = bills.find((bill) => bill.pluggyAccountId === account.id);
+					const open = unbilled.find((row) => row.accountId === account.id);
+					const lastDueDate = dateOnly(last?.dueDate);
+					const lastClosingDate = dateOnly(last?.billClosingDate);
+					return {
+						id: account.id,
+						name: account.name,
+						brand: account.brand,
+						status: account.status,
+						provider: account.provider,
+						limit: summarizeLimit(
+							account.creditLimit === null ? null : Number(account.creditLimit),
+							account.availableCreditLimit === null ? null : Number(account.availableCreditLimit),
+						),
+						// What the card itself reports about its last closed bill.
+						reported: {
+							dueDate: dateOnly(account.balanceDueDate),
+							closeDate: dateOnly(account.balanceCloseDate),
+							minimumPayment:
+								account.minimumPayment === null ? null : Number(account.minimumPayment),
+						},
+						lastBill: last
+							? {
+									pluggyBillId: last.pluggyBillId,
+									dueDate: lastDueDate,
+									closingDate: lastClosingDate,
+									totalAmount: Number(last.totalAmount),
+									minimumPaymentAmount:
+										last.minimumPaymentAmount === null ? null : Number(last.minimumPaymentAmount),
+									paidAmount: Number(last.paidAmount),
+								}
+							: null,
+						openBill: estimateOpenBill({
+							lastDueDate,
+							lastClosingDate,
+							unbilledTotal: open?.total ?? 0,
+							unbilledCount: open?.count ?? 0,
+						}),
+					};
+				});
+				return reply.send({ cards });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
 				throw error;
 			}
 		},

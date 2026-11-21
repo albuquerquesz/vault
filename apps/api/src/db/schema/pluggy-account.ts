@@ -29,6 +29,17 @@ export const pluggyAccounts = pgTable(
 		transferNumber: varchar("transfer_number", { length: 100 }),
 		brand: varchar("brand", { length: 50 }),
 		status: varchar("status", { length: 50 }),
+		/** Credit cards only (Pluggy `creditData`). */
+		creditLimit: numeric("credit_limit", { precision: 14, scale: 2 }),
+		availableCreditLimit: numeric("available_credit_limit", {
+			precision: 14,
+			scale: 2,
+		}),
+		/** Date of the last closed bill, as the card reports it (often null). */
+		balanceCloseDate: timestamp("balance_close_date", { withTimezone: true }),
+		/** Due date of the last closed bill. */
+		balanceDueDate: timestamp("balance_due_date", { withTimezone: true }),
+		minimumPayment: numeric("minimum_payment", { precision: 14, scale: 2 }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 	},

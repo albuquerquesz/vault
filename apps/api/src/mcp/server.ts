@@ -101,7 +101,7 @@ export function createVaultMcpServer(
 		{
 			title: "Faturas do mês",
 			description:
-				"Faturas de cartão e contas do mês informado. Cada item traz name, totalAmount, paidAmount e paidSource (bank ou manual), pluggyBillId, dueDate (AAAA-MM-DD, o vencimento) e minimumPaymentAmount (pagamento mínimo, nulo quando o banco não informa). A Pluggy só devolve faturas já fechadas, então um mês cuja fatura ainda não fechou vem vazio.",
+				"Faturas de cartão e contas do mês informado. Cada item traz name, totalAmount, paidAmount e paidSource (bank ou manual), pluggyBillId, dueDate (AAAA-MM-DD, o vencimento), closingDate (fechamento, nulo quando o banco não informa) e minimumPaymentAmount (pagamento mínimo, nulo quando o banco não informa). A Pluggy só devolve faturas já fechadas, então um mês cuja fatura ainda não fechou vem vazio.",
 			inputSchema: z.object({ month }),
 			annotations: readOnly,
 		},
@@ -238,6 +238,17 @@ export function createVaultMcpServer(
 			annotations: readOnly,
 		},
 		({ id }) => call("GET", `/api/finance/goals/${q(id)}/contributions`),
+	);
+
+	server.registerTool(
+		"list_credit_cards",
+		{
+			title: "Cartões de crédito",
+			description:
+				"Cada cartão com o limite (total, disponível, usado e percentual), o que o cartão informa da última fatura fechada (vencimento, mínimo) e a última fatura (vencimento, fechamento, total, mínimo, pago). Traz também openBill: a fatura em aberto ESTIMADA, que a Pluggy não envia. O total é a soma das compras do cartão que nenhuma fatura fechada levou ainda e as datas são as da última fatura somadas a um mês; isEstimate é sempre true. Fechamento e vencimento podem vir nulos quando o banco não informa.",
+			annotations: readOnly,
+		},
+		() => call("GET", "/api/finance/credit-cards"),
 	);
 
 	server.registerTool(
