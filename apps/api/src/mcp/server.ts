@@ -198,6 +198,18 @@ export function createVaultMcpServer(
 		},
 	);
 
+	server.registerTool(
+		"get_category_limits",
+		{
+			title: "Limites por categoria",
+			description:
+				"Limites de gasto por categoria no mês, com quanto já foi, quanto resta, o percentual usado e se passou do limite. Só despesas contam; investimento, transferência para si e pagamento de fatura ficam de fora.",
+			inputSchema: z.object({ month }),
+			annotations: readOnly,
+		},
+		({ month }) => call("GET", `/api/finance/category-limits?month=${q(month)}`),
+	);
+
 	// API keys (vlt_mcp_…) are read-only; writes need an OAuth login.
 	if (options.readOnly) return server;
 
@@ -372,6 +384,52 @@ export function createVaultMcpServer(
 			annotations: { ...write, destructiveHint: true },
 		},
 		(input) => call("DELETE", "/api/finance/expenses", input),
+	);
+
+	server.registerTool(
+		"set_category_limit",
+		{
+			title: "Gravar limite por categoria",
+			description:
+				"Define o limite de gasto de uma categoria no mês. Se a categoria já tem limite nesse mês (maiúsculas e acentos não importam), substitui o valor.",
+			inputSchema: z.object({
+				month,
+				category: z.string().trim().min(1).max(64),
+				targetAmount: z.number().positive().describe("Valor positivo em reais"),
+			}),
+			annotations: write,
+		},
+		(input) => call("POST", "/api/finance/category-limits", input),
+	);
+
+	server.registerTool(
+		"delete_category_limit",
+		{
+			title: "Apagar limite por categoria",
+			description:
+				"Remove o limite de uma categoria no mês. Destrutivo: confirme com a pessoa antes de chamar.",
+			inputSchema: z.object({
+				month,
+				category: z.string().trim().min(1).max(64),
+			}),
+			annotations: { ...write, destructiveHint: true },
+		},
+		(input) => call("DELETE", "/api/finance/category-limits", input),
+	);
+
+	server.registerTool(
+		"copy_category_limits",
+		{
+			title: "Copiar limites para outro mês",
+			description:
+				"Copia os limites por categoria de um mês para outro. Limites que já existem no mês de destino são mantidos.",
+			inputSchema: z.object({
+				fromMonth: month.describe("Mês de origem AAAA-MM"),
+				toMonth: month.describe("Mês de destino AAAA-MM"),
+			}),
+			annotations: write,
+		},
+		(input) => call("POST", "/api/finance/category-limits/copy", input),
 	);
 
 	server.registerTool(

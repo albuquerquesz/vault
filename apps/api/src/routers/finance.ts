@@ -21,6 +21,7 @@ import {
 	monthlyBill,
 	monthlyBillItem,
 	monthlyBudget,
+	monthlyCategoryLimit,
 	monthlySpendingGoal,
 	pluggyAccounts,
 	pluggyBills,
@@ -29,8 +30,10 @@ import {
 	savingsTarget,
 } from "../db/schema/index.js";
 import { paidSource } from "../services/bill-payment.js";
+import { calculateCategoryLimits } from "../services/category-limits.js";
 import {
 	matchesTransactionSearch,
+	normalizeText,
 	paginate,
 } from "../services/transaction-search.js";
 import {
@@ -1270,6 +1273,190 @@ export function registerFinanceRoutes(server: RouteRegistrar) {
 			} catch (error) {
 				if ((error as { statusCode?: number }).statusCode === 401)
 					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	// --- Category limits ---
+
+	const categoryLimitBody = z.object({
+		month: z.string().regex(monthPattern),
+		category: z.string().trim().min(1).max(64),
+	});
+
+	server.route({
+		method: "GET",
+		url: "/category-limits",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw, { allowMcpToken: true });
+				const month = (req.query as { month?: string }).month;
+				if (!month || !monthPattern.test(month))
+					return reply
+						.status(400)
+						.send(errorBody("VALIDATION_ERROR", "Mês inválido. Use o formato AAAA-MM."));
+
+				const limits = await db
+					.select()
+					.from(monthlyCategoryLimit)
+					.where(
+						and(
+							eq(monthlyCategoryLimit.userId, session.user.id),
+							eq(monthlyCategoryLimit.month, month),
+						),
+					)
+					.orderBy(asc(monthlyCategoryLimit.category));
+				if (limits.length === 0) return reply.send({ month, limits: [] });
+
+				const transactions = await listFinanceTransactions({
+					userId: session.user.id,
+					month,
+				});
+				return reply.send({
+					month,
+					limits: calculateCategoryLimits({
+						limits: limits.map((row) => ({
+							category: row.category,
+							targetAmount: Number(row.targetAmount),
+						})),
+						transactions,
+					}),
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/category-limits",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { month, category, targetAmount } = categoryLimitBody
+					.extend({ targetAmount: z.number().positive() })
+					.parse(req.body);
+				const categoryKey = normalizeText(category);
+
+				const [record] = await db
+					.insert(monthlyCategoryLimit)
+					.values({
+						userId: session.user.id,
+						month,
+						category,
+						categoryKey,
+						targetAmount: targetAmount.toString(),
+					})
+					.onConflictDoUpdate({
+						target: [
+							monthlyCategoryLimit.userId,
+							monthlyCategoryLimit.month,
+							monthlyCategoryLimit.categoryKey,
+						],
+						set: { category, targetAmount: targetAmount.toString() },
+					})
+					.returning();
+				return reply.send({
+					month: record!.month,
+					category: record!.category,
+					targetAmount: Number(record!.targetAmount),
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "DELETE",
+		url: "/category-limits",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { month, category } = categoryLimitBody.parse(req.body);
+				const removed = await db
+					.delete(monthlyCategoryLimit)
+					.where(
+						and(
+							eq(monthlyCategoryLimit.userId, session.user.id),
+							eq(monthlyCategoryLimit.month, month),
+							eq(monthlyCategoryLimit.categoryKey, normalizeText(category)),
+						),
+					)
+					.returning({ id: monthlyCategoryLimit.id });
+				if (removed.length === 0)
+					return reply
+						.status(404)
+						.send(errorBody("NOT_FOUND", "Limite não encontrado para essa categoria e mês."));
+				return reply.send({ deleted: removed.length });
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
+				throw error;
+			}
+		},
+	});
+
+	server.route({
+		method: "POST",
+		url: "/category-limits/copy",
+		async handler(req, reply) {
+			try {
+				const session = await requireSession(req.raw);
+				const { fromMonth, toMonth } = z
+					.object({
+						fromMonth: z.string().regex(monthPattern),
+						toMonth: z.string().regex(monthPattern),
+					})
+					.refine((value) => value.fromMonth !== value.toMonth, {
+						message: "Os meses de origem e destino precisam ser diferentes.",
+					})
+					.parse(req.body);
+
+				const source = await db
+					.select()
+					.from(monthlyCategoryLimit)
+					.where(
+						and(
+							eq(monthlyCategoryLimit.userId, session.user.id),
+							eq(monthlyCategoryLimit.month, fromMonth),
+						),
+					);
+				if (source.length === 0) return reply.send({ copied: 0, skipped: 0 });
+
+				// Existing limits in the destination month are kept as they are.
+				const inserted = await db
+					.insert(monthlyCategoryLimit)
+					.values(
+						source.map((row) => ({
+							userId: session.user.id,
+							month: toMonth,
+							category: row.category,
+							categoryKey: row.categoryKey,
+							targetAmount: row.targetAmount,
+						})),
+					)
+					.onConflictDoNothing()
+					.returning({ id: monthlyCategoryLimit.id });
+				return reply.send({
+					copied: inserted.length,
+					skipped: source.length - inserted.length,
+				});
+			} catch (error) {
+				if ((error as { statusCode?: number }).statusCode === 401)
+					return reply.status(401).send(errorBody("UNAUTHORIZED"));
+				if (error instanceof z.ZodError)
+					return reply.status(400).send({ error: error.message });
 				throw error;
 			}
 		},

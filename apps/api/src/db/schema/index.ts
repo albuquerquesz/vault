@@ -7,6 +7,7 @@ export * from "./mcp-access-token.js";
 export * from "./monthly-bill.js";
 export * from "./monthly-bill-item.js";
 export * from "./monthly-budget.js";
+export * from "./monthly-category-limit.js";
 export * from "./monthly-spending-goal.js";
 export * from "./pluggy-account.js";
 export * from "./pluggy-bill.js";

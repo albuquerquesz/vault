@@ -44,6 +44,9 @@ const newWrites = [
 	"mark_bill_paid",
 	"unmark_bill_paid",
 	"update_manual_transaction",
+	"set_category_limit",
+	"delete_category_limit",
+	"copy_category_limits",
 ];
 
 describe("MCP remoto: paridade", () => {
@@ -56,6 +59,7 @@ describe("MCP remoto: paridade", () => {
 			"get_spending_goal",
 			"get_savings_target",
 			"search_transactions",
+			"get_category_limits",
 		])
 			expect(names).toContain(n);
 		expect(names.join(" ")).not.toMatch(/pix|space|wallet/i);
@@ -69,6 +73,7 @@ describe("MCP remoto: paridade", () => {
 		expect(names).toContain("get_spending_goal");
 		expect(names).toContain("get_savings_target");
 		expect(names).toContain("search_transactions");
+		expect(names).toContain("get_category_limits");
 		const call = await rpc("tools/call", {
 			name: "delete_goal",
 			arguments: { id: "x" },
@@ -87,6 +92,7 @@ describe("MCP remoto: paridade", () => {
 			"delete_manual_transactions",
 			"hide_transactions",
 			"unmark_bill_paid",
+			"delete_category_limit",
 		])
 			expect(by[n]).toBe(true);
 		for (const n of [
@@ -96,6 +102,8 @@ describe("MCP remoto: paridade", () => {
 			"recategorize_transactions",
 			"mark_bill_paid",
 			"update_manual_transaction",
+			"set_category_limit",
+			"copy_category_limits",
 		])
 			expect(by[n]).toBe(false);
 	});
@@ -115,6 +123,10 @@ describe("MCP remoto: paridade", () => {
 		await rpc("tools/call", { name: "unmark_bill_paid", arguments: { pluggyBillId: "bill-1" } });
 		await rpc("tools/call", { name: "search_transactions", arguments: { q: "padaria", minAmount: 10 } });
 		await rpc("tools/call", { name: "update_manual_transaction", arguments: { id, amount: 99.9, note: null } });
+		await rpc("tools/call", { name: "get_category_limits", arguments: { month: "2026-10" } });
+		await rpc("tools/call", { name: "set_category_limit", arguments: { month: "2026-10", category: "Alimentação", targetAmount: 800 } });
+		await rpc("tools/call", { name: "delete_category_limit", arguments: { month: "2026-10", category: "Lazer" } });
+		await rpc("tools/call", { name: "copy_category_limits", arguments: { fromMonth: "2026-09", toMonth: "2026-10" } });
 		expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
 			"GET /api/finance/spending-goal?month=2026-10&today=2026-10-15",
 			"GET /api/finance/savings-target?month=2026-10",
@@ -128,11 +140,18 @@ describe("MCP remoto: paridade", () => {
 			"DELETE /api/finance/bills/bill-1/paid",
 			"GET /api/finance/transactions/search?q=padaria&minAmount=10",
 			`PATCH /api/finance/transactions/manual/${id}`,
+			"GET /api/finance/category-limits?month=2026-10",
+			"POST /api/finance/category-limits",
+			"DELETE /api/finance/category-limits",
+			"POST /api/finance/category-limits/copy",
 		]);
 		expect(calls[6]?.body).toEqual({ ids: [id] });
 		expect(calls[7]?.body).toEqual({});
 		expect(calls[8]?.body).toEqual({ paidAmount: 120.5 });
 		expect(calls[11]?.body).toEqual({ amount: 99.9, note: null });
+		expect(calls[13]?.body).toEqual({ month: "2026-10", category: "Alimentação", targetAmount: 800 });
+		expect(calls[14]?.body).toEqual({ month: "2026-10", category: "Lazer" });
+		expect(calls[15]?.body).toEqual({ fromMonth: "2026-09", toMonth: "2026-10" });
 	});
 
 	test("validação recusa valor <= 0, mês inválido e 101 ids", async () => {
@@ -146,6 +165,9 @@ describe("MCP remoto: paridade", () => {
 			{ name: "mark_bill_paid", arguments: { pluggyBillId: "" } },
 			{ name: "update_manual_transaction", arguments: { id: "11111111-1111-4111-8111-111111111111" } },
 			{ name: "search_transactions", arguments: { limit: 500 } },
+			{ name: "set_category_limit", arguments: { month: "2026-10", category: "Lazer", targetAmount: 0 } },
+			{ name: "set_category_limit", arguments: { month: "2026-13", category: "Lazer", targetAmount: 10 } },
+			{ name: "copy_category_limits", arguments: { fromMonth: "2026-09", toMonth: "setembro" } },
 		];
 		for (const b of bad) {
 			const r = await rpc("tools/call", b);
