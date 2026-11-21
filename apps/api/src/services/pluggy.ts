@@ -498,17 +498,59 @@ export async function syncBillsForCreditAccounts(params: {
 	};
 }
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Takes a per-user lock until the surrounding transaction ends. The two things a
+ * sync rebuilds for a user (expenses and monthly bills) read and replace the
+ * user's whole data, so two syncs of the same user at once must take turns.
+ */
+async function lockUserSync(tx: Tx, userId: string) {
+	await tx.execute(
+		sql`select pg_advisory_xact_lock(hashtext(${`vault-sync:${userId}`}))`,
+	);
+}
+
+/** A comparable fingerprint of the Pluggy bill items of one month. */
+function billItemsSignature(
+	items: {
+		pluggyBillId: string | null;
+		name: string;
+		paidAmount: number | string;
+		totalAmount: number | string;
+	}[],
+): string {
+	return items
+		.map(
+			(item) =>
+				`${item.pluggyBillId}|${item.name}|${Number(item.paidAmount).toFixed(2)}|${Number(item.totalAmount).toFixed(2)}`,
+		)
+		.sort()
+		.join(";");
+}
+
 /**
  * Rebuild monthly_bill / monthly_bill_item read model from stored Pluggy bills.
- * Pluggy-sourced items are replaced; manual items are preserved.
+ * Pluggy-sourced items are replaced; manual items are preserved. Months whose
+ * items already match are left alone.
  */
 export async function materializeMonthlyBillsFromPluggy(params: {
 	userId: string;
 }): Promise<void> {
+	await db.transaction(async (tx) => {
+		await lockUserSync(tx, params.userId);
+		await materializeWith(tx, params);
+	});
+}
+
+async function materializeWith(
+	tx: Tx,
+	params: { userId: string },
+): Promise<void> {
 	const { userId } = params;
 	const startedAt = Date.now();
 
-	const rows = await db
+	const rows = await tx
 		.select({
 			pluggyBillId: pluggyBills.pluggyBillId,
 			dueDate: pluggyBills.dueDate,
@@ -529,7 +571,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 	// Pluggy's bill totalAmount is what was still due at closing (net of
 	// payments made during the cycle). The full bill is the sum of the card
 	// transactions linked to it, without the payments themselves.
-	const linkedTotals = await db
+	const linkedTotals = await tx
 		.select({
 			billId: pluggyTransactions.pluggyBillId,
 			total: sql<number>`sum(${pluggyTransactions.amount})`.mapWith(Number),
@@ -549,7 +591,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 		linkedTotals.map((row) => [row.billId ?? "", row.total]),
 	);
 
-	const manualPayments = await db
+	const manualPayments = await tx
 		.select({
 			pluggyBillId: billPaymentOverride.pluggyBillId,
 			paidAmount: billPaymentOverride.paidAmount,
@@ -563,7 +605,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 		]),
 	);
 
-	const existingMonthsWithPluggyItems = await db
+	const existingMonthsWithPluggyItems = await tx
 		.select({ month: monthlyBill.month })
 		.from(monthlyBill)
 		.innerJoin(
@@ -626,12 +668,44 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 		]),
 	].sort();
 
+	// Only the months whose Pluggy items differ from what is stored get rewritten:
+	// a sync usually changes one or two, and rewriting all of them took ~15 s.
+	const storedItems = await tx
+		.select({
+			month: monthlyBill.month,
+			pluggyBillId: monthlyBillItem.pluggyBillId,
+			name: monthlyBillItem.name,
+			paidAmount: monthlyBillItem.paidAmount,
+			totalAmount: monthlyBillItem.totalAmount,
+		})
+		.from(monthlyBillItem)
+		.innerJoin(monthlyBill, eq(monthlyBillItem.monthlyBillId, monthlyBill.id))
+		.where(
+			and(eq(monthlyBill.userId, userId), eq(monthlyBillItem.source, "pluggy")),
+		);
+	const storedByMonth = new Map<string, typeof storedItems>();
+	for (const item of storedItems) {
+		const list = storedByMonth.get(item.month) ?? [];
+		list.push(item);
+		storedByMonth.set(item.month, list);
+	}
+	let rewritten = 0;
+
 	for (const month of months) {
 		const monthItems = [...byMonthAccount.values()]
 			.filter((item) => item.month === month)
 			.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
-		const [bill] = await db
+		if (
+			billItemsSignature(
+				monthItems.map((item) => ({ ...item, pluggyBillId: item.pluggyBillId })),
+			) === billItemsSignature(storedByMonth.get(month) ?? [])
+		) {
+			continue;
+		}
+		rewritten += 1;
+
+		const [bill] = await tx
 			.insert(monthlyBill)
 			.values({
 				userId,
@@ -648,7 +722,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 
 		if (!bill) continue;
 
-		await db
+		await tx
 			.delete(monthlyBillItem)
 			.where(
 				and(
@@ -657,7 +731,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 				),
 			);
 
-		const manualItems = await db
+		const manualItems = await tx
 			.select()
 			.from(monthlyBillItem)
 			.where(eq(monthlyBillItem.monthlyBillId, bill.id))
@@ -667,7 +741,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 			manualItems.reduce((max, item) => Math.max(max, item.sortOrder), 0) + 1;
 
 		if (monthItems.length > 0) {
-			await db.insert(monthlyBillItem).values(
+			await tx.insert(monthlyBillItem).values(
 				monthItems.map((item, index) => ({
 					monthlyBillId: bill.id,
 					name: item.name,
@@ -680,7 +754,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 			);
 		}
 
-		const allItems = await db
+		const allItems = await tx
 			.select()
 			.from(monthlyBillItem)
 			.where(eq(monthlyBillItem.monthlyBillId, bill.id));
@@ -690,7 +764,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 			0,
 		);
 
-		await db
+		await tx
 			.update(monthlyBill)
 			.set({
 				totalBill: totalBill.toFixed(2),
@@ -701,6 +775,7 @@ export async function materializeMonthlyBillsFromPluggy(params: {
 
 	console.info("[pluggy-sync] monthly bills rebuilt", {
 		months: months.length,
+		rewritten,
 		ms: Date.now() - startedAt,
 	});
 }
@@ -880,41 +955,47 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 	localItemId: string;
 }) {
 	const { userId, localItemId } = params;
-	const storedTransactions = await db
-		.select({
-			id: pluggyTransactions.id,
-			pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
-			localItemId: pluggyTransactions.pluggyItemId,
-			date: pluggyTransactions.date,
-			amount: pluggyTransactions.amount,
-			description: pluggyTransactions.description,
-			category: pluggyTransactions.category,
-			categoryOverride: pluggyTransactions.categoryOverride,
-			provider: pluggyItems.provider,
-			accountId: pluggyTransactions.pluggyAccountId,
-			accountName: pluggyAccounts.name,
-			accountType: pluggyAccounts.type,
-			accountSubtype: pluggyAccounts.subtype,
-			accountBrand: pluggyAccounts.brand,
-		})
-		.from(pluggyTransactions)
-		.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
-		.leftJoin(
-			pluggyAccounts,
-			eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
-		)
-		.where(
-			and(eq(pluggyItems.userId, userId), isNull(pluggyTransactions.hiddenAt)),
-		);
+	const ownerName = await getOwnerName(userId);
 
-	const rows = mapPluggyTransactionsToExpenses({
-		userId,
-		localItemId,
-		transactions: storedTransactions,
-		ownerName: await getOwnerName(userId),
-	});
+	// Read, work out and replace under the user's lock, so a second sync of the
+	// same user waits and then works from what this one wrote.
+	return db.transaction(async (tx) => {
+		await lockUserSync(tx, userId);
 
-	await db.transaction(async (tx) => {
+		const storedTransactions = await tx
+			.select({
+				id: pluggyTransactions.id,
+				pluggyTransactionId: pluggyTransactions.pluggyTransactionId,
+				localItemId: pluggyTransactions.pluggyItemId,
+				date: pluggyTransactions.date,
+				amount: pluggyTransactions.amount,
+				description: pluggyTransactions.description,
+				category: pluggyTransactions.category,
+				categoryOverride: pluggyTransactions.categoryOverride,
+				provider: pluggyItems.provider,
+				accountId: pluggyTransactions.pluggyAccountId,
+				accountName: pluggyAccounts.name,
+				accountType: pluggyAccounts.type,
+				accountSubtype: pluggyAccounts.subtype,
+				accountBrand: pluggyAccounts.brand,
+			})
+			.from(pluggyTransactions)
+			.innerJoin(pluggyItems, eq(pluggyTransactions.pluggyItemId, pluggyItems.id))
+			.leftJoin(
+				pluggyAccounts,
+				eq(pluggyTransactions.pluggyAccountId, pluggyAccounts.id),
+			)
+			.where(
+				and(eq(pluggyItems.userId, userId), isNull(pluggyTransactions.hiddenAt)),
+			);
+
+		const rows = mapPluggyTransactionsToExpenses({
+			userId,
+			localItemId,
+			transactions: storedTransactions,
+			ownerName,
+		});
+
 		await tx
 			.delete(expense)
 			.where(
@@ -928,12 +1009,12 @@ export async function rebuildExpensesFromStoredTransactions(params: {
 		for (let i = 0; i < rows.length; i += 500) {
 			await tx.insert(expense).values(rows.slice(i, i + 500));
 		}
-	});
 
-	return {
-		total: storedTransactions.length,
-		inserted: rows.length,
-	};
+		return {
+			total: storedTransactions.length,
+			inserted: rows.length,
+		};
+	});
 }
 
 /** Sync transactions for all accounts of an item. */

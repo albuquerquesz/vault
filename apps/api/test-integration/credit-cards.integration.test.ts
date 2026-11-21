@@ -136,6 +136,17 @@ describe("GET /credit-cards", () => {
 		await tx("t-open-2", "20.00", "LOJA C", null);
 		await tx("t-open-refund", "-10.00", "ESTORNO LOJA", null);
 		await tx("t-payment", "-831.47", "Pagamento recebido", null, "Credit card payment");
+		// Saved before billId existed: still unbilled in the table, but from a bill that closed long ago.
+		await db.insert(pluggyTransactions).values({
+			pluggyItemId: item.id,
+			pluggyAccountId: account!.id,
+			pluggyTransactionId: "t-old-unbilled",
+			date: "2026-09-01",
+			amount: "999.99",
+			description: "COMPRA ANTIGA",
+			category: "Shopping",
+			pluggyBillId: null,
+		});
 		return account!;
 	}
 
@@ -156,7 +167,8 @@ describe("GET /credit-cards", () => {
 			totalAmount: 831.47,
 			minimumPaymentAmount: 120.5,
 		});
-		// 100,10 + 20,00 - 10,00 of refund; the card payment and the billed purchase stay out.
+		// 100,10 + 20,00 - 10,00 of refund; the card payment, the billed purchase and the
+		// old row with no billId (before the closing date) stay out.
 		expect(card.openBill).toEqual({
 			estimatedTotal: 110.1,
 			transactionCount: 3,
