@@ -72,7 +72,7 @@ export function estimateOpenBill(params: {
 }
 
 /**
- * Unbilled purchases older than this belong to a bill that already closed (rows
+ * Unbilled purchases dated before this belong to a bill that already closed (rows
  * saved before Pluggy's billId was stored never got one). The last bill's closing
  * date when known, else a month before its due date; null with no bill at all.
  */

@@ -120,12 +120,12 @@ describe("GET /credit-cards", () => {
 			minimumPaymentAmount: "120.50",
 			currency: "BRL",
 		});
-		const tx = (id: string, amount: string, description: string, billId: string | null, category = "Shopping") =>
+		const tx = (id: string, amount: string, description: string, billId: string | null, category = "Shopping", date = "2026-11-15") =>
 			db.insert(pluggyTransactions).values({
 				pluggyItemId: item.id,
 				pluggyAccountId: account!.id,
 				pluggyTransactionId: id,
-				date: "2026-11-15",
+				date,
 				amount,
 				description,
 				category,
@@ -135,6 +135,8 @@ describe("GET /credit-cards", () => {
 		await tx("t-open-1", "100.10", "LOJA B", null);
 		await tx("t-open-2", "20.00", "LOJA C", null);
 		await tx("t-open-refund", "-10.00", "ESTORNO LOJA", null);
+		// Bought on the closing date itself: it goes to the next bill.
+		await tx("t-closing-day", "7.00", "LOJA NO FECHAMENTO", null, "Shopping", "2026-11-10");
 		await tx("t-payment", "-831.47", "Pagamento recebido", null, "Credit card payment");
 		// Saved before billId existed: still unbilled in the table, but from a bill that closed long ago.
 		await db.insert(pluggyTransactions).values({
@@ -167,11 +169,11 @@ describe("GET /credit-cards", () => {
 			totalAmount: 831.47,
 			minimumPaymentAmount: 120.5,
 		});
-		// 100,10 + 20,00 - 10,00 of refund; the card payment, the billed purchase and the
+		// 100,10 + 20,00 + 7,00 on the closing day - 10,00 of refund; the card payment, the billed purchase and the
 		// old row with no billId (before the closing date) stay out.
 		expect(card.openBill).toEqual({
-			estimatedTotal: 110.1,
-			transactionCount: 3,
+			estimatedTotal: 117.1,
+			transactionCount: 4,
 			estimatedClosingDate: "2026-12-10",
 			estimatedDueDate: "2026-12-17",
 			isEstimate: true,
