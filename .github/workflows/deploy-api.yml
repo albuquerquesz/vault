@@ -80,7 +80,8 @@ jobs:
           body=$(cat /tmp/wh.json)
           echo "HTTP $code $body"
           test "$code" = "200"
-          echo "$body" | grep -q '"handled"'
+          # The webhook answers at once with "accepted" and syncs after the response.
+          echo "$body" | grep -qE '"(accepted|handled)"'
 
       - name: Smoke-test remote MCP auth challenge
         run: |
