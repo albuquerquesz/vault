@@ -169,7 +169,7 @@ const transactionIdsInput = z.object({
 	ids: z.array(z.string().uuid()).min(1).max(100),
 });
 
-function getMonthBounds(month: string) {
+export function getMonthBounds(month: string) {
 	const start = `${month}-01`;
 	const endDate = new Date(`${month}-01T00:00:00.000Z`);
 	endDate.setUTCMonth(endDate.getUTCMonth() + 1);
@@ -240,7 +240,7 @@ type FinanceTransactionRecord = {
 	isHideable: boolean;
 };
 
-async function listFinanceTransactions(params: {
+export async function listFinanceTransactions(params: {
 	userId: string;
 	month: string;
 }) {
@@ -407,7 +407,7 @@ async function getPartialResultMetrics(params: {
 	};
 }
 
-async function getMonthlySpent(params: {
+export async function getMonthlySpent(params: {
 	userId: string;
 	start: string;
 	end: string;

@@ -22,6 +22,7 @@ export function PushSettings() {
 	const [summary, setSummary] = React.useState<SummarySettings>({
 		enabled: false,
 	});
+	const [pace, setPace] = React.useState<SummarySettings>({ enabled: false });
 	React.useEffect(() => {
 		void apiFetch<Config>("/api/push/config")
 			.then(setConfig)
@@ -31,6 +32,9 @@ export function PushSettings() {
 			.catch(() => {});
 		void apiFetch<SummarySettings>("/api/settings/push/daily-summary")
 			.then(setSummary)
+			.catch(() => {});
+		void apiFetch<SummarySettings>("/api/settings/push/pace-alerts")
+			.then(setPace)
 			.catch(() => {});
 	}, []);
 
@@ -123,6 +127,26 @@ export function PushSettings() {
 			setBusy(false);
 		}
 	}
+	async function savePace() {
+		setBusy(true);
+		setMessage("");
+		try {
+			const saved = await apiFetch<SummarySettings>(
+				"/api/settings/push/pace-alerts",
+				{ method: "PUT", body: pace },
+			);
+			setPace(saved);
+			setMessage(
+				saved.enabled
+					? "Alertas de ritmo de gasto ativados."
+					: "Alertas de ritmo de gasto desativados.",
+			);
+		} catch {
+			setMessage("Não foi possível salvar os alertas de ritmo.");
+		} finally {
+			setBusy(false);
+		}
+	}
 
 	return (
 		<section className="rounded-2xl border-0 bg-background/60 p-5 space-y-3">
@@ -202,6 +226,34 @@ export function PushSettings() {
 						onClick={() => void saveSummary()}
 					>
 						Salvar resumo
+					</Button>
+				</div>
+			) : null}
+			{enabled ? (
+				<div className="space-y-2 border-t border-border/70 pt-3">
+					<label className="flex items-center gap-2 text-sm">
+						<input
+							type="checkbox"
+							checked={pace.enabled}
+							onChange={(event) =>
+								setPace({ ...pace, enabled: event.target.checked })
+							}
+						/>
+						Alertas de ritmo de gasto e limites por categoria
+					</label>
+					{pace.enabled ? (
+						<p className="text-sm text-muted-foreground">
+							No máximo um aviso por dia, sem notificações entre 22h e 8h
+							(horário de Brasília).
+						</p>
+					) : null}
+					<Button
+						type="button"
+						variant="outline"
+						disabled={busy}
+						onClick={() => void savePace()}
+					>
+						Salvar alertas
 					</Button>
 				</div>
 			) : null}

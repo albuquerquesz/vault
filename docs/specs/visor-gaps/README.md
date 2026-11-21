@@ -13,7 +13,7 @@ Estimativa de esforço (minha, não medida): **S** um PR pequeno; **M** vários 
 | [05](05-regras-de-categoria.md) | Regras automáticas de categoria | M | nada | a rever |
 | [06](06-categorias-e-tags-proprias.md) | Categorias e tags próprias | S (categorias) / M (tags) | toca 02 e 05 ao renomear | a rever |
 | [07](07-contas-fixas-e-recorrentes.md) | Contas fixas, receitas recorrentes, financiamentos | M | usado pela 01 | implementada (API, MCP), sem financiamento |
-| [08](08-alerta-de-ritmo-de-gasto.md) | Alerta de ritmo de gasto | S-M | melhor com 02 | aprovada |
+| [08](08-alerta-de-ritmo-de-gasto.md) | Alerta de ritmo de gasto | S-M | melhor com 02 | implementada (API, push) |
 | [09](09-escopos-oauth-do-mcp.md) | Escopos OAuth por domínio no MCP | S-M | nenhuma; fazer antes das tools de escrita novas | implementada |
 | [10](10-graficos-no-mcp.md) | Gráficos pelo MCP | M | melhor com 01 e 02 | aprovada |
 | [11](11-busca-de-transacoes.md) | Busca e edição de transação manual | S | decidir `unaccent` | implementada (API, MCP) |

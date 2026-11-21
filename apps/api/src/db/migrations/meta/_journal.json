@@ -211,6 +211,13 @@
       "when": 1795289746893,
       "tag": "0029_installment_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1795293148720,
+      "tag": "0030_pace_alert",
+      "breakpoints": true
     }
   ]
 }

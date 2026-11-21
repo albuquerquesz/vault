@@ -11,6 +11,8 @@ export const pushSubscription = pgTable("push_subscription", {
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	lastTestAt: timestamp("last_test_at"),
 	lastDailySummaryDate: text("last_daily_summary_date"),
+	/** Day (`AAAA-MM-DD`, Brasília) of the last pace alert sent to this device. */
+	lastPaceAlertDate: text("last_pace_alert_date"),
 });
 
 export const pushSubscriptionRelations = relations(

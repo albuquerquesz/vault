@@ -1,6 +1,10 @@
 # Spec: alerta de ritmo de gasto
 
-Status (20/11/2026): Aprovada pelo Victor (20/11). Ainda não implementada.
+Status (21/11/2026): implementada (API e push; sem tool de MCP, a spec não pede). Aprovada pelo Victor (20/11).
+
+Decisões do Victor para a implementação: horário silencioso fixo de 22h às 8h (Brasília), sem push dentro dele; alerta de categoria aos 80% e aos 100% do limite mensal, um por categoria, limiar e mês.
+
+Como ficou: `services/pace-alert.ts` (funções puras) e `services/pace-alert-dispatch.ts` (envio). Preferência `paceAlertsEnabled` (desligada por padrão) em `GET/PUT /api/settings/push/pace-alerts`. Estado em `push_subscription.last_pace_alert_date` (um alerta por dia e por aparelho) e na tabela `category_alert_sent` (`user_id`, `month`, `category_key`, `threshold`, único); a migração é a `0030_pace_alert`. Ritmo e categorias devidos no mesmo dia vão num push só. O dia e o limiar são reservados antes do envio (um sync duplicado não duplica) e devolvidos se todo envio falhar de forma temporária. Disparos: fim do sync do webhook e do sync manual, e o cron. O cron das 01:00 UTC cai dentro do silêncio (22h em Brasília), então `wrangler.toml` ganhou um segundo cron às 11:00 UTC (8h) que só avalia alertas. Se uma categoria cruza o limiar num dia em que o alerta do dia já saiu, ele sai no dia seguinte. A URL do push é `/spending-goal`.
 
 Origem: lacuna #10. Formato `/to-spec`, sem entrevista. A home do Visor promete "te avisa quando algo merece atenção" e a FAQ, "te avisa quando você está gastando mais rápido do que deveria — antes de estourar".
 

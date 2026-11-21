@@ -4,8 +4,12 @@ process.env.CF_WORKER = "1";
 
 import { withRequestDb } from "./db/index.js";
 import { app } from "./hono/app.js";
+import { sendDuePaceAlerts } from "./services/pace-alert-dispatch.js";
 import { sendDueDailySummaries } from "./services/daily-summary.js";
 import { requestPluggyItemRefreshes } from "./services/pluggy-refresh.js";
+
+/** Morning run (11:00 UTC = 08:00 Brasília), right after the quiet hours end. */
+const PACE_ONLY_CRON = "0 11 * * *";
 
 type WorkerEnv = {
 	/** Hyperdrive binding to Neon; absent in environments without it. */
@@ -24,7 +28,7 @@ export default {
 		);
 	},
 	async scheduled(
-		_controller: ScheduledController,
+		controller: ScheduledController,
 		env: WorkerEnv,
 		ctx: ExecutionContext,
 	) {
@@ -39,7 +43,11 @@ export default {
 		ctx.waitUntil(
 			Promise.all([
 				guarded("daily summaries", sendDueDailySummaries),
-				guarded("pluggy item refresh", requestPluggyItemRefreshes),
+				guarded("pace alerts", sendDuePaceAlerts),
+				// The 08:00 Brasília run only evaluates alerts; the bank refresh stays daily.
+				...(controller.cron === PACE_ONLY_CRON
+					? []
+					: [guarded("pluggy item refresh", requestPluggyItemRefreshes)]),
 			]),
 		);
 	},

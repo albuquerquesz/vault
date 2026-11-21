@@ -14,6 +14,8 @@ export type UserSettings = {
 	monthlyIncome?: number | null;
 	incomeDay?: number | null;
 	dailySummaryEnabled?: boolean;
+	/** Push alert when spending pace or a category limit is at risk. Off until chosen. */
+	paceAlertsEnabled?: boolean;
 };
 
 export const user = pgTable("user", {
