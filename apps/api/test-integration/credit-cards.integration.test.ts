@@ -195,4 +195,38 @@ describe("GET /credit-cards", () => {
 		const item = bills.items.find((entry: { pluggyBillId: string }) => entry.pluggyBillId === "bill-1");
 		expect(item).toMatchObject({ dueDate: "2026-11-17", closingDate: "2026-11-10", minimumPaymentAmount: 120.5 });
 	});
+
+	test("pagamento feito dentro do ciclo conta como pago na fatura do mês", async () => {
+		const item = await seedItem();
+		const [account] = await db
+			.insert(pluggyAccounts)
+			.values({ pluggyItemId: item.id, pluggyAccountId: "pa-mp", type: "CREDIT", subtype: "CREDIT_CARD", name: "Mercado Pago" })
+			.returning();
+		await db.insert(pluggyBills).values({
+			pluggyAccountId: account!.id,
+			pluggyBillId: "bill-mp",
+			dueDate: new Date("2026-11-17T00:00:00Z"),
+			billClosingDate: new Date("2026-11-12T00:00:00Z"),
+			// The bank only asks for what was left after a R$ 200 payment in the cycle.
+			totalAmount: "167.70",
+			paidAmount: "0",
+			currency: "BRL",
+		});
+		for (const [id, amount] of [["p1", "300.00"], ["p2", "67.70"]] as const)
+			await db.insert(pluggyTransactions).values({
+				pluggyItemId: item.id,
+				pluggyAccountId: account!.id,
+				pluggyTransactionId: id,
+				date: "2026-11-05",
+				amount,
+				description: `COMPRA ${id}`,
+				category: "Shopping",
+				pluggyBillId: "bill-mp",
+			});
+		await materializeMonthlyBillsFromPluggy({ userId: TEST_USER_ID });
+
+		const bills = (await api("GET", "/monthly-bills?month=2026-11")).json;
+		const mp = bills.items.find((entry: { pluggyBillId: string }) => entry.pluggyBillId === "bill-mp");
+		expect(mp).toMatchObject({ totalAmount: 367.7, paidAmount: 200, paidSource: "bank" });
+	});
 });
