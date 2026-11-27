@@ -85,6 +85,13 @@ export interface FinanceMonthlyBillItem {
 	name: string;
 	paidAmount: number;
 	totalAmount: number;
+	/** Pluggy bill id; null when the item has no bank bill behind it. */
+	pluggyBillId?: string | null;
+	dueDate?: string | null;
+	closingDate?: string | null;
+	minimumPaymentAmount?: number | null;
+	/** Where `paidAmount` comes from: the bank, or a manual mark. */
+	paidSource?: "bank" | "manual" | null;
 	sortOrder: number;
 	createdAt: Date;
 	updatedAt: Date;
@@ -113,6 +120,8 @@ export interface Goal {
 	targetAmount: number;
 	currentAmount: number;
 	isCompleted: boolean;
+	/** Optional deadline, `AAAA-MM-DD`. */
+	targetDate?: string | null;
 	currency: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -143,6 +152,7 @@ export interface CreateGoalInput {
 	targetAmount: number;
 	currentAmount?: number;
 	url?: string | null;
+	targetDate?: string | null;
 }
 
 export interface UpdateGoalInput {
@@ -152,6 +162,7 @@ export interface UpdateGoalInput {
 	currentAmount?: number;
 	isCompleted?: boolean;
 	url?: string | null;
+	targetDate?: string | null;
 }
 
 export interface SavingsTarget {

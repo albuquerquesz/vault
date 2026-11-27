@@ -18,6 +18,11 @@ export type CreditCardListItem = {
 	paidAmount: number;
 	/** Invoice total for the selected month. */
 	totalAmount: number;
+	/** Pluggy bill id, needed to mark the bill as paid by hand. */
+	pluggyBillId: string | null;
+	/** Where `paidAmount` comes from: the bank or a manual mark. */
+	paidSource: "bank" | "manual" | null;
+	dueDate: string | null;
 };
 
 const GENERIC_ITEM_PROVIDER = /^(meu\s*pluggy|unknown institution|pluggy)$/i;
@@ -139,6 +144,9 @@ export function useMonthlyBillCard(month?: string) {
 							: null,
 					paidAmount: item.paidAmount,
 					totalAmount: item.totalAmount,
+					pluggyBillId: item.pluggyBillId ?? null,
+					paidSource: item.paidSource ?? null,
+					dueDate: item.dueDate ?? null,
 				};
 			})
 			.sort((left, right) => right.totalAmount - left.totalAmount);

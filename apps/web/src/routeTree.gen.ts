@@ -12,9 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SpendingGoalRouteImport } from './routes/spending-goal'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RecurringRouteImport } from './routes/recurring'
 import { Route as ProjectionRouteImport } from './routes/projection'
 import { Route as PluggyRouteImport } from './routes/pluggy'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InvestmentsRouteImport } from './routes/investments'
+import { Route as GoalsRouteImport } from './routes/goals'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as IndexRouteImport } from './routes/index'
@@ -39,6 +42,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecurringRoute = RecurringRouteImport.update({
+  id: '/recurring',
+  path: '/recurring',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectionRoute = ProjectionRouteImport.update({
   id: '/projection',
   path: '/projection',
@@ -52,6 +60,16 @@ const PluggyRoute = PluggyRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvestmentsRoute = InvestmentsRouteImport.update({
+  id: '/investments',
+  path: '/investments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoalsRoute = GoalsRouteImport.update({
+  id: '/goals',
+  path: '/goals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesRoute = CategoriesRouteImport.update({
@@ -100,9 +118,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
   '/categories': typeof CategoriesRoute
+  '/goals': typeof GoalsRoute
+  '/investments': typeof InvestmentsRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/projection': typeof ProjectionRoute
+  '/recurring': typeof RecurringRoute
   '/settings': typeof SettingsRoute
   '/spending-goal': typeof SpendingGoalRoute
   '/transactions': typeof TransactionsRouteWithChildren
@@ -116,9 +137,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
   '/categories': typeof CategoriesRoute
+  '/goals': typeof GoalsRoute
+  '/investments': typeof InvestmentsRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/projection': typeof ProjectionRoute
+  '/recurring': typeof RecurringRoute
   '/settings': typeof SettingsRoute
   '/spending-goal': typeof SpendingGoalRoute
   '/auth/error': typeof AuthErrorRoute
@@ -132,9 +156,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
   '/categories': typeof CategoriesRoute
+  '/goals': typeof GoalsRoute
+  '/investments': typeof InvestmentsRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
   '/projection': typeof ProjectionRoute
+  '/recurring': typeof RecurringRoute
   '/settings': typeof SettingsRoute
   '/spending-goal': typeof SpendingGoalRoute
   '/transactions': typeof TransactionsRouteWithChildren
@@ -150,9 +177,12 @@ export interface FileRouteTypes {
     | '/'
     | '/cards'
     | '/categories'
+    | '/goals'
+    | '/investments'
     | '/login'
     | '/pluggy'
     | '/projection'
+    | '/recurring'
     | '/settings'
     | '/spending-goal'
     | '/transactions'
@@ -166,9 +196,12 @@ export interface FileRouteTypes {
     | '/'
     | '/cards'
     | '/categories'
+    | '/goals'
+    | '/investments'
     | '/login'
     | '/pluggy'
     | '/projection'
+    | '/recurring'
     | '/settings'
     | '/spending-goal'
     | '/auth/error'
@@ -181,9 +214,12 @@ export interface FileRouteTypes {
     | '/'
     | '/cards'
     | '/categories'
+    | '/goals'
+    | '/investments'
     | '/login'
     | '/pluggy'
     | '/projection'
+    | '/recurring'
     | '/settings'
     | '/spending-goal'
     | '/transactions'
@@ -198,9 +234,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CardsRoute: typeof CardsRoute
   CategoriesRoute: typeof CategoriesRoute
+  GoalsRoute: typeof GoalsRoute
+  InvestmentsRoute: typeof InvestmentsRoute
   LoginRoute: typeof LoginRoute
   PluggyRoute: typeof PluggyRoute
   ProjectionRoute: typeof ProjectionRoute
+  RecurringRoute: typeof RecurringRoute
   SettingsRoute: typeof SettingsRoute
   SpendingGoalRoute: typeof SpendingGoalRoute
   TransactionsRoute: typeof TransactionsRouteWithChildren
@@ -232,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recurring': {
+      id: '/recurring'
+      path: '/recurring'
+      fullPath: '/recurring'
+      preLoaderRoute: typeof RecurringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projection': {
       id: '/projection'
       path: '/projection'
@@ -251,6 +297,20 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/investments': {
+      id: '/investments'
+      path: '/investments'
+      fullPath: '/investments'
+      preLoaderRoute: typeof InvestmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goals': {
+      id: '/goals'
+      path: '/goals'
+      fullPath: '/goals'
+      preLoaderRoute: typeof GoalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories': {
@@ -330,9 +390,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CardsRoute: CardsRoute,
   CategoriesRoute: CategoriesRoute,
+  GoalsRoute: GoalsRoute,
+  InvestmentsRoute: InvestmentsRoute,
   LoginRoute: LoginRoute,
   PluggyRoute: PluggyRoute,
   ProjectionRoute: ProjectionRoute,
+  RecurringRoute: RecurringRoute,
   SettingsRoute: SettingsRoute,
   SpendingGoalRoute: SpendingGoalRoute,
   TransactionsRoute: TransactionsRouteWithChildren,

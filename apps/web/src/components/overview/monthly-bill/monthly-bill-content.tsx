@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { InstitutionMark } from "@/components/institution-mark";
 import { MaskedMonetaryValue } from "@/components/monetary-visibility";
 import { OverviewOverflowPanel } from "@/components/overview/shared/overview-overflow-panel";
@@ -17,6 +18,9 @@ export type MonthlyBillItem = {
 	availableAmount?: number | null;
 	paidAmount: number;
 	totalAmount: number;
+	pluggyBillId?: string | null;
+	paidSource?: "bank" | "manual" | null;
+	dueDate?: string | null;
 };
 
 function getPaymentStatus(paidAmount: number, totalAmount: number) {
@@ -41,7 +45,13 @@ function getPaymentStatus(paidAmount: number, totalAmount: number) {
 	};
 }
 
-export function MonthlyBillTile({ item }: { item: MonthlyBillItem }) {
+export function MonthlyBillTile({
+	item,
+	actions,
+}: {
+	item: MonthlyBillItem;
+	actions?: ReactNode;
+}) {
 	const status = getPaymentStatus(item.paidAmount, item.totalAmount);
 
 	return (
@@ -100,19 +110,36 @@ export function MonthlyBillTile({ item }: { item: MonthlyBillItem }) {
 					</p>
 				) : null}
 			</div>
+			{item.paidSource === "manual" ? (
+				<p className="text-xs text-muted-foreground">
+					Marcada como paga por você. O banco ainda não informou o pagamento.
+				</p>
+			) : null}
+			{item.dueDate ? (
+				<p className="text-xs text-muted-foreground">
+					Vence em {item.dueDate.split("-").reverse().slice(0, 2).join("/")}
+				</p>
+			) : null}
+			{actions}
 		</article>
 	);
 }
 
 export function MonthlyBillList({
 	items,
+	renderActions,
 }: {
 	items: MonthlyBillItem[];
+	renderActions?: (item: MonthlyBillItem) => ReactNode;
 }) {
 	return (
 		<div className="flex flex-col gap-3">
 			{items.map((item) => (
-				<MonthlyBillTile key={item.id ?? item.name} item={item} />
+				<MonthlyBillTile
+					actions={renderActions?.(item)}
+					key={item.id ?? item.name}
+					item={item}
+				/>
 			))}
 		</div>
 	);
