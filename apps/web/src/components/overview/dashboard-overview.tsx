@@ -5,6 +5,7 @@ import { GoalsCard } from "@/components/overview/goals/goals-card";
 import { useDashboardOverview } from "@/components/overview/hooks/use-dashboard-overview";
 import { MonthlyBillCard } from "@/components/overview/monthly-bill/monthly-bill-card";
 import { OrderSourceMixCard } from "@/components/overview/order-source-mix/order-source-mix-card";
+import { SpendingRoomCard } from "@/components/overview/spending-room-card";
 import { DashboardSummary } from "./dashboard-summary";
 
 export function DashboardOverview() {
@@ -12,6 +13,7 @@ export function DashboardOverview() {
 		useDashboardOverview();
 	return (
 		<div className="grid min-w-0 gap-6 py-4 sm:py-6">
+			<SpendingRoomCard month={selectedMonth} />
 			<DashboardSummary
 				month={selectedMonth}
 				monthOptions={monthOptions}

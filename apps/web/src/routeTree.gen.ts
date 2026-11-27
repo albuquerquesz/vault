@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SpendingGoalRouteImport } from './routes/spending-goal'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProjectionRouteImport } from './routes/projection'
 import { Route as PluggyRouteImport } from './routes/pluggy'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TransactionsIndexRouteImport } from './routes/transactions.index'
@@ -37,6 +39,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectionRoute = ProjectionRouteImport.update({
+  id: '/projection',
+  path: '/projection',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PluggyRoute = PluggyRouteImport.update({
   id: '/pluggy',
   path: '/pluggy',
@@ -45,6 +52,11 @@ const PluggyRoute = PluggyRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CardsRoute = CardsRouteImport.update({
@@ -87,8 +99,10 @@ const AuthErrorRoute = AuthErrorRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
+  '/categories': typeof CategoriesRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
+  '/projection': typeof ProjectionRoute
   '/settings': typeof SettingsRoute
   '/spending-goal': typeof SpendingGoalRoute
   '/transactions': typeof TransactionsRouteWithChildren
@@ -101,8 +115,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
+  '/categories': typeof CategoriesRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
+  '/projection': typeof ProjectionRoute
   '/settings': typeof SettingsRoute
   '/spending-goal': typeof SpendingGoalRoute
   '/auth/error': typeof AuthErrorRoute
@@ -115,8 +131,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
+  '/categories': typeof CategoriesRoute
   '/login': typeof LoginRoute
   '/pluggy': typeof PluggyRoute
+  '/projection': typeof ProjectionRoute
   '/settings': typeof SettingsRoute
   '/spending-goal': typeof SpendingGoalRoute
   '/transactions': typeof TransactionsRouteWithChildren
@@ -131,8 +149,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cards'
+    | '/categories'
     | '/login'
     | '/pluggy'
+    | '/projection'
     | '/settings'
     | '/spending-goal'
     | '/transactions'
@@ -145,8 +165,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/cards'
+    | '/categories'
     | '/login'
     | '/pluggy'
+    | '/projection'
     | '/settings'
     | '/spending-goal'
     | '/auth/error'
@@ -158,8 +180,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/cards'
+    | '/categories'
     | '/login'
     | '/pluggy'
+    | '/projection'
     | '/settings'
     | '/spending-goal'
     | '/transactions'
@@ -173,8 +197,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CardsRoute: typeof CardsRoute
+  CategoriesRoute: typeof CategoriesRoute
   LoginRoute: typeof LoginRoute
   PluggyRoute: typeof PluggyRoute
+  ProjectionRoute: typeof ProjectionRoute
   SettingsRoute: typeof SettingsRoute
   SpendingGoalRoute: typeof SpendingGoalRoute
   TransactionsRoute: typeof TransactionsRouteWithChildren
@@ -206,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projection': {
+      id: '/projection'
+      path: '/projection'
+      fullPath: '/projection'
+      preLoaderRoute: typeof ProjectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pluggy': {
       id: '/pluggy'
       path: '/pluggy'
@@ -218,6 +251,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cards': {
@@ -289,8 +329,10 @@ const TransactionsRouteWithChildren = TransactionsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CardsRoute: CardsRoute,
+  CategoriesRoute: CategoriesRoute,
   LoginRoute: LoginRoute,
   PluggyRoute: PluggyRoute,
+  ProjectionRoute: ProjectionRoute,
   SettingsRoute: SettingsRoute,
   SpendingGoalRoute: SpendingGoalRoute,
   TransactionsRoute: TransactionsRouteWithChildren,
