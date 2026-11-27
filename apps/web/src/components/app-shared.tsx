@@ -1,5 +1,11 @@
 import { useLocation } from "@tanstack/react-router";
-import { CreditCardIcon, Settings2Icon, TargetIcon } from "lucide-react";
+import {
+	CreditCardIcon,
+	Settings2Icon,
+	TagsIcon,
+	TargetIcon,
+	TrendingUpIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import {
 	AnimatedSidebarChartColumnIncreasingIcon,
@@ -29,6 +35,14 @@ const PRIMARY_NAV_SURFACES: AppNavSurface[] = [
 	"mobile-tab-bar",
 ];
 
+/** Sidebar and breadcrumbs only: reachable on mobile through the "Mais" sheet. */
+const SECONDARY_NAV_SURFACES: AppNavSurface[] = ["sidebar", "breadcrumbs"];
+
+/**
+ * Single list of app screens. The sidebar and the mobile "Mais" sheet show all
+ * of it; the mobile tab bar shows only the items marked "mobile-tab-bar".
+ * New screens: add one entry here.
+ */
 const navItemsStatic: SidebarNavItem[] = [
 	{
 		title: "Visão Geral",
@@ -43,17 +57,29 @@ const navItemsStatic: SidebarNavItem[] = [
 		surfaces: PRIMARY_NAV_SURFACES,
 	},
 	{
+		title: "Projeção",
+		path: "/projection",
+		icon: <TrendingUpIcon className="size-5" />,
+		surfaces: PRIMARY_NAV_SURFACES,
+	},
+	{
+		title: "Categorias",
+		path: "/categories",
+		icon: <TagsIcon className="size-5" />,
+		surfaces: SECONDARY_NAV_SURFACES,
+	},
+	{
 		title: "Cartões",
 		path: "/cards",
 		icon: <CreditCardIcon className="size-5" />,
-		surfaces: ["sidebar", "breadcrumbs"],
+		surfaces: SECONDARY_NAV_SURFACES,
 	},
 	{
 		title: "Meta de gastos",
 		mobileTitle: "Meta",
 		path: "/spending-goal",
 		icon: <TargetIcon className="size-5" />,
-		surfaces: PRIMARY_NAV_SURFACES,
+		surfaces: SECONDARY_NAV_SURFACES,
 	},
 ];
 
@@ -86,6 +112,16 @@ export function useMobileTabBarLinks(): SidebarNavItem[] {
 	return useNavLinks().filter((item) =>
 		item.surfaces?.includes("mobile-tab-bar"),
 	);
+}
+
+/** Everything the "Mais" sheet lists on mobile: all screens plus settings. */
+export function useMobileMoreLinks(): SidebarNavItem[] {
+	const activePath = useActivePath();
+	const settings = breadcrumbOnlyPages.map((item) => ({
+		...item,
+		isActive: activePath.startsWith(item.path ?? "\0"),
+	}));
+	return [...useNavLinks(), ...settings];
 }
 
 /** Active page for header breadcrumbs (sidebar + breadcrumb-only routes). */
