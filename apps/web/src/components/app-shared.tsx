@@ -1,6 +1,9 @@
 import { useLocation } from "@tanstack/react-router";
 import {
 	CreditCardIcon,
+	FlagIcon,
+	LandmarkIcon,
+	RepeatIcon,
 	Settings2Icon,
 	TagsIcon,
 	TargetIcon,
@@ -60,18 +63,36 @@ const navItemsStatic: SidebarNavItem[] = [
 		title: "Projeção",
 		path: "/projection",
 		icon: <TrendingUpIcon className="size-5" />,
-		surfaces: PRIMARY_NAV_SURFACES,
+		surfaces: SECONDARY_NAV_SURFACES,
 	},
 	{
-		title: "Categorias",
-		path: "/categories",
-		icon: <TagsIcon className="size-5" />,
+		title: "Recorrências",
+		path: "/recurring",
+		icon: <RepeatIcon className="size-5" />,
 		surfaces: SECONDARY_NAV_SURFACES,
 	},
 	{
 		title: "Cartões",
 		path: "/cards",
 		icon: <CreditCardIcon className="size-5" />,
+		surfaces: PRIMARY_NAV_SURFACES,
+	},
+	{
+		title: "Metas",
+		path: "/goals",
+		icon: <FlagIcon className="size-5" />,
+		surfaces: SECONDARY_NAV_SURFACES,
+	},
+	{
+		title: "Patrimônio",
+		path: "/investments",
+		icon: <LandmarkIcon className="size-5" />,
+		surfaces: SECONDARY_NAV_SURFACES,
+	},
+	{
+		title: "Categorias",
+		path: "/categories",
+		icon: <TagsIcon className="size-5" />,
 		surfaces: SECONDARY_NAV_SURFACES,
 	},
 	{
